@@ -68,7 +68,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_exit_flota = QtWidgets.QPushButton(self.widget_flota_header)
         self.button_exit_flota.setGeometry(QtCore.QRect(self.width-40-10, 5, 40, 40))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("undo_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("icons/undo_white.png"), QIcon.Normal, QIcon.Off)
         self.button_exit_flota.setIcon(icon)
         self.button_exit_flota.setIconSize(QtCore.QSize(30, 30))
         self.button_exit_flota.setObjectName("button_exit_flota")
