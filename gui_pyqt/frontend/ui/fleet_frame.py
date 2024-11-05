@@ -1,8 +1,8 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QMessageBox, QFrame, QLineEdit, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
-from PyQt5.QtCore import Qt, QAbstractItemModel
-from ui.EditFrame import EditFrame
+from PyQt5.QtCore import Qt
+from frontend.ui.EditFrame import EditFrame
 
 class FleetFrame(QtWidgets.QFrame):
     def __init__(self, parent=None):

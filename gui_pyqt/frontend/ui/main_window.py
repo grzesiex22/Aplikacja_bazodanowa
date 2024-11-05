@@ -1,11 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer, QDateTime, Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel
-from PyQt5.QtGui import QResizeEvent
-from ui.fleet_frame import FleetFrame
-import sys
-import win32gui
-import win32con
+from PyQt5.QtWidgets import QMainWindow
+from frontend.ui.fleet_frame import FleetFrame
 
 
 class MainWindow(QMainWindow):
