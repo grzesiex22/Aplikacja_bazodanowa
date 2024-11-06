@@ -1,12 +1,23 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit
+from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
 from PyQt5.QtCore import Qt
 from frontend.ui.EditFrame import EditFrame
+from enum import Enum, auto
+
+class ScreenType(Enum):
+    CIAGNIKI = 1
+    NACZEPY = 2
+    KIEROWCY = 3
+
+
 
 class FleetFrame(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(FleetFrame, self).__init__(parent)
+
+        # początkowy ekran floty
+        self.screen_type = ScreenType.CIAGNIKI
 
         # Ustawienie rozmiaru floty
         self.width = 0
@@ -156,13 +167,13 @@ class FleetFrame(QtWidgets.QFrame):
             }
 
             QScrollBar::up-arrow:vertical {
-                image: url(angle-up.png);                 
+                image: url(icons/angle-up.png);                 
                 subcontrol-origin: margin; 
                 subcontrol-position: top; 
                 margin: 46px 3px 0px 8px; /* top right bottom left */
             }
             QScrollBar::down-arrow:vertical {
-                image: url(angle-down.png);                 
+                image: url(icons/angle-down.png);                 
                 subcontrol-origin: margin; 
                 subcontrol-position: bottom; 
                 margin: 0px 3px 5px 8px; /* top right bottom left */
@@ -203,13 +214,13 @@ class FleetFrame(QtWidgets.QFrame):
                 border-radius: 8px;
             }
             QScrollBar::left-arrow:horizontal {
-                image: url(angle-left.png);
+                image: url(icons/angle-left.png);
                 subcontrol-origin: margin;
                 subcontrol-position: left;
                 margin: 8px 0px 3px 46px; /* top right bottom left */
             }
             QScrollBar::right-arrow:horizontal {
-                image: url(angle-right.png);
+                image: url(icons/angle-right.png);
                 subcontrol-origin: margin;
                 subcontrol-position: right;
                 margin: 8px 5px 3px 0px; /* top right bottom left */
@@ -307,50 +318,10 @@ class FleetFrame(QtWidgets.QFrame):
         """
         Przyciski
         """
-        self.widget_choice_buttons = QtWidgets.QWidget(self)
-        self.widget_choice_buttons.setGeometry(QtCore.QRect(self.width/2-700/2, 70, 700, 60))
-        self.widget_choice_buttons.setObjectName("widget_choice_buttons")
-        self.widget_choice_buttons.setStyleSheet("""
-            QPushButton {
-                color: #5d5d5d;
-                background-color: #b9bece; /* Ustawia przezroczyste tło */
-                border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
-                border-radius: 15px; /* Zaokrąglone rogi ramki */
-                padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
-                font-size: 20px;  /* Rozmiar czcionki */
-                font-family: Arial, sans-serif;  /* Czcionka */
-            }            
-            QPushButton:hover {
-                background-color: #a2a6b4; /* Ustawia kolor tła po najechaniu */
-            }            
-            QPushButton:pressed {
-                background-color: #8a8e9a;  /* Kolor tła po kliknięciu */
-            }            
-            QPushButton:disabled {
-                background-color: #bdc3c7;  /* Kolor tła dla nieaktywnych przycisków */
-                color: #7f8c8d;  /* Kolor tekstu dla nieaktywnych przycisków */
-                border: 2px solid #95a5a6;  /* Obramowanie dla nieaktywnych przycisków
-            """)
-
-        self.button_flota_ciagniki = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_flota_ciagniki.setGeometry(QtCore.QRect(0, 0, 220, 60))
-        self.button_flota_ciagniki.setText("Ciągniki siodłowe")
-        self.button_flota_ciagniki.setObjectName("button_flota_ciagniki")
-
-        self.button_flota_naczepy = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_flota_naczepy.setGeometry(QtCore.QRect(240, 0, 220, 60))
-        self.button_flota_naczepy.setText("Naczepy ciężarowe")
-        self.button_flota_naczepy.setObjectName("button_flota_naczepy")
-
-        self.button_flota_kierowcy = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_flota_kierowcy.setGeometry(QtCore.QRect(480, 0, 220, 60))
-        self.button_flota_kierowcy.setText("Kierowcy")
-        self.button_flota_kierowcy.setObjectName("button_flota_kierowcy")
-
         self.button_flota_dodaj = QtWidgets.QPushButton(self)
         self.button_flota_dodaj.setGeometry(QtCore.QRect(
-            table_fleet_side_margin+table_fleet_width/2-500/2,
-            table_fleet_top_margin+table_fleet_height+20,   500,    60))
+            table_fleet_side_margin + table_fleet_width / 2 - 500 / 2,
+            table_fleet_top_margin + table_fleet_height + 20, 500, 60))
         self.button_flota_dodaj.setText("DODAJ")
         self.button_flota_dodaj.setStyleSheet("QPushButton {"
                                               "     color: #5d5d5d;"
@@ -370,12 +341,85 @@ class FleetFrame(QtWidgets.QFrame):
                                               "}")
         self.button_flota_dodaj.setObjectName("button_flota_dodaj")
 
+        self.widget_choice_buttons = QtWidgets.QWidget(self)
+        self.widget_choice_buttons.setGeometry(QtCore.QRect(self.width/2-800/2, 70, 800, 60))
+        self.widget_choice_buttons.setObjectName("widget_choice_buttons")
+        self.widget_choice_buttons.setStyleSheet("""
+            QPushButton {
+                height: 60px;
+                color: #5d5d5d;
+                background-color: #B0C4DE; /* Ustawia przezroczyste tło */
+                border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
+                border-radius: 15px; /* Zaokrąglone rogi ramki */
+                padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
+                font-size: 20px;  /* Rozmiar czcionki */
+                font-family: Arial, sans-serif;  /* Czcionka */
+            }
+            QPushButton:hover {
+                background-color: #93a5ba; /* Ustawia kolor tła po najechaniu */
+            }
+            QPushButton:pressed {
+                background-color: #768495;  /* Kolor tła po kliknięciu */
+            }
+            QPushButton:checked {
+                background-color: #77b7dc;  /* Kolor przycisku w stanie 'selected' */
+                color: white;  /* Zmiana koloru tekstu w stanie 'selected' */
+            }
+            QPushButton:disabled {
+                background-color: #bdc3c7;  /* Kolor tła dla nieaktywnych przycisków */
+                color: #7f8c8d;  /* Kolor tekstu dla nieaktywnych przycisków */
+                border: 2px solid #95a5a6;  /* Obramowanie dla nieaktywnych przycisków
+            """)
+
+        # Położenie Poziome dla przycisków
+        self.horizontalLayout_buttons = QtWidgets.QHBoxLayout(self.widget_choice_buttons)
+        self.horizontalLayout_buttons.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_buttons.setSpacing(20)  # Ustawia odstęp między przyciskami na 20 pikseli
+        self.horizontalLayout_buttons.setObjectName("horizontalLayout")
+
+        self.button_flota_ciagniki = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_flota_ciagniki.setText("Ciągniki siodłowe")
+        self.button_flota_ciagniki.setObjectName("button_flota_ciagniki")
+        self.button_flota_ciagniki.setCheckable(True)
+
+        self.button_flota_naczepy = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_flota_naczepy.setText("Naczepy ciężarowe")
+        self.button_flota_naczepy.setObjectName("button_flota_naczepy")
+        self.button_flota_naczepy.setCheckable(True)
+
+        self.button_flota_kierowcy = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_flota_kierowcy.setText("Kierowcy")
+        self.button_flota_kierowcy.setObjectName("button_flota_kierowcy")
+        self.button_flota_kierowcy.setCheckable(True)
+
+        self.horizontalLayout_buttons.addWidget(self.button_flota_ciagniki)
+        self.horizontalLayout_buttons.addWidget(self.button_flota_naczepy)
+        self.horizontalLayout_buttons.addWidget(self.button_flota_kierowcy)
+
+        # Dodanie przycisków do grupy
+        self.button_group = QButtonGroup(self)
+        self.button_group.addButton(self.button_flota_ciagniki, ScreenType.CIAGNIKI.value)
+        self.button_group.addButton(self.button_flota_naczepy, ScreenType.NACZEPY.value)
+        self.button_group.addButton(self.button_flota_kierowcy, ScreenType.KIEROWCY.value)
+
+        # Podłączenie sygnału dla grupy przycisków
+        self.button_group.buttonClicked[int].connect(self.update_screen_type)
+
+        # Ustawienie stylów przycisków i początkowego stanu
+        self.button_flota_ciagniki.setChecked(True)
+        self.update_screen_type(ScreenType.CIAGNIKI.value)  # Ustawienie początkowej wartości zmiennej
+
+
+    def update_screen_type(self, screen_value):
+        # Zmiana wartości zmiennej na podstawie ID przycisku
+        self.screen_type = ScreenType(screen_value)
+        print(f"Aktualna wartość zmiennej: {self.screen_type.name}")
 
 
     def on_table_double_click(self, index):
         row = index.row()  # Indeks wiersza
         # Utworzenie nowego obiektu EditFrame
-        self.edit_frame = EditFrame(self.model, row, self)
+        self.edit_frame = EditFrame(self.model, row, self, "Edycja floty")
         self.edit_frame.show()
 
     def save_changes(self, row):
@@ -419,5 +463,4 @@ class FleetFrame(QtWidgets.QFrame):
         self.animation.start()
         self.animation.finished.connect(self.hide)  # Ukryj po zakończeniu animacji
         self.setEnabled(False)
-
 

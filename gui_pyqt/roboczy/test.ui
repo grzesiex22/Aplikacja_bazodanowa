@@ -316,7 +316,7 @@ QPushButton:disabled {
 
 QPushButton {
 	color: #5d5d5d;
-    background-color: #b9bece; /* Ustawia przezroczyste tło */
+    background-color: #B0C4DE; /* Ustawia przezroczyste tło */
     border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
     border-radius: 15px; /* Zaokrąglone rogi ramki */
     padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
@@ -492,55 +492,6 @@ QPushButton:pressed {
       <string>DODAJ</string>
      </property>
     </widget>
-    <widget class="QWidget" name="widget_choice_buttons" native="true">
-     <property name="geometry">
-      <rect>
-       <x>50</x>
-       <y>70</y>
-       <width>701</width>
-       <height>60</height>
-      </rect>
-     </property>
-     <widget class="QPushButton" name="button_flota_ciagniki">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>220</width>
-        <height>60</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Ciągniki siodłowe</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_flota_kierowcy">
-      <property name="geometry">
-       <rect>
-        <x>480</x>
-        <y>0</y>
-        <width>220</width>
-        <height>60</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Kierowcy</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_flota_naczepy">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>0</y>
-        <width>220</width>
-        <height>60</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Naczepy ciężarowe</string>
-      </property>
-     </widget>
-    </widget>
     <widget class="QFrame" name="frame_edit">
      <property name="geometry">
       <rect>
@@ -551,7 +502,10 @@ QPushButton:pressed {
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">QPushButton {
+      <string notr="true">QFrame {
+	background-color: #e6d9c3;
+}
+QPushButton {
 	color: #5d5d5d;
     background-color: #b9bece; /* Ustawia przezroczyste tło */
     border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
@@ -687,6 +641,12 @@ QPushButton:pressed {
         <height>30</height>
        </rect>
       </property>
+      <property name="styleSheet">
+       <string notr="true">QWidget {
+	background: #cfb796;
+	border-radius: 10px;
+} </string>
+      </property>
       <widget class="QLabel" name="label_frame_edit">
        <property name="geometry">
         <rect>
@@ -785,6 +745,39 @@ QPushButton:pressed {
        <string>Usuń</string>
       </property>
      </widget>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>60</y>
+       <width>751</width>
+       <height>80</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="button_flota_kierowcy">
+        <property name="text">
+         <string>Kierowcy</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_flota_naczepy">
+        <property name="text">
+         <string>Naczepy ciężarowe</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_flota_ciagniki">
+        <property name="text">
+         <string>Ciągniki siodłowe</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </widget>
    <widget class="QWidget" name="widget_system" native="true">

@@ -252,53 +252,160 @@ class Ui_MainWindow(object):
 "\n"
 "}")
         self.button_flota_dodaj.setObjectName("button_flota_dodaj")
-        self.scrollArea = QtWidgets.QScrollArea(self.frame_flota)
-        self.scrollArea.setGeometry(QtCore.QRect(10, 220, 241, 251))
-        self.scrollArea.setStyleSheet("            QAbstractScrollArea { \n"
-"                background-color: #dff0ef; \n"
-"                border: 2px solid #accccb; \n"
-"                border-radius: 15px; \n"
-"                margin: 1px;\n"
-"            }\n"
-"            QScrollBar:vertical {\n"
-"                border: 2px solid #b9dcdb;\n"
-"                background: #b9dcdb;\n"
-"                border-radius: 15px;\n"
-"                width: 20px;\n"
-"                margin: 22px 0 22px 1px;\n"
-"            }\n"
-"            QScrollBar::handle:vertical {\n"
-"                background: #b9dcdb;\n"
-"                \n"
-"                border-radius: 10px;\n"
-"            }\n"
-"           QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {\n"
-"                background: #accccb;\n"
-"            }\n"
-"            # QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {\n"
-"            #     background: #accccb;\n"
-"            #     width: 10px;\n"
-"            #     height: 10px;\n"
-"            # }")
-        self.scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setObjectName("scrollArea")
+        self.frame_edit = QtWidgets.QFrame(self.frame_flota)
+        self.frame_edit.setGeometry(QtCore.QRect(230, 250, 461, 421))
+        self.frame_edit.setStyleSheet("QFrame {\n"
+"    background-color: #e6d9c3;\n"
+"}\n"
+"QPushButton {\n"
+"    color: #5d5d5d;\n"
+"    background-color: #b9bece; /* Ustawia przezroczyste tło */\n"
+"    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */\n"
+"    border-radius: 10px; /* Zaokrąglone rogi ramki */\n"
+"    padding: 5px; /* Wewnętrzne odstępy, opcjonalne */\n"
+"    font-size: 14px;  /* Rozmiar czcionki */\n"
+"    font-family: Arial, sans-serif;  /* Czcionka */\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: #a2a6b4; /* Ustawia kolor tła po najechaniu */\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"    background-color: #8a8e9a;  /* Kolor tła po kliknięciu */\n"
+"}\n"
+"\n"
+"QPushButton:disabled {\n"
+"    background-color: #bdc3c7;  /* Kolor tła dla nieaktywnych przycisków */\n"
+"    color: #7f8c8d;  /* Kolor tekstu dla nieaktywnych przycisków */\n"
+"    border: 2px solid #95a5a6;  /* Obramowanie dla nieaktywnych przycisków */\n"
+"}\n"
+"\n"
+"QLabel {\n"
+"    color: #5d5d5d;  /* Kolor tekstu dla etykiet (przykład: pomarańczowy) */\n"
+"    background-color: transparent;  /* Przezroczyste tło dla etykiet */\n"
+"    border: none;  /* Brak ramki dla etykiet */\n"
+"}")
+        self.frame_edit.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_edit.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_edit.setObjectName("frame_edit")
+        self.scrollArea_frame_edit = QtWidgets.QScrollArea(self.frame_edit)
+        self.scrollArea_frame_edit.setGeometry(QtCore.QRect(10, 50, 441, 311))
+        self.scrollArea_frame_edit.setWidgetResizable(True)
+        self.scrollArea_frame_edit.setObjectName("scrollArea_frame_edit")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 215, 245))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 441, 311))
+        self.scrollAreaWidgetContents.setStyleSheet("QLabel {\n"
+"    border: 1px solid #5d5d5d ;  /* Brak ramki dla etykiet */\n"
+"    border-radius: 5px;\n"
+"    font-size: 14px;\n"
+"\n"
+"}")
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.widget_choice_buttons = QtWidgets.QWidget(self.frame_flota)
-        self.widget_choice_buttons.setGeometry(QtCore.QRect(50, 70, 701, 60))
-        self.widget_choice_buttons.setObjectName("widget_choice_buttons")
-        self.button_flota_ciagniki = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_flota_ciagniki.setGeometry(QtCore.QRect(0, 0, 220, 60))
-        self.button_flota_ciagniki.setObjectName("button_flota_ciagniki")
-        self.button_flota_kierowcy = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_flota_kierowcy.setGeometry(QtCore.QRect(480, 0, 220, 60))
+        self.gridLayoutWidget = QtWidgets.QWidget(self.scrollAreaWidgetContents)
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 441, 311))
+        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
+        self.gridLayout_frame_edit = QtWidgets.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout_frame_edit.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_frame_edit.setObjectName("gridLayout_frame_edit")
+        self.lineEdit = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.lineEdit.setObjectName("lineEdit")
+        self.gridLayout_frame_edit.addWidget(self.lineEdit, 0, 1, 1, 1)
+        self.label_2 = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout_frame_edit.addWidget(self.label_2, 0, 0, 1, 1)
+        self.label_3 = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label_3.setObjectName("label_3")
+        self.gridLayout_frame_edit.addWidget(self.label_3, 1, 0, 1, 1)
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.gridLayout_frame_edit.addWidget(self.lineEdit_2, 1, 1, 1, 1)
+        self.scrollArea_frame_edit.setWidget(self.scrollAreaWidgetContents)
+        self.button_save = QtWidgets.QPushButton(self.frame_edit)
+        self.button_save.setGeometry(QtCore.QRect(160, 370, 120, 28))
+        self.button_save.setStyleSheet("QPushButton {\n"
+"    background-color: #94e17e; /* Ustawia przezroczyste tło */\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: #89ce74; /* Ustawia kolor tła po najechaniu */\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"    background-color: #70a85f;  /* Kolor tła po kliknięciu */\n"
+"}\n"
+"\n"
+"")
+        self.button_save.setObjectName("button_save")
+        self.widget_header_frame_edit = QtWidgets.QWidget(self.frame_edit)
+        self.widget_header_frame_edit.setGeometry(QtCore.QRect(0, 0, 461, 30))
+        self.widget_header_frame_edit.setStyleSheet("QWidget {\n"
+"    background: #cfb796;\n"
+"    border-radius: 10px;\n"
+"} ")
+        self.widget_header_frame_edit.setObjectName("widget_header_frame_edit")
+        self.label_frame_edit = QtWidgets.QLabel(self.widget_header_frame_edit)
+        self.label_frame_edit.setGeometry(QtCore.QRect(190, 10, 81, 16))
+        self.label_frame_edit.setStyleSheet("QLabel {\n"
+"    font-size: 16px;\n"
+"    font-weight: bold;  /* Ustawienie pogrubienia tekstu */\n"
+"}")
+        self.label_frame_edit.setObjectName("label_frame_edit")
+        self.button_exit_frame_edit = QtWidgets.QPushButton(self.widget_header_frame_edit)
+        self.button_exit_frame_edit.setEnabled(True)
+        self.button_exit_frame_edit.setGeometry(QtCore.QRect(420, 0, 30, 30))
+        self.button_exit_frame_edit.setStyleSheet("QPushButton {\n"
+"    background-color: #c84043; /* Ustawia przezroczyste tło */\n"
+"    border: 2px solid white; /* Ustawia kolor ramki (czarny) */\n"
+"    border-radius: 15px; /* Zaokrąglone rogi ramki */\n"
+"    padding: 5px; /* Wewnętrzne odstępy, opcjonalne */\n"
+"    opacity: 0.5;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: #a73639; /* Ustawia kolor tła po najechaniu */\n"
+"}")
+        self.button_exit_frame_edit.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.button_exit_frame_edit.setIcon(icon1)
+        self.button_exit_frame_edit.setIconSize(QtCore.QSize(15, 15))
+        self.button_exit_frame_edit.setObjectName("button_exit_frame_edit")
+        self.button_clear = QtWidgets.QPushButton(self.frame_edit)
+        self.button_clear.setGeometry(QtCore.QRect(10, 370, 120, 28))
+        self.button_clear.setObjectName("button_clear")
+        self.button_delete = QtWidgets.QPushButton(self.frame_edit)
+        self.button_delete.setGeometry(QtCore.QRect(330, 370, 120, 28))
+        self.button_delete.setStyleSheet("QPushButton {\n"
+"    background-color: #da6163; /* Ustawia przezroczyste tło */\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: #c54e5a; /* Ustawia kolor tła po najechaniu */\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"    background-color: #b04652;  /* Kolor tła po kliknięciu */\n"
+"}")
+        self.button_delete.setObjectName("button_delete")
+
+        self.horizontalLayoutWidget = QtWidgets.QWidget(self.frame_flota)
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(30, 60, 751, 80))
+        self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
+
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+
+        self.button_flota_kierowcy = QtWidgets.QPushButton(self.horizontalLayoutWidget)
         self.button_flota_kierowcy.setObjectName("button_flota_kierowcy")
-        self.button_flota_naczepy = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_flota_naczepy.setGeometry(QtCore.QRect(240, 0, 220, 60))
+        self.horizontalLayout.addWidget(self.button_flota_kierowcy)
+        self.button_flota_naczepy = QtWidgets.QPushButton(self.horizontalLayoutWidget)
         self.button_flota_naczepy.setObjectName("button_flota_naczepy")
+        self.horizontalLayout.addWidget(self.button_flota_naczepy)
+        self.button_flota_ciagniki = QtWidgets.QPushButton(self.horizontalLayoutWidget)
+        self.button_flota_ciagniki.setObjectName("button_flota_ciagniki")
+        self.horizontalLayout.addWidget(self.button_flota_ciagniki)
         self.widget_system = QtWidgets.QWidget(self.centralwidget)
         self.widget_system.setGeometry(QtCore.QRect(710, 5, 85, 40))
         self.widget_system.setObjectName("widget_system")
@@ -317,8 +424,6 @@ class Ui_MainWindow(object):
 "    background-color: #a73639; /* Ustawia kolor tła po najechaniu */\n"
 "}")
         self.button_exit.setText("")
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_exit.setIcon(icon1)
         self.button_exit.setIconSize(QtCore.QSize(25, 25))
         self.button_exit.setObjectName("button_exit")
@@ -376,9 +481,15 @@ class Ui_MainWindow(object):
         self.label_date.setText(_translate("MainWindow", "22.10.2024"))
         self.label_flota_header.setText(_translate("MainWindow", "FLOTA"))
         self.button_flota_dodaj.setText(_translate("MainWindow", "DODAJ"))
-        self.button_flota_ciagniki.setText(_translate("MainWindow", "Ciągniki siodłowe"))
+        self.label_2.setText(_translate("MainWindow", "TextLabel"))
+        self.label_3.setText(_translate("MainWindow", "TextLabel"))
+        self.button_save.setText(_translate("MainWindow", "Zapisz"))
+        self.label_frame_edit.setText(_translate("MainWindow", "Edycja"))
+        self.button_clear.setText(_translate("MainWindow", "Wyczyść zmiany"))
+        self.button_delete.setText(_translate("MainWindow", "Usuń"))
         self.button_flota_kierowcy.setText(_translate("MainWindow", "Kierowcy"))
         self.button_flota_naczepy.setText(_translate("MainWindow", "Naczepy ciężarowe"))
+        self.button_flota_ciagniki.setText(_translate("MainWindow", "Ciągniki siodłowe"))
         self.label.setText(_translate("MainWindow", "Aplikacja transportowa"))
 
 

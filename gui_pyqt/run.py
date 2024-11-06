@@ -23,6 +23,7 @@ def run_pyqt_frontend():
     )
 
 def main():
+
     try:
         # Uruchom serwer Django
         django_process = run_django_server()
