@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify, request
-from models import db, Kierowca, Pojzad, TypSerwisu, Serwis, Czesc
+from flask import Blueprint, jsonify
+from models import Kierowca, Pojzad, TypSerwisu, Serwis, Czesc
 
 bp = Blueprint('api', __name__)
 
