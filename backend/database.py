@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from backend.config import Config
+from Aplikacja_bazodanowa.backend.config import Config
 
 db = SQLAlchemy()
 
