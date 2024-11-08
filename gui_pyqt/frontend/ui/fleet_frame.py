@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
 from PyQt5.QtCore import Qt
-from frontend.ui.EditFrame import EditFrame
+from Aplikacja_bazodanowa.gui_pyqt.frontend.ui.EditFrame import EditFrame
 from enum import Enum, auto
 
 class ScreenType(Enum):
@@ -71,7 +71,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.widget_flota_header.setObjectName("widget_flota_header")
 
         self.label_flota_header = QtWidgets.QLabel(self.widget_flota_header)
-        self.label_flota_header.setGeometry(QtCore.QRect(self.width/2-200/2, 10, 200, 30))
+        self.label_flota_header.setGeometry(QtCore.QRect(int(self.width / 2 - 200 / 2), 10, 200, 30))
         self.label_flota_header.setAlignment(Qt.AlignCenter)
         self.label_flota_header.setObjectName("label_flota_header")
         self.label_flota_header.setText("Flota")
@@ -320,7 +320,7 @@ class FleetFrame(QtWidgets.QFrame):
         """
         self.button_flota_dodaj = QtWidgets.QPushButton(self)
         self.button_flota_dodaj.setGeometry(QtCore.QRect(
-            table_fleet_side_margin + table_fleet_width / 2 - 500 / 2,
+            int(table_fleet_side_margin + table_fleet_width / 2 - 500 / 2),
             table_fleet_top_margin + table_fleet_height + 20, 500, 60))
         self.button_flota_dodaj.setText("DODAJ")
         self.button_flota_dodaj.setStyleSheet("QPushButton {"
@@ -342,7 +342,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_flota_dodaj.setObjectName("button_flota_dodaj")
 
         self.widget_choice_buttons = QtWidgets.QWidget(self)
-        self.widget_choice_buttons.setGeometry(QtCore.QRect(self.width/2-800/2, 70, 800, 60))
+        self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-800/2), 70, 800, 60))
         self.widget_choice_buttons.setObjectName("widget_choice_buttons")
         self.widget_choice_buttons.setStyleSheet("""
             QPushButton {

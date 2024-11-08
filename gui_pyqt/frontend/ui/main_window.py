@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer, QDateTime, Qt
 from PyQt5.QtWidgets import QMainWindow
-from frontend.ui.fleet_frame import FleetFrame
+from Aplikacja_bazodanowa.gui_pyqt.frontend.ui.fleet_frame import FleetFrame
 
 
 class MainWindow(QMainWindow):
@@ -120,7 +120,7 @@ class Ui_MainWindow(object):
         # Widget daty i czasu
         self.widget_datetime = QtWidgets.QWidget(self.centralwidget)
         self.widget_datetime.setEnabled(True)
-        self.widget_datetime.setGeometry(QtCore.QRect((self.screen_width/2-250/2), 10, 250, 30))
+        self.widget_datetime.setGeometry(QtCore.QRect(int(self.screen_width/2-250/2), 10, 250, 30))
         self.widget_datetime.setStyleSheet("QLabel {"
                                             "    color: #ffffff;  /* Kolor tekstu dla etykiet */"
                                             "    background-color: transparent;  /* Przezroczyste tło dla etykiet */"
