@@ -2,9 +2,9 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
 from PyQt5.QtCore import Qt
-from frontend.ui.EditFrame import EditFrame
-from frontend.ui.AddFrame import AddFrame
-from backend.models import Kierowca, Pojzad
+from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
+from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
+from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd
 
 from enum import Enum, auto
 import requests
@@ -467,7 +467,7 @@ class FleetFrame(QtWidgets.QFrame):
         # API URL - endpoint, który zwraca listę kierowców
         if self.screen_type == ScreenType.KIEROWCY:
             self.tableView_flota.setModel(self.model_kierowca)
-            url = "http://127.0.0.1:5000/api/kierowcy"
+            url = "http://127.0.0.1:5000/kierowcy"
             try:
                 # Wykonanie żądania HTTP GET do API
                 response = requests.get(url)
@@ -490,10 +490,10 @@ class FleetFrame(QtWidgets.QFrame):
 
     def add_new_line(self):
         if self.screen_type == ScreenType.KIEROWCY:
-            # self.add_frame = AddFrame(model_class=Kierowca, api_url= "http://127.0.0.1:5000/api/kierowcy",
-            #                           parent= self, header_title="Dodawanie kierowcy", )
-            self.add_frame = AddFrame(model_class=Kierowca,
+            self.add_frame = AddFrame(model_class=Kierowca, api_url= "http://127.0.0.1:5000/kierowca",
                                       parent= self, header_title="Dodawanie kierowcy", )
+            # self.add_frame = AddFrame(model_class=Kierowca,
+            #                           parent= self, header_title="Dodawanie kierowcy", )
             self.add_frame.show()
         # else:
         #     self.add_frame = AddFrame(model_class=Pojzad, api_url= "http://127.0.0.1:5000/api/pojazdy", header_title="Dodawanie pojazdu", )

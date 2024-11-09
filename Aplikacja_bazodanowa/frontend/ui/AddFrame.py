@@ -2,14 +2,13 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QScrollArea, QGridLayout, QLabel, QPushButton, \
     QAbstractItemView
 from sqlalchemy import inspect
-from backend.models import Kierowca, Pojzad
-from backend.database import db
+from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd
 import requests
 
 
 class AddFrame(QFrame):
-    # def __init__(self, model_class, api_url, parent=None, header_title="title"):
-    def __init__(self, model_class, parent=None, header_title="title"):
+    def __init__(self, model_class, api_url, parent=None, header_title="title"):
+    # def __init__(self, model_class, parent=None, header_title="title"):
 
         super().__init__(parent)
 
@@ -19,11 +18,10 @@ class AddFrame(QFrame):
         self.app_width = available_rect.width()
         self.app_height = available_rect.height()
 
-        self.model_class = model_class
         self.is_moving = False  # For tracking if the frame is being moved
         self.mouse_press_pos = None  # To store the initial position of the mouse press
-        self.row_count = self.model.columnCount()
         self.row_height = 50
+        self.row_count = 5
 
         height = self.row_count * self.row_height + 120
         width = 500
@@ -76,31 +74,33 @@ class AddFrame(QFrame):
         self.gridLayout_add.setObjectName("gridLayout_edit")
 
         # Wprowadzone dane
-        self.fields = {}
-        inspector = inspect(db.engine)
-        columns = inspector.get_columns(model_class.__tablename__)  # Pobiera kolumny tabeli
-
-        row = 0
-        for column in columns:
-            column_name = column['name']
-            column_type = column['type'].__class__.__name__
-
-            # Pomijamy kolumnę klucza głównego (np. id)
-            if column.get('primary_key'):
-                continue
-
-            # Etykieta dla pola
-            label = QLabel(column_name)
-            label.setFixedHeight(30)
-            self.gridLayout_form.addWidget(label, row, 0)
-
-            # Pole tekstowe lub inne na podstawie typu kolumny
-            line_edit = QLineEdit()
-            line_edit.setPlaceholderText(f"Wprowadź {column_name}")
-            line_edit.setObjectName(f"line_edit_{column_name}")
-            self.gridLayout_add.addWidget(line_edit, row, 1)
-            self.fields[column_name] = line_edit
-            row += 1
+        # self.fields = {}
+        #
+        # with app.app_context():
+        #     inspector = inspect(db.engine)
+        #     columns = inspector.get_columns(model_class.__tablename__)
+        #
+        # row = 0
+        # for column in columns:
+        #     column_name = column['name']
+        #     column_type = column['type'].__class__.__name__
+        #
+        #     # Pomijamy kolumnę klucza głównego (np. id)
+        #     if column.get('primary_key'):
+        #         continue
+        #
+        #     # Etykieta dla pola
+        #     label = QLabel(column_name)
+        #     label.setFixedHeight(30)
+        #     self.gridLayout_form.addWidget(label, row, 0)
+        #
+        #     # Pole tekstowe lub inne na podstawie typu kolumny
+        #     line_edit = QLineEdit()
+        #     line_edit.setPlaceholderText(f"Wprowadź {column_name}")
+        #     line_edit.setObjectName(f"line_edit_{column_name}")
+        #     self.gridLayout_add.addWidget(line_edit, row, 1)
+        #     self.fields[column_name] = line_edit
+        #     row += 1
 
 
         self.widget_header = QtWidgets.QWidget(self)
