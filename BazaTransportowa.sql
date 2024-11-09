@@ -34,11 +34,11 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `TransportManagerDB`.`Pojzad`
+-- Table `TransportManagerDB`.`Pojazd`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `TransportManagerDB`.`Pojzad` ;
+DROP TABLE IF EXISTS `TransportManagerDB`.`Pojazd` ;
 
-CREATE TABLE IF NOT EXISTS `TransportManagerDB`.`Pojzad` (
+CREATE TABLE IF NOT EXISTS `TransportManagerDB`.`Pojazd` (
   `idPojazd` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `idKierowca` INT UNSIGNED NULL,
   `typPojazdu` ENUM('Ciągnik', 'Naczepa') NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `TransportManagerDB`.`Serwis` (
   INDEX `idPojazd_idx` (`idPojazd` ASC) VISIBLE,
   CONSTRAINT `idPojazd_serwis_fk`
     FOREIGN KEY (`idPojazd`)
-    REFERENCES `TransportManagerDB`.`Pojzad` (`idPojazd`)
+    REFERENCES `TransportManagerDB`.`Pojazd` (`idPojazd`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `idTypSerwisu_serwis_fk`
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `TransportManagerDB`.`WyposażeniePojazdu` (
   INDEX `idPojazd_idx` (`idPojazd` ASC) VISIBLE,
   CONSTRAINT `idPojazd_wyposazenie_fk`
     FOREIGN KEY (`idPojazd`)
-    REFERENCES `TransportManagerDB`.`Pojzad` (`idPojazd`)
+    REFERENCES `TransportManagerDB`.`Pojazd` (`idPojazd`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -177,11 +177,11 @@ COMMIT;
 
 
 -- -----------------------------------------------------
--- Data for table `TransportManagerDB`.`Pojzad`
+-- Data for table `TransportManagerDB`.`Pojazd`
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `TransportManagerDB`;
-INSERT INTO `TransportManagerDB`.`Pojzad` (`idPojazd`, `idKierowca`, `typPojazdu`, `marka`, `model`, `nrRejestracyjny`, `dodatkoweInf`) VALUES (1, 1, 'Ciągnik', 'Volvo', 'optimus', 'POS34902', 'czerwony');
+INSERT INTO `TransportManagerDB`.`Pojazd` (`idPojazd`, `idKierowca`, `typPojazdu`, `marka`, `model`, `nrRejestracyjny`, `dodatkoweInf`) VALUES (1, 1, 'Ciągnik', 'Volvo', 'optimus', 'POS34902', 'czerwony');
 
 COMMIT;
 

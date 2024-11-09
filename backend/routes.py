@@ -5,4 +5,3 @@ bp = Blueprint('api', __name__)
 
 # Rejestracja blueprintów
 bp.register_blueprint(kierowca_bp)
-

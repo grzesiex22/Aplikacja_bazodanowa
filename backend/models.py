@@ -1,4 +1,4 @@
-from backend.database import db
+from Aplikacja_bazodanowa.backend.database import db
 
 class Kierowca(db.Model):
     __tablename__ = 'Kierowca'
@@ -6,10 +6,10 @@ class Kierowca(db.Model):
     imie = db.Column(db.String(45), nullable=False)
     nazwisko = db.Column(db.String(45), nullable=False)
     nrTel = db.Column(db.String(12), nullable=False)
-    pojazdy = db.relationship('Pojzad', backref='kierowca', lazy=True)
+    pojazdy = db.relationship('Pojazd', backref='kierowca', lazy=True)
 
-class Pojzad(db.Model):
-    __tablename__ = 'Pojzad'
+class Pojazd(db.Model):
+    __tablename__ = 'Pojazd'
     idPojazd = db.Column(db.Integer, primary_key=True, autoincrement=True)
     idKierowca = db.Column(db.Integer, db.ForeignKey('Kierowca.idKierowca'), nullable=True)
     typPojazdu = db.Column(db.Enum('Ciągnik', 'Naczepa'), nullable=False)
@@ -27,7 +27,7 @@ class TypSerwisu(db.Model):
 class Serwis(db.Model):
     __tablename__ = 'Serwis'
     idSerwis = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    idPojazd = db.Column(db.Integer, db.ForeignKey('Pojzad.idPojazd'), nullable=False)
+    idPojazd = db.Column(db.Integer, db.ForeignKey('Pojazd.idPojazd'), nullable=False)
     idTypSerwisu = db.Column(db.Integer, db.ForeignKey('TypSerwisu.idTypSerwisu'), nullable=False)
     data = db.Column(db.Date, nullable=False)
     cenaCzesciNetto = db.Column(db.Integer, nullable=True)
