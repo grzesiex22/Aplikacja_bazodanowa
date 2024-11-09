@@ -1,4 +1,4 @@
-from database import db
+from backend.database import db
 
 class Kierowca(db.Model):
     __tablename__ = 'Kierowca'
