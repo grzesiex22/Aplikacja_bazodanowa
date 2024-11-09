@@ -1,0 +1,8 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+*.sql
+.idea/
+__pycache__/
+*.pyc
+roboczy/
