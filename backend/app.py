@@ -1,5 +1,5 @@
-from Aplikacja_bazodanowa.backend.database import create_app, db
-from Aplikacja_bazodanowa.backend.routes import bp
+from backend.database import create_app, db
+from backend.routes import bp
 
 app = create_app()  # Tworzenie aplikacji
 app.register_blueprint(bp)  # Rejestrowanie blueprintu

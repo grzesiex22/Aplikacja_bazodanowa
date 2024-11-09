@@ -1,6 +1,6 @@
 import pytest
-from Aplikacja_bazodanowa.backend.database import db, create_app
-from Aplikacja_bazodanowa.backend.models import Kierowca, Pojzad
+from backend.database import db, create_app
+from backend.models import Kierowca, Pojzad
 
 @pytest.fixture
 def app():

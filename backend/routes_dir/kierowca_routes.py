@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
-from Aplikacja_bazodanowa.backend.database import db
-from Aplikacja_bazodanowa.backend.models import Kierowca, Pojzad
+from backend.database import db
+from backend.models import Kierowca, Pojzad
+
 
 kierowca_bp = Blueprint('kierowca_api', __name__)
 

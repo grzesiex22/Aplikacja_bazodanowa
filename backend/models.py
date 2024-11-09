@@ -1,4 +1,4 @@
-from Aplikacja_bazodanowa.backend.database import db
+from database import db
 
 class Kierowca(db.Model):
     __tablename__ = 'Kierowca'

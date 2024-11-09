@@ -1,5 +1,5 @@
 from flask import Blueprint
-from Aplikacja_bazodanowa.backend.routes_dir.kierowca_routes import kierowca_bp
+from routes_dir.kierowca_routes import kierowca_bp
 
 bp = Blueprint('api', __name__)
 

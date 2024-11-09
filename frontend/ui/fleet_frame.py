@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
 from PyQt5.QtCore import Qt
-from ui.EditFrame import EditFrame
+from frontend.ui.EditFrame import EditFrame
 from enum import Enum, auto
 
 class ScreenType(Enum):
