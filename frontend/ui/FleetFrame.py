@@ -3,6 +3,9 @@ from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdi
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
 from PyQt5.QtCore import Qt
 from frontend.ui.EditFrame import EditFrame
+from frontend.ui.AddFrame import AddFrame
+from backend.models import Kierowca, Pojzad
+
 from enum import Enum, auto
 import requests
 
@@ -330,6 +333,8 @@ class FleetFrame(QtWidgets.QFrame):
                                               "    border: 2px solid #4e8340; /* Ustawia kolor ramki (czarny) */"
                                               "}")
         self.button_flota_dodaj.setObjectName("button_flota_dodaj")
+        self.button_flota_dodaj.clicked.connect(self.add_new_line)
+
 
         self.widget_choice_buttons = QtWidgets.QWidget(self)
         self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-800/2), 70, 800, 60))
@@ -444,6 +449,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.animation.setStartValue(QtCore.QPoint(0, 1000))  # Zaczynamy z góry
         self.animation.setEndValue(QtCore.QPoint(0, 50))  # Kończymy na odpowiedniej pozycji
         self.animation.start()
+        self.load_data()
 
 
     def hide_flota(self):
@@ -455,6 +461,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.animation.start()
         self.animation.finished.connect(self.hide)  # Ukryj po zakończeniu animacji
         self.setEnabled(False)
+
 
     def load_data(self):
         # API URL - endpoint, który zwraca listę kierowców
@@ -480,3 +487,14 @@ class FleetFrame(QtWidgets.QFrame):
                 print(f"Błąd przy ładowaniu danych: {str(e)}")
         elif self.screen_type == ScreenType.CIAGNIKI:
             self.tableView_flota.setModel(self.model_pojazd)
+
+    def add_new_line(self):
+        if self.screen_type == ScreenType.KIEROWCY:
+            # self.add_frame = AddFrame(model_class=Kierowca, api_url= "http://127.0.0.1:5000/api/kierowcy",
+            #                           parent= self, header_title="Dodawanie kierowcy", )
+            self.add_frame = AddFrame(model_class=Kierowca,
+                                      parent= self, header_title="Dodawanie kierowcy", )
+            self.add_frame.show()
+        # else:
+        #     self.add_frame = AddFrame(model_class=Pojzad, api_url= "http://127.0.0.1:5000/api/pojazdy", header_title="Dodawanie pojazdu", )
+        #     self.add_frame.show()
