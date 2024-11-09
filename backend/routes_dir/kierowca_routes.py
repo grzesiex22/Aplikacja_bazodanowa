@@ -5,6 +5,39 @@ from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd
 # Blueprint dla kierowców
 kierowca_bp = Blueprint('kierowca', __name__)
 
+# Pobieranie danych pojedynczego kierowcy
+@kierowca_bp.route('/kierowca/<int:id>', methods=['GET'])
+def pobierz_kierowce(id):
+    try:
+        kierowca = Kierowca.query.get(id)
+        if kierowca is None:
+            return jsonify({'message': 'Kierowca nie znaleziony'}), 404
+        return jsonify({
+            'id': kierowca.idKierowca,
+            'imie': kierowca.imie,
+            'nazwisko': kierowca.nazwisko,
+            'nrTel': kierowca.nrTel
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Pobieranie listy wszystkich kierowców
+@kierowca_bp.route('/kierowcy', methods=['GET'])
+def pobierz_wszystkich_kierowcow():
+    try:
+        kierowcy = Kierowca.query.all()
+        wynik = []
+        for kierowca in kierowcy:
+            wynik.append({
+                'id': kierowca.idKierowca,
+                'imie': kierowca.imie,
+                'nazwisko': kierowca.nazwisko,
+                'nrTel': kierowca.nrTel
+            })
+        return jsonify(wynik), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Dodawanie nowego kierowcy
 @kierowca_bp.route('/kierowca', methods=['POST'])
 def dodaj_kierowce():
