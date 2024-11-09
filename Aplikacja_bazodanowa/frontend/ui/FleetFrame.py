@@ -491,7 +491,7 @@ class FleetFrame(QtWidgets.QFrame):
     def add_new_line(self):
         if self.screen_type == ScreenType.KIEROWCY:
             self.add_frame = AddFrame(model_class=Kierowca, api_url= "http://127.0.0.1:5000/kierowca",
-                                      parent= self, header_title="Dodawanie kierowcy", )
+                                      parent= self, header_title="Dodawanie kierowcy", refresh_callback=self.load_data )
             # self.add_frame = AddFrame(model_class=Kierowca,
             #                           parent= self, header_title="Dodawanie kierowcy", )
             self.add_frame.show()
