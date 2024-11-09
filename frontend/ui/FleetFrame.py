@@ -4,12 +4,12 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny imp
 from PyQt5.QtCore import Qt
 from frontend.ui.EditFrame import EditFrame
 from enum import Enum, auto
+import requests
 
 class ScreenType(Enum):
     CIAGNIKI = 1
     NACZEPY = 2
     KIEROWCY = 3
-
 
 
 class FleetFrame(QtWidgets.QFrame):
@@ -87,30 +87,20 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_exit_flota.clicked.connect(self.hide_flota)
 
         # Tworzenie modelu danych
-        self.model = QStandardItemModel()
-        self.model.setHorizontalHeaderLabels(['ID', 'Nazwa', 'Typ', 'Status', 'data', 'kierowca'])
+        self.model_pojazd = QStandardItemModel()
+        self.model_pojazd.setHorizontalHeaderLabels(['ID', 'Nazwa', 'Typ', 'Status', 'data', 'kierowca'])
+
+        self.model_kierowca = QStandardItemModel()
+        self.model_kierowca.setHorizontalHeaderLabels(['ID', 'Imię', 'Nazwisko', 'Nr telefonu'])
 
         # Dodawanie przykładowych danych
         for i in range(25):
-            self.model.appendRow([QStandardItem(str(i+1)),
-                                  QStandardItem("Ciągnik A"),
-                                  QStandardItem("Transport"),
-                                  QStandardItem("Aktywny"),
-                                  QStandardItem("kiedys"),
-                                  QStandardItem("kierowca jannek mega kot")])
-        # self.model.appendRow([QStandardItem("1"),
-        #                       QStandardItem("Ciągnik A"),
-        #                       QStandardItem("Transport"),
-        #                       QStandardItem("Aktywny")])
-        # self.model.appendRow([QStandardItem("2"),
-        #                       QStandardItem("Ciągnik B"),
-        #                       QStandardItem("Transport"),
-        #                       QStandardItem("Nieaktywny")])
-        # self.model.appendRow([QStandardItem("3"),
-        #                       QStandardItem("Ciągnik B"),
-        #                       QStandardItem("Transport"),
-        #                       QStandardItem("Nieaktywny")])
-        # "    background-color: #dff0ef;"
+            self.model_pojazd.appendRow([QStandardItem(str(i + 1)),
+                                           QStandardItem("Ciągnik A"),
+                                           QStandardItem("Transport"),
+                                           QStandardItem("Aktywny"),
+                                           QStandardItem("kiedys"),
+                                           QStandardItem("kierowca jannek mega kot")])
 
         # Tworzenie QScrollArea
         table_fleet_width = self.width-500
@@ -290,7 +280,7 @@ class FleetFrame(QtWidgets.QFrame):
                                     """)
 
         self.tableView_flota.setObjectName("tableView_flota")
-        self.tableView_flota.setModel(self.model)
+        self.tableView_flota.setModel(self.model_kierowca)
         self.tableView_flota.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView_flota.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableView_flota.setAlternatingRowColors(True)
@@ -406,28 +396,29 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_group.buttonClicked[int].connect(self.update_screen_type)
 
         # Ustawienie stylów przycisków i początkowego stanu
-        self.button_flota_ciagniki.setChecked(True)
-        self.update_screen_type(ScreenType.CIAGNIKI.value)  # Ustawienie początkowej wartości zmiennej
+        self.button_flota_kierowcy.setChecked(True)
+        self.update_screen_type(ScreenType.KIEROWCY.value)  # Ustawienie początkowej wartości zmiennej
 
 
     def update_screen_type(self, screen_value):
         # Zmiana wartości zmiennej na podstawie ID przycisku
         self.screen_type = ScreenType(screen_value)
         print(f"Aktualna wartość zmiennej: {self.screen_type.name}")
+        self.load_data()
 
 
     def on_table_double_click(self, index):
         row = index.row()  # Indeks wiersza
         # Utworzenie nowego obiektu EditFrame
-        self.edit_frame = EditFrame(self.model, row, self, "Edycja floty")
+        self.edit_frame = EditFrame(self.model_kierowca, row, self, "Edycja floty")
         self.edit_frame.show()
 
     def save_changes(self, row):
-        for column in range(self.model.columnCount()):
+        for column in range(self.model_kierowca.columnCount()):
             line_edit = self.edit_frame.findChild(QLineEdit, f"line_edit_{row}_{column}")
             if line_edit:
                 # Zaktualizuj model danych z wartościami z linii edycyjnej
-                self.model.item(row, column).setText(line_edit.text())
+                self.model_kierowca.item(row, column).setText(line_edit.text())
 
         self.edit_frame.close()  # Zamknij QFrame po zapisaniu
 
@@ -454,6 +445,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.animation.setEndValue(QtCore.QPoint(0, 50))  # Kończymy na odpowiedniej pozycji
         self.animation.start()
 
+
     def hide_flota(self):
         # Animacja przesuwania ramki w górę
         self.animation = QtCore.QPropertyAnimation(self, b"pos")
@@ -464,3 +456,27 @@ class FleetFrame(QtWidgets.QFrame):
         self.animation.finished.connect(self.hide)  # Ukryj po zakończeniu animacji
         self.setEnabled(False)
 
+    def load_data(self):
+        # API URL - endpoint, który zwraca listę kierowców
+        if self.screen_type == ScreenType.KIEROWCY:
+            self.tableView_flota.setModel(self.model_kierowca)
+            url = "http://127.0.0.1:5000/api/kierowcy"
+            try:
+                # Wykonanie żądania HTTP GET do API
+                response = requests.get(url)
+                if response.status_code == 200:
+                    kierowcy_data = response.json()  # Pobranie danych w formacie JSON
+
+                    # Dodanie danych do modelu
+                    self.model_kierowca.removeRows(0, self.model_kierowca.rowCount())  # Usuwamy poprzednie dane z modelu
+                    for kierowca in kierowcy_data:
+                        self.model_kierowca.appendRow([QStandardItem(str(kierowca['id'])),
+                                              QStandardItem(kierowca['imie']),
+                                              QStandardItem(kierowca['nazwisko']),
+                                              QStandardItem(kierowca['nrTel'])])
+                else:
+                    print(f"Błąd API: {response.status_code}")
+            except Exception as e:
+                print(f"Błąd przy ładowaniu danych: {str(e)}")
+        elif self.screen_type == ScreenType.CIAGNIKI:
+            self.tableView_flota.setModel(self.model_pojazd)

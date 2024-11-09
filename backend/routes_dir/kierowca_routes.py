@@ -75,7 +75,7 @@ def assign_kierowca_to_pojazd(id_kierowca, id_pojazd):
         pojazd.idKierowca = kierowca.idKierowca
         db.session.commit()
 
-        return jsonify({"message": f"Kierowca {kierowca.imie} {kierowca.nazwisko} przypisany do pojazdu {pojazd.marka} {pojazd.model}."}), 200
+        return jsonify({"message": f"Kierowca {kierowca.imie} {kierowca.nazwisko} przypisany do pojazdu {pojazd.marka} {pojazd.model_kierowca}."}), 200
 
     except Exception as e:
         db.session.rollback()

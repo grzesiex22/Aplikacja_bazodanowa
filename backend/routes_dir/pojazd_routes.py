@@ -9,6 +9,6 @@ pojazd_bp = Blueprint('kierowca_api', __name__)
 def get_pojazdy():
     pojazdy = Pojzad.query.all()
     return jsonify([{"id": p.idPojazd, "idKierowca": p.idKierowca, "typPojazdu": p.typPojazdu,
-                     "marka": p.marka, "model": p.model, "nrRejestracyjny": p.nrRejestracyjny,
+                     "marka": p.marka, "model": p.model_kierowca, "nrRejestracyjny": p.nrRejestracyjny,
                      "dodatkoweInf": p.dodatkoweInf} for p in pojazdy])
 
