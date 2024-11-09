@@ -1,1 +1,0 @@
-# Główne routingi URL Django
