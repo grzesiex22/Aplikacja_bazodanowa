@@ -242,7 +242,7 @@ class FleetFrame(QtWidgets.QFrame):
                                             background-color: #caf0ef;
                                             padding: 5px;
                                             margin: 2px;
-                                            text-align: left;   
+                                            text-align: left;  
                                         }
                                         
                                         QTableView::item:alternate {    /* Element altenatywny tabeli */
@@ -290,7 +290,19 @@ class FleetFrame(QtWidgets.QFrame):
         self.tableView_flota.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView_flota.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableView_flota.setAlternatingRowColors(True)
-        self.tableView_flota.resizeColumnsToContents()
+        # self.tableView_flota.resizeColumnsToContents()
+
+        # Iteracja przez wszystkie kolumny w modelu
+        for i in range(self.model_kierowca.columnCount()):
+            # Dopasuj szerokość kolumny do zawartości, jeśli jest dłuższa niż 100 pikseli
+            self.tableView_flota.resizeColumnToContents(i)
+            # Sprawdź szerokość po dopasowaniu
+            if self.tableView_flota.columnWidth(i) < 100:
+                # Jeśli zawartość jest krótsza niż 100 pikseli, ustaw na 100
+                self.tableView_flota.setColumnWidth(i, 100)
+
+        self.tableView_flota.setColumnWidth(0, 0)
+
         # self.tableView_flota.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         # self.tableView_flota.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
