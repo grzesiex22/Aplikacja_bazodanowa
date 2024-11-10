@@ -29,10 +29,12 @@ def get_columns(table_name):
     # Uzyskaj listę kolumn i ich typów
     columns = []
     for column in model_class.__table__.columns:
-        if not column.primary_key:  # Pomiń kolumny, które są kluczami głównymi
-            columns.append({
-                "name": column.name,
-                "type": str(column.type)
-            })
+        column_info = {
+            "name": column.name,
+            "type": str(column.type),
+            "primary_key": column.primary_key,
+            "foreign_key": bool(column.foreign_keys)  # True jeśli jest kluczem obcym, False jeśli nie
+        }
+        columns.append(column_info)
 
     return jsonify(columns)

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from Aplikacja_bazodanowa.backend.database import db
 from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd
+from Aplikacja_bazodanowa.backend.routes_dir.app_routes import get_columns
 
 # Blueprint dla kierowców
 kierowca_bp = Blueprint('kierowca', __name__)
@@ -19,6 +20,42 @@ def pobierz_kierowce(id):
             'nazwisko': kierowca.nazwisko,
             'nrTel': kierowca.nrTel
         }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@kierowca_bp.route('/kierowca+kolumny/<int:id>', methods=['GET'])
+def pobierz_kierowce_z_kolumnami(id):
+    try:
+        # Pobierz dane kierowcy
+        kierowca = Kierowca.query.get(id)
+        if kierowca is None:
+            return jsonify({'message': 'Kierowca nie znaleziony'}), 404
+
+        # Pobierz metadane kolumn bezpośrednio z funkcji
+        columns_info = get_columns("Kierowca").json  # Użycie funkcji bez żądania HTTP
+
+        # Połącz dane kierowcy z informacją o typie kolumn
+        kierowca_data = {
+            "idKierowca": kierowca.idKierowca,
+            "imie": kierowca.imie,
+            "nazwisko": kierowca.nazwisko,
+            "nrTel": kierowca.nrTel,
+        }
+
+        # Łączenie danych kierowcy z informacjami o kolumnach
+        kierowca_with_columns = []
+        for col in columns_info:
+            column_name = col.get('name')
+            kierowca_with_columns.append({
+                "name": column_name,
+                "value": kierowca_data.get(column_name),  # Pobierz wartość dla kolumny
+                "primary_key": col.get('primary_key'),
+                "foreign_key": col.get('foreign_key')
+            })
+
+        return jsonify(kierowca_with_columns), 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

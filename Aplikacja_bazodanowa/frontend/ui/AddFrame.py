@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QScrollArea, QGridLayout, QLabel, QPushButton, \
     QAbstractItemView
 import requests
@@ -39,8 +40,8 @@ class AddFrame(QFrame):
         self.setGeometry(int(self.app_width / 2 - self.width / 2), int(self.app_height / 2 - self.height / 2), self.width, self.height)
         self.setStyleSheet("""
                             QFrame {
-                                background-color: #e6d9c3;
-                                border: 2px solid #cfb796 ; 
+                                background-color: #bacbbc;
+                                border: 2px solid #90aa92 ; 
                             }
                             QPushButton {
                                 color: #5d5d5d;
@@ -72,7 +73,7 @@ class AddFrame(QFrame):
         self.addAreaWidget = QtWidgets.QWidget(self)
         self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, 400, self.row_count * self.row_height))
         self.addAreaWidget.setStyleSheet("""QLabel {
-                                                background-color: #cfb796;
+                                                background-color: #90aa92;
                                                 padding: 2px;
                                                 border: 0px solid #cfb796 ;  /* Brak ramki dla etykiet */
                                                 border-radius: 5px;
@@ -95,14 +96,15 @@ class AddFrame(QFrame):
         self.widget_header.setObjectName("widget_header_frame_edit")
         self.widget_header.setStyleSheet("""
                                             QWidget {
-                                                background: #cfb796;
+                                                background: #90aa92;
                                                 border-radius: 10px;
         
                                             }""")
 
         # Nazwa okna
         self.label_header = QtWidgets.QLabel(self.widget_header)
-        self.label_header.setGeometry(QtCore.QRect(int(self.widget_header.width() / 2 - 50), 10, 200, 20))
+        self.label_header.setGeometry(QtCore.QRect(int(self.widget_header.width() / 2 - 100), 10, 200, 20))
+        self.label_header.setAlignment(Qt.AlignCenter)
         self.label_header.setText(title)
         self.label_header.setStyleSheet("""
                                             QLabel {
@@ -176,6 +178,9 @@ class AddFrame(QFrame):
         row = 0
         for column in columns:
             column_name = column['name']
+
+            if column['primary_key'] == True:
+                continue
 
             # Tworzymy etykietę
             label = QLabel(column_name)

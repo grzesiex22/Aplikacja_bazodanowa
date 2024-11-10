@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
 from PyQt5.QtCore import Qt
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
@@ -412,12 +412,6 @@ class FleetFrame(QtWidgets.QFrame):
         self.load_data()
 
 
-    def on_table_double_click(self, index):
-        row = index.row()  # Indeks wiersza
-        # Utworzenie nowego obiektu EditFrame
-        self.edit_frame = EditFrame(self.model_kierowca, row, self, "Edycja floty")
-        self.edit_frame.show()
-
     def save_changes(self, row):
         for column in range(self.model_kierowca.columnCount()):
             line_edit = self.edit_frame.findChild(QLineEdit, f"line_edit_{row}_{column}")
@@ -497,3 +491,23 @@ class FleetFrame(QtWidgets.QFrame):
         # else:
         #     self.add_frame = AddFrame(model_class=Pojzad, api_url= "http://127.0.0.1:5000/api/pojazdy", header_title="Dodawanie pojazdu", )
         #     self.add_frame.show()
+
+    def on_table_double_click(self, index):
+        row = index.row()
+        kierowca_id = self.model_kierowca.data(
+            self.model_kierowca.index(row, 0))  # Zakładam, że ID jest w kolumnie 0
+
+        # Wykonanie żądania GET do API, aby pobrać dane kierowcy
+        try:
+            response = requests.get(f"http://127.0.0.1:5000/kierowca+kolumny/{kierowca_id}")
+            if response.status_code == 200:
+                kierowca_data = response.json()
+                # Przekazanie danych do okna edycji
+                self.edit_frame = EditFrame(data=kierowca_data, parent=self, header_title="Edycja kierowcy",
+                                            refresh_callback=self.load_data)
+                self.edit_frame.show()
+            else:
+                QMessageBox.warning(self, "Błąd",
+                                    f"Nie udało się pobrać danych kierowcy. Status: {response.status_code}")
+        except Exception as e:
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
