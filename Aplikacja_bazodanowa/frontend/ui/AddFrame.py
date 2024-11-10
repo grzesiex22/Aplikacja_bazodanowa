@@ -21,6 +21,7 @@ class AddFrame(QFrame):
         self.is_moving = False
         self.mouse_press_pos = None
 
+        # wymiary okna
         self.app_width = 0
         self.app_height = 0
         available_rect = self.parent().screen().availableGeometry()
@@ -67,6 +68,7 @@ class AddFrame(QFrame):
                                 border: none;  /* Brak ramki dla etykiet */
                             }""")
 
+        # główny widget na formularz
         self.addAreaWidget = QtWidgets.QWidget(self)
         self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, 400, self.row_count * self.row_height))
         self.addAreaWidget.setStyleSheet("""QLabel {
@@ -78,6 +80,7 @@ class AddFrame(QFrame):
                                             }""")
         self.addAreaWidget.setObjectName("scrollAreaWidgetContents")
 
+        # układ formularza
         self.gridLayout_add = QtWidgets.QGridLayout(self.addAreaWidget)
         self.gridLayout_add.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_add.setSpacing(10)  # Ustaw stały odstęp między elementami
@@ -86,18 +89,20 @@ class AddFrame(QFrame):
         # Formularz
         self.setup_fields(self.columns)
 
+        # Nagłówke okna
         self.widget_header = QtWidgets.QWidget(self)
         self.widget_header.setGeometry(QtCore.QRect(0, 0, self.width, 40))
         self.widget_header.setObjectName("widget_header_frame_edit")
         self.widget_header.setStyleSheet("""
-                                        QWidget {
-                                            background: #cfb796;
-                                            border-radius: 10px;
+                                            QWidget {
+                                                background: #cfb796;
+                                                border-radius: 10px;
+        
+                                            }""")
 
-                                        }""")
-
+        # Nazwa okna
         self.label_header = QtWidgets.QLabel(self.widget_header)
-        self.label_header.setGeometry(QtCore.QRect(int(self.widget_header.width() / 2 - 50), 10, 150, 20))
+        self.label_header.setGeometry(QtCore.QRect(int(self.widget_header.width() / 2 - 50), 10, 200, 20))
         self.label_header.setText(title)
         self.label_header.setStyleSheet("""
                                             QLabel {
@@ -106,6 +111,7 @@ class AddFrame(QFrame):
                                             }""")
         self.label_header.setObjectName("label_frame_edit")
 
+        # Zamknięcie okna
         self.button_exit = QtWidgets.QPushButton(self.widget_header)
         self.button_exit.setEnabled(True)
         self.button_exit.setGeometry(QtCore.QRect(self.widget_header.width() - 35, 5, 30, 30))
@@ -128,15 +134,18 @@ class AddFrame(QFrame):
         self.button_exit.setObjectName("button_exit_frame_edit")
         self.button_exit.clicked.connect(self.close_window)
 
+        # Przycisk wyczyszczenia zmian
         self.button_clear = QtWidgets.QPushButton(self)
         self.button_clear.setGeometry(QtCore.QRect(int(self.width / 2) - 200 - 10, self.height - 50, 200, 40))
         self.button_clear.setText("Wyczyść")
         self.button_clear.setObjectName("button_clear")
+        self.button_clear.clicked.connect(self.clear_fields)
 
 
+        # Przycisk zapisania zmian
         self.button_save = QtWidgets.QPushButton(self)
         self.button_save.setGeometry(
-            QtCore.QRect(int(self.width / 2) + 10, self.button_clear.pos().y(), 120, 40))
+            QtCore.QRect(int(self.width / 2) + 10, self.button_clear.pos().y(), 200, 40))
         self.button_save.setText("Zapisz")
         self.button_save.setStyleSheet("""QPushButton {
                                             background-color: #94e17e; /* Ustawia przezroczyste tło */
@@ -149,6 +158,7 @@ class AddFrame(QFrame):
                                         }""")
         self.button_save.setObjectName("button_save")
         self.button_save.clicked.connect(self.save_changes)
+
 
     def load_columns(self):
 
@@ -166,6 +176,7 @@ class AddFrame(QFrame):
         row = 0
         for column in columns:
             column_name = column['name']
+
             # Tworzymy etykietę
             label = QLabel(column_name)
             label.setFixedHeight(30)
@@ -178,6 +189,13 @@ class AddFrame(QFrame):
             self.gridLayout_add.addWidget(line_edit, row, 1)
             self.fields[column_name] = line_edit
             row += 1
+
+
+    def clear_fields(self):
+        # Przechodzimy przez wszystkie pola i ustawiamy pustą wartość
+        for field in self.fields.values():
+            field.clear()
+
 
     def save_changes(self):
         # Pobieranie danych z pól formularza
@@ -195,7 +213,7 @@ class AddFrame(QFrame):
                 print(f"Błąd podczas dodawania: {response.status_code} - {response.text}")
         except Exception as e:
             print(f"Błąd połączenia z API: {str(e)}")
-        self.close()  # Zamknij QFrame po zapisaniu
+        self.close_window()  # Zamknij QFrame po zapisaniu
 
     def close_window(self):
         if self.refresh_callback:

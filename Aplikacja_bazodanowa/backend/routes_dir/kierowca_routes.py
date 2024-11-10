@@ -5,6 +5,7 @@ from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd
 # Blueprint dla kierowców
 kierowca_bp = Blueprint('kierowca', __name__)
 
+
 # Pobieranie danych pojedynczego kierowcy
 @kierowca_bp.route('/kierowca/<int:id>', methods=['GET'])
 def pobierz_kierowce(id):
@@ -20,6 +21,7 @@ def pobierz_kierowce(id):
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 # Pobieranie listy wszystkich kierowców
 @kierowca_bp.route('/kierowcy', methods=['GET'])
