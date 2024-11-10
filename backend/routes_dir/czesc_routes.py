@@ -7,21 +7,26 @@ import re
 czesc_bp = Blueprint('czesc', __name__)
 
 
-# Pobieranie danych pojedynczej części
 @czesc_bp.route('/czesc/<int:id>', methods=['GET'])
 def pobierz_czesc(id):
     try:
         czesc = Czesc.query.get(id)
         if czesc is None:
             return jsonify({'message': 'Część nie znaleziona'}), 404
+
+        # Pobieramy dane typu serwisu na podstawie idTypSerwisu
+        typ_serwisu = TypSerwisu.query.get(czesc.idTypSerwisu) if czesc.idTypSerwisu else None
+        typ_serwisu_nazwa = typ_serwisu.rodzajSerwisu if typ_serwisu else "Brak typu serwisu"
+
         return jsonify({
             'idCzesc': czesc.idCzesc,
-            'idTypSerwisu': czesc.idTypSerwisu,
+            'typSerwisu': typ_serwisu_nazwa,  # Zwracamy nazwę typu serwisu
             'nazwaElementu': czesc.nazwaElementu,
             'ilosc': czesc.ilosc
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 ############# np:     http://127.0.0.1:5000/czesci?nazwaElementu=op
 # Pobieranie listy części, z możliwością wyszukiwania po nazwie i typie serwisu
@@ -46,9 +51,13 @@ def pobierz_wszystkie_czesci():
 
         wynik = []
         for czesc in czesci:
+            # Pobranie typu serwisu na podstawie idTypSerwisu
+            typ_serwisu = TypSerwisu.query.get(czesc.idTypSerwisu) if czesc.idTypSerwisu else None
+            typ_serwisu_nazwa = typ_serwisu.rodzajSerwisu if typ_serwisu else "Brak typu serwisu"
+
             wynik.append({
                 'idCzesc': czesc.idCzesc,
-                'idTypSerwisu': czesc.idTypSerwisu,
+                'typSerwisu': typ_serwisu_nazwa,  # Wyświetlamy nazwę typu serwisu
                 'nazwaElementu': czesc.nazwaElementu,
                 'ilosc': czesc.ilosc
             })

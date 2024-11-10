@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from Aplikacja_bazodanowa.backend.database import db
-from Aplikacja_bazodanowa.backend.models import Pojazd
+from Aplikacja_bazodanowa.backend.models import Pojazd, Kierowca
 from Aplikacja_bazodanowa.backend.routes_dir.app_routes import get_columns
 import re
 import traceback
@@ -9,16 +9,20 @@ import traceback
 pojazd_bp = Blueprint('pojazd', __name__)
 
 
-# Pobieranie danych pojedynczego pojazdu
 @pojazd_bp.route('/pojazd/<int:id>', methods=['GET'])
 def pobierz_pojazd(id):
     try:
         pojazd = Pojazd.query.get(id)
         if pojazd is None:
             return jsonify({'message': 'Pojazd nie znaleziony'}), 404
+
+        # Pobranie danych kierowcy na podstawie idKierowca
+        kierowca = Kierowca.query.get(pojazd.idKierowca) if pojazd.idKierowca else None
+        kierowca_imie_nazwisko = f"{kierowca.imie} {kierowca.nazwisko}" if kierowca else "Brak kierowcy"
+
         return jsonify({
             'id': pojazd.idPojazd,
-            'idKierowca': pojazd.idKierowca,
+            'idKierowca': kierowca_imie_nazwisko,  # Wyświetlamy imię i nazwisko kierowcy
             'typPojazdu': pojazd.typPojazdu,
             'marka': pojazd.marka,
             'model': pojazd.model,
@@ -27,6 +31,7 @@ def pobierz_pojazd(id):
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 ############ http://127.0.0.1:5000/pojazdy?typPojazdu=Ciągnik ############# (wyświetli tylko ciągniki)
 @pojazd_bp.route('/pojazdy', methods=['GET'])
@@ -43,9 +48,13 @@ def pobierz_pojazdy():
 
         wynik = []
         for pojazd in pojazdy:
+            # Pobranie danych kierowcy na podstawie idKierowca
+            kierowca = Kierowca.query.get(pojazd.idKierowca) if pojazd.idKierowca else None
+            kierowca_imie_nazwisko = f"{kierowca.imie} {kierowca.nazwisko}" if kierowca else "Brak kierowcy"
+
             wynik.append({
                 'id': pojazd.idPojazd,
-                'idKierowca': pojazd.idKierowca,
+                'idKierowca': kierowca_imie_nazwisko,
                 'typPojazdu': pojazd.typPojazdu,
                 'marka': pojazd.marka,
                 'model': pojazd.model,
