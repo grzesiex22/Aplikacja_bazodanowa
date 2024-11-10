@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from Aplikacja_bazodanowa.backend.database import db
-from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd
+from Aplikacja_bazodanowa.backend.models import Kierowca
 from Aplikacja_bazodanowa.backend.routes_dir.app_routes import get_columns
 import re
 import traceback
