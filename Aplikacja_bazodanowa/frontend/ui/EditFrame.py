@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QScrollArea, QGridLayout, QLabel, QPushButton, QAbstractItemView
+from PyQt5.QtWidgets import QFrame, QLineEdit, QMessageBox, QGridLayout, QLabel, QPushButton, QAbstractItemView
 import requests
 
 
@@ -166,11 +166,12 @@ class EditFrame(QFrame):
         # Iteracja przez dane modelu (np. wartości z bazy danych)
         for column in self.model_data:
             column_name = column['name']
+            column_label = column['label']
             column_value = column['value']  # Zakładając, że 'value' zawiera wartość kolumny
 
             if not column.get('primary_key'):  # Pomijamy kolumny będące kluczem głównym
                 # Etykieta dla kolumny
-                label = QLabel(column_name)
+                label = QLabel(column_label)
                 label.setFixedHeight(30)
                 self.gridLayout_edit.addWidget(label, row, 0)
 
@@ -225,10 +226,13 @@ class EditFrame(QFrame):
                 error_message = response.json().get('message', 'Wystąpił błąd')
                 print(f"Błąd zapisu: {error_message}")
                 # Tutaj możesz np. pokazać użytkownikowi komunikat o błędzie
+                QMessageBox.warning(self, "Błąd",
+                                    f"Błąd zapisu: {error_message}")
 
         except requests.exceptions.RequestException as e:
             print(f"Błąd połączenia z serwerem: {e}")
             # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
 
 
@@ -244,12 +248,13 @@ class EditFrame(QFrame):
                 # Obsłuż błędy w odpowiedzi
                 error_message = response.json().get('message', 'Wystąpił błąd')
                 print(f"Błąd zapisu: {error_message}")
-                # Tutaj możesz np. pokazać użytkownikowi komunikat o błędzie
+                QMessageBox.warning(self, "Błąd",
+                                    f"Błąd zapisu: {error_message}")
 
         except requests.exceptions.RequestException as e:
             print(f"Błąd połączenia z serwerem: {e}")
             # Obsłuż błędy połączenia (np. brak dostępu do serwera)
-
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
 
 

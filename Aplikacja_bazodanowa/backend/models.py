@@ -8,6 +8,28 @@ class Kierowca(db.Model):
     nrTel = db.Column(db.String(12), nullable=False)
     pojazdy = db.relationship('Pojazd', backref='kierowca', lazy=True)
 
+    # Mapa kolumn z przyjaznymi nazwami
+    COLUMN_NAME_MAP = {
+        'imie': 'Imię',
+        'nazwisko': 'Nazwisko',
+        'nrTel': 'Nr telefonu'
+    }
+
+    @classmethod
+    def get_column_map(cls):
+        """
+        Zwraca mapowanie nazw kolumn na przyjazne dla użytkownika nazwy
+        """
+        return cls.COLUMN_NAME_MAP
+
+    @classmethod
+    def get_column_label(cls, column_name):
+        """
+        Zwraca etykietę dla danej kolumny
+        """
+        return cls.COLUMN_NAME_MAP.get(column_name, column_name)
+
+
 class Pojazd(db.Model):
     __tablename__ = 'Pojazd'
     idPojazd = db.Column(db.Integer, primary_key=True, autoincrement=True)

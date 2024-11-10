@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QScrollArea, QGridLayout, QLabel, QPushButton, \
+from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
     QAbstractItemView
 import requests
 
@@ -181,15 +181,16 @@ class AddFrame(QFrame):
 
             if column['primary_key'] == True:
                 continue
+            header_name = self.model_class.get_column_label(column_name) # Używamy metody, aby uzyskać mapowany nagłówek
 
             # Tworzymy etykietę
-            label = QLabel(column_name)
+            label = QLabel(header_name)
             label.setFixedHeight(30)
             self.gridLayout_add.addWidget(label, row, 0)
 
             # Tworzymy pole tekstowe
             line_edit = QLineEdit()
-            line_edit.setPlaceholderText(f"Wprowadź {column_name}")
+            line_edit.setPlaceholderText(f"Wprowadź {header_name}")
             line_edit.setObjectName(f"line_edit_{column_name}")
             self.gridLayout_add.addWidget(line_edit, row, 1)
             self.fields[column_name] = line_edit
@@ -204,21 +205,37 @@ class AddFrame(QFrame):
 
     def save_changes(self):
         # Pobieranie danych z pól formularza
-        data = {field_name: field.text().strip() for field_name, field in self.fields.items() if field.text().strip()}
+        data = {
+            'imie': self.fields['imie'].text(),
+            'nazwisko': self.fields['nazwisko'].text(),
+            'nrTel': self.fields['nrTel'].text()
+        }
+
+        # Walidacja, czy wszystkie wymagane pola są wypełnione
+        for field, value in data.items():
+            if not value.strip():  # Sprawdzamy, czy pole jest puste
+                QMessageBox.warning(self, "Błąd", f"Pole {field} jest wymagane i nie może być puste.")
+                return  # Przerywamy dalsze działanie, jeśli jakiekolwiek pole jest puste
 
         # Wysłanie danych do API
         try:
             response = requests.post(self.api_url, json=data)
             if response.status_code == 201:
                 print(f"Dodano nowy rekord do {self.model_class.__name__}")
-                # Czyszczenie pól po dodaniu rekordu
-                for field in self.fields.values():
-                    field.clear()
+                self.close_window()  # Zamknij QFrame po zapisaniu
+
             else:
-                print(f"Błąd podczas dodawania: {response.status_code} - {response.text}")
+                # Obsłuż błędy w odpowiedzi
+                error_message = response.json().get('message', 'Wystąpił błąd')
+                print(f"Błąd zapisu: {error_message}")
+                # Tutaj możesz np. pokazać użytkownikowi komunikat o błędzie
+                QMessageBox.warning(self, "Błąd",
+                                    f"Błąd zapisu: {error_message}")
         except Exception as e:
-            print(f"Błąd połączenia z API: {str(e)}")
-        self.close_window()  # Zamknij QFrame po zapisaniu
+            print(f"Błąd połączenia z serwerem: {e}")
+            # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+
 
     def close_window(self):
         if self.refresh_callback:

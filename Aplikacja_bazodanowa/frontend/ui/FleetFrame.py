@@ -94,7 +94,10 @@ class FleetFrame(QtWidgets.QFrame):
         self.model_pojazd.setHorizontalHeaderLabels(['ID', 'Nazwa', 'Typ', 'Status', 'data', 'kierowca'])
 
         self.model_kierowca = QStandardItemModel()
-        self.model_kierowca.setHorizontalHeaderLabels(['ID', 'Imię', 'Nazwisko', 'Nr telefonu'])
+        column_map = Kierowca.get_column_map()  # Ustalamy nagłówki tabeli na podstawie mapy
+        headers = list(column_map.values())
+        headers.insert(0, 'ID')  # Dodajemy 'ID' na początku nagłówków, jeżeli jest wymagane
+        self.model_kierowca.setHorizontalHeaderLabels(headers)
 
         # Dodawanie przykładowych danych
         for i in range(25):
@@ -293,6 +296,9 @@ class FleetFrame(QtWidgets.QFrame):
 
         self.tableView_flota.horizontalHeader().setSectionsClickable(True)
         self.tableView_flota.setCornerButtonEnabled(False)  # Usuwa kwadrat w lewym górnym rogu
+
+        self.tableView_flota.setColumnHidden(0, True)  # Ukryj kolumnę o indeksie 0
+
         # Umożliwienie zmiany szerokości kolumn przez użytkownika
         header = self.tableView_flota.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Interactive)  # Umożliwia interaktywne zmienianie rozmiaru
