@@ -12,6 +12,7 @@ class EditFrame(QFrame):
         self.driver_id = None
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
         self.fields = {}
+        self.map_name_to_headerlabel = {}
 
         self.app_width = 0
         self.app_height = 0
@@ -168,6 +169,7 @@ class EditFrame(QFrame):
             column_name = column['name']
             column_label = column['label']
             column_value = column['value']  # Zakładając, że 'value' zawiera wartość kolumny
+            self.map_name_to_headerlabel[column_name] = column_label
 
             if not column.get('primary_key'):  # Pomijamy kolumny będące kluczem głównym
                 # Etykieta dla kolumny
@@ -210,8 +212,16 @@ class EditFrame(QFrame):
         # Iterujemy przez wszystkie pola w formularzu
         for field_name, field in self.fields.items():
             # Sprawdzamy, czy pole jest typu QLineEdit oraz czy zawiera tekst
-            if isinstance(field, QLineEdit) and field.text().strip():
+            if isinstance(field, QLineEdit):
                 data[field_name] = field.text().strip()  # Dodajemy dane z pola do słownika
+
+        # Walidacja: Sprawdzamy, czy wszystkie pola mają wartości
+        missing_fields = [self.map_name_to_headerlabel[name] for name, value in data.items() if not value]
+        if missing_fields:
+            # Wyświetlenie komunikatu o błędzie z informacją, które pola są puste
+            missing_fields_str = ", ".join(missing_fields)
+            QMessageBox.warning(self, "Błąd walidacji", f"Pola nie mogą być puste: {missing_fields_str}")
+            return
 
         # Użyj requests do wysłania zapytania PUT
         try:

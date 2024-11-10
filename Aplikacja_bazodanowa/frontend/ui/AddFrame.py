@@ -204,18 +204,20 @@ class AddFrame(QFrame):
 
 
     def save_changes(self):
-        # Pobieranie danych z pól formularza
-        data = {
-            'imie': self.fields['imie'].text(),
-            'nazwisko': self.fields['nazwisko'].text(),
-            'nrTel': self.fields['nrTel'].text()
-        }
+        data = {}  # Tworzymy pusty słownik na dane
+        # Iterujemy przez wszystkie pola w formularzu
+        for field_name, field in self.fields.items():
+            # Sprawdzamy, czy pole jest typu QLineEdit oraz czy zawiera tekst
+            if isinstance(field, QLineEdit):
+                data[field_name] = field.text().strip()  # Dodajemy dane z pola do słownika
 
-        # Walidacja, czy wszystkie wymagane pola są wypełnione
-        for field, value in data.items():
-            if not value.strip():  # Sprawdzamy, czy pole jest puste
-                QMessageBox.warning(self, "Błąd", f"Pole {field} jest wymagane i nie może być puste.")
-                return  # Przerywamy dalsze działanie, jeśli jakiekolwiek pole jest puste
+        # Walidacja: Sprawdzamy, czy wszystkie pola mają wartości
+        missing_fields = [self.model_class.get_column_label(name) for name, value in data.items() if not value]
+        if missing_fields:
+            # Wyświetlenie komunikatu o błędzie z informacją, które pola są puste
+            missing_fields_str = ", ".join(missing_fields)
+            QMessageBox.warning(self, "Błąd walidacji", f"Pola nie mogą być puste: {missing_fields_str}")
+            return
 
         # Wysłanie danych do API
         try:
