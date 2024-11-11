@@ -126,6 +126,10 @@ def edytuj_pojazd(id):
         # Walidacja danych wejściowych
         if 'typPojazdu' in data and data['typPojazdu'] not in ['Ciągnik', 'Naczepa']:
             return jsonify({'message': 'Typ pojazdu musi być "Ciągnik" lub "Naczepa"'}), 400
+        if 'marka' in data and not isinstance(data['marka'], str):
+            return jsonify({'message': 'Marka musi być ciągiem znaków'}), 400
+        if 'model' in data and not isinstance(data['model'], str):
+            return jsonify({'message': 'Model musi być ciągiem znaków'}), 400
         if 'nrRejestracyjny' in data and not re.match(r'^[A-Z0-9]{1,8}$', data['nrRejestracyjny']):
             return jsonify({'message': 'Numer rejestracyjny musi składać się z maksymalnie 8 znaków alfanumerycznych'}), 400
 

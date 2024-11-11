@@ -5,16 +5,18 @@ from Aplikacja_bazodanowa.frontend.ui.FleetFrame import FleetFrame
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, api_url):
         super(MainWindow, self).__init__()
-        self.ui = Ui_MainWindow(self)  # Inicjalizacja instancji Ui_MainWindow
+        self.api_url = api_url
+        self.ui = Ui_MainWindow(self, self.api_url)  # Inicjalizacja instancji Ui_MainWindow
         self.ui.setupUi(self)  # Wywołanie metody setupUi
         # Ustawienie flag okna
 
         self.setWindowFlags(Qt.FramelessWindowHint)
 class Ui_MainWindow(object):
-    def __init__(self, main_window):
+    def __init__(self, main_window, api_url):
         self.main_window = main_window  # Przechowaj referencję do głównego okna
+        self.api_url = api_url
         self.screen_width = 0  # Zmienna na szerokość ekranu
         self.screen_height = 0  # Zmienna na wysokość ekranu
 
@@ -51,7 +53,7 @@ class Ui_MainWindow(object):
         MainWindow.setPalette(palette)
 
         # Inicjalizacja ramki floty
-        self.flota_window = FleetFrame(MainWindow)
+        self.flota_window = FleetFrame(MainWindow, self.api_url)
 
         # Ustawienie głównego widgetu
         self.centralwidget = QtWidgets.QWidget(MainWindow)

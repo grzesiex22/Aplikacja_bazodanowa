@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-from Aplikacja_bazodanowa.backend.routes_dir.pojazd_routes import pojazd_bp
+from Aplikacja_bazodanowa.backend.routes_dir.pojazd_routes2 import pojazd_bp
 from routes_dir.kierowca_routes import kierowca_bp
 from routes_dir.typSerwisu_routes import typserwis_bp
 from routes_dir.czesc_routes import czesc_bp

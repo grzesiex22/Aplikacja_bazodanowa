@@ -6,11 +6,11 @@ import requests
 
 
 class AddFrame(QFrame):
-    def __init__(self, model_class, api_url, parent=None, header_title="title", refresh_callback=None):
+    def __init__(self, class_name, api_url, parent=None, header_title="title", refresh_callback=None):
         super().__init__(parent)
 
         self.api_url = api_url  # URL dla POST danych
-        self.model_class = model_class
+        self.class_name = class_name
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
 
 
@@ -29,7 +29,7 @@ class AddFrame(QFrame):
         self.app_width = available_rect.width()
         self.app_height = available_rect.height()
         self.row_height = 50
-        self.row_count = len(self.columns)
+        self.row_count = sum(1 for col in self.columns if not col.get('primary_key'))
         self.height = self.row_count * self.row_height + 120
         self.width = 500
 
@@ -166,7 +166,8 @@ class AddFrame(QFrame):
 
         try:
             # Żądanie do endpointu pobierania kolumn
-            response = requests.get("http://127.0.0.1:5000/api/columns/Kierowca")
+            tmp = f"http://127.0.0.1:5000/api/columns/{self.class_name}"
+            response = requests.get(tmp)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -181,16 +182,15 @@ class AddFrame(QFrame):
 
             if column['primary_key'] == True:
                 continue
-            header_name = self.model_class.get_column_label(column_name) # Używamy metody, aby uzyskać mapowany nagłówek
 
             # Tworzymy etykietę
-            label = QLabel(header_name)
+            label = QLabel(column_name)
             label.setFixedHeight(30)
             self.gridLayout_add.addWidget(label, row, 0)
 
             # Tworzymy pole tekstowe
             line_edit = QLineEdit()
-            line_edit.setPlaceholderText(f"Wprowadź {header_name}")
+            line_edit.setPlaceholderText(f"Wprowadź {column_name}")
             line_edit.setObjectName(f"line_edit_{column_name}")
             self.gridLayout_add.addWidget(line_edit, row, 1)
             self.fields[column_name] = line_edit
@@ -209,21 +209,31 @@ class AddFrame(QFrame):
         for field_name, field in self.fields.items():
             # Sprawdzamy, czy pole jest typu QLineEdit oraz czy zawiera tekst
             if isinstance(field, QLineEdit):
-                data[field_name] = field.text().strip()  # Dodajemy dane z pola do słownika
+                field_value = field.text().strip()
+                print(f"Pole {field_name} ma wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy dane z pola do słownika
 
-        # Walidacja: Sprawdzamy, czy wszystkie pola mają wartości
-        missing_fields = [self.model_class.get_column_label(name) for name, value in data.items() if not value]
-        if missing_fields:
-            # Wyświetlenie komunikatu o błędzie z informacją, które pola są puste
-            missing_fields_str = ", ".join(missing_fields)
-            QMessageBox.warning(self, "Błąd walidacji", f"Pola nie mogą być puste: {missing_fields_str}")
+        # WALIDACJA DANYCH ZA POMOCĄ API
+        try:
+            # Wywołanie endpointu walidacji
+            response = requests.post(f"{self.api_url}/validate", json=data)
+            if response.status_code != 200:
+                # Jeżeli odpowiedź to błąd walidacji
+                error_message = response.json().get('message', 'Wystąpił błąd walidacji')
+                QMessageBox.warning(self, "Błąd walidacji", f"{error_message}")
+                return  # Zatrzymujemy dalsze zapisywanie, bo dane są niepoprawne
+
+        except Exception as e:
+            print(f"Błąd połączenia z serwerem podczas walidacji: {e}")
+            # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
             return
 
         # Wysłanie danych do API
         try:
-            response = requests.post(self.api_url, json=data)
+            response = requests.post(f"{self.api_url}/add", json=data)
             if response.status_code == 201:
-                print(f"Dodano nowy rekord do {self.model_class.__name__}")
+                print(f"Dodano nowy rekord do {self.class_name}")
                 self.close_window()  # Zamknij QFrame po zapisaniu
 
             else:

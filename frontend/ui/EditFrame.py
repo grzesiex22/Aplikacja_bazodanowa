@@ -5,14 +5,17 @@ import requests
 
 
 class EditFrame(QFrame):
-    def __init__(self, data, parent=None, header_title="title", refresh_callback=None):
+    def __init__(self, class_name, data, api_url, parent=None, header_title="title", refresh_callback=None):
         super().__init__(parent)
 
         self.model_data = data
-        self.driver_id = None
+        self.class_name = class_name
+        self.api_url = api_url
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
+
         self.fields = {}
-        self.map_name_to_headerlabel = {}
+        self.columns = self.load_columns()
+        self.driver_id = None
 
         self.app_width = 0
         self.app_height = 0
@@ -23,7 +26,7 @@ class EditFrame(QFrame):
 
         self.is_moving = False  # For tracking if the frame is being moved
         self.mouse_press_pos = None  # To store the initial position of the mouse press
-        self.row_count = sum(1 for col in self.model_data if not col.get('primary_key'))
+        self.row_count = sum(1 for col in self.columns if not col.get('primary_key'))
         self.row_height = 50
 
         self.height = self.row_count*self.row_height+120
@@ -161,19 +164,30 @@ class EditFrame(QFrame):
         self.button_save.clicked.connect(self.save_changes)
 
 
+    def load_columns(self):
+
+        try:
+            # Żądanie do endpointu pobierania kolumn
+            response = requests.get(f"http://127.0.0.1:5000/api/columns/{self.class_name}")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print("Błąd pobierania kolumn:", response.status_code, response.text)
+        except Exception as e:
+            print("Błąd połączenia z API:", str(e))
+
+
     def setup_fields(self):
         row = 0
 
-        # Iteracja przez dane modelu (np. wartości z bazy danych)
-        for column in self.model_data:
+        # Iterowanie po dwóch kolekcjach jednocześnie (self.model_data i self.columns)
+        for column in self.columns:
             column_name = column['name']
-            column_label = column['label']
-            column_value = column['value']  # Zakładając, że 'value' zawiera wartość kolumny
-            self.map_name_to_headerlabel[column_name] = column_label
+            column_value = self.model_data[column_name]
 
             if not column.get('primary_key'):  # Pomijamy kolumny będące kluczem głównym
                 # Etykieta dla kolumny
-                label = QLabel(column_label)
+                label = QLabel(column_name)
                 label.setFixedHeight(30)
                 self.gridLayout_edit.addWidget(label, row, 0)
 
@@ -187,16 +201,16 @@ class EditFrame(QFrame):
 
                 row += 1  # Zwiększamy numer wiersza
             else:
-                self.driver_id = column_value  # klucz główny
+                self.driver_id = column_value  # Przypisanie klucza głównego
 
 
     def restore_initial_values(self):
         row = 0
 
         # Przechodzimy przez wszystkie kolumny z model_data i przywracamy wartości do pól
-        for column in self.model_data:
+        for column in self.columns:
             column_name = column['name']
-            column_value = column['value']  # Pobierz oryginalną wartość
+            column_value = self.model_data[column_name]  # Pobierz oryginalną wartość
 
             if not column.get('primary_key'):  # Pomijamy klucz główny
                 if column_name in self.fields:
@@ -213,20 +227,30 @@ class EditFrame(QFrame):
         for field_name, field in self.fields.items():
             # Sprawdzamy, czy pole jest typu QLineEdit oraz czy zawiera tekst
             if isinstance(field, QLineEdit):
-                data[field_name] = field.text().strip()  # Dodajemy dane z pola do słownika
+                field_value = field.text().strip()
+                print(f"Pole {field_name} ma wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy dane z pola do słownika
 
-        # Walidacja: Sprawdzamy, czy wszystkie pola mają wartości
-        missing_fields = [self.map_name_to_headerlabel[name] for name, value in data.items() if not value]
-        if missing_fields:
-            # Wyświetlenie komunikatu o błędzie z informacją, które pola są puste
-            missing_fields_str = ", ".join(missing_fields)
-            QMessageBox.warning(self, "Błąd walidacji", f"Pola nie mogą być puste: {missing_fields_str}")
+        # WALIDACJA DANYCH ZA POMOCĄ API
+        try:
+            # Wywołanie endpointu walidacji
+            response = requests.post(f"{self.api_url}/validate", json=data)
+            if response.status_code != 200:
+                # Jeżeli odpowiedź to błąd walidacji
+                error_message = response.json().get('message', 'Wystąpił błąd walidacji')
+                QMessageBox.warning(self, "Błąd walidacji", f"{error_message}")
+                return  # Zatrzymujemy dalsze zapisywanie, bo dane są niepoprawne
+
+        except Exception as e:
+            print(f"Błąd połączenia z serwerem podczas walidacji: {e}")
+            # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
             return
 
         # Użyj requests do wysłania zapytania PUT
         try:
             print(f"Data to update: {data}")
-            response = requests.put(f'http://127.0.0.1:5000/kierowca/{self.driver_id}', json=data)
+            response = requests.put(f'{self.api_url}/edit/{self.driver_id}', json=data)
 
             if response.status_code == 200:
                 # Jeśli zapis się powiódł, zamknij okno
@@ -249,9 +273,9 @@ class EditFrame(QFrame):
 
     def delete_driver(self):
 
-        # Wywołanie API DELETE do usunięcia kierowcy
+        # Wywołanie API DELETE do usunięcia
         try:
-            response = requests.delete(f'http://127.0.0.1:5000/kierowca/{self.driver_id}')
+            response = requests.delete(f'{self.api_url}/delete/{self.driver_id}')
             if response.status_code == 200:
                 self.close_window()  # Zamknij po usunięciu
             else:
