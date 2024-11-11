@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
 
@@ -30,6 +30,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.model_kierowca_columns_info, self.primary_key_index_kierowca \
             = self.load_column_headers("kierowca", model=self.model_kierowca)
 
+        self.primary_key_index = None
 
 
         # Ustawienie rozmiaru floty
@@ -473,7 +474,7 @@ class FleetFrame(QtWidgets.QFrame):
         if self.screen_type == ScreenType.KIEROWCY:
             kierowca_id = self.model_kierowca.data(
                 self.model_kierowca.index(row, self.primary_key_index_kierowca))  # Zakładam, że ID jest w kolumnie 0
-            print(f"Wykonaj kierowca/show/{kierowca_id}")
+
             # Wykonanie żądania GET do API, aby pobrać dane kierowcy
             try:
                 response = requests.get(f"{self.api_url}/kierowca/show/{kierowca_id}")
@@ -494,7 +495,7 @@ class FleetFrame(QtWidgets.QFrame):
         elif self.screen_type == ScreenType.CIAGNIKI:
             pojazd_id = self.model_pojazd.data(
                 self.model_pojazd.index(row, self.primary_key_index_pojazd))  # Zakładam, że ID jest w kolumnie 0
-            print(f"Wykonaj pojazd/show/{pojazd_id}")
+
             # Wykonanie żądania GET do API, aby pobrać dane kierowcy
             try:
                 response = requests.get(f"{self.api_url}/pojazd/show/{pojazd_id}")
@@ -510,26 +511,39 @@ class FleetFrame(QtWidgets.QFrame):
                     QMessageBox.warning(self, "Błąd",
                                         f"Nie udało się pobrać danych pojazdu. Status: {response.status_code}")
             except Exception as e:
-                QMessageBox
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+
+    def adjust_column_widths(self):
+        """
+        Dostosowanie szerokości kolumn do zawartości i nagłówków z ustawieniem minimalnej szerokości.
+        """
+        model = self.tableView_flota.model()
+        if not model:
+            return
+
+        for i in range(model.columnCount()):
+            # Dopasuj szerokość kolumny do zawartości
+            self.tableView_flota.resizeColumnToContents(i)
+
+            # Uzyskaj szerokości zawartości i nagłówka
+            content_width = self.tableView_flota.columnWidth(i)
+            header_width = self.tableView_flota.horizontalHeader().sectionSize(i)
+
+            # Wybierz większą szerokość, ale ustaw minimum na 100 pikseli
+            new_width = max(content_width, header_width, 100)
+            self.tableView_flota.setColumnWidth(i, new_width)
+
+        # Ustaw szerokość kolumny klucza głównego na 0, jeśli jest dostępna
+        if self.primary_key_index is not None:
+            self.tableView_flota.setColumnWidth(self.primary_key_index, 0)
+
 
 
     def load_data(self):
         # API URL - endpoint, który zwraca listę kierowców
         if self.screen_type == ScreenType.KIEROWCY:
+            self.primary_key_index = self.primary_key_index_kierowca
             self.tableView_flota.setModel(self.model_kierowca)
-
-            # Iteracja przez wszystkie kolumny w modelu
-            for i in range(self.model_kierowca.columnCount()):
-                # Dopasuj szerokość kolumny do zawartości, jeśli jest dłuższa niż 100 pikseli
-                self.tableView_flota.resizeColumnToContents(i)
-                # Sprawdź szerokość po dopasowaniu
-                if self.tableView_flota.columnWidth(i) < 100:
-                    # Jeśli zawartość jest krótsza niż 100 pikseli, ustaw na 100
-                    self.tableView_flota.setColumnWidth(i, 100)
-
-                # Jeśli klucz główny istnieje, ustaw jego szerokość na 0
-                if self.primary_key_index_kierowca is not None:
-                    self.tableView_flota.setColumnWidth(self.primary_key_index_kierowca, 0)
 
             try:
                 # Wykonanie żądania HTTP GET do API
@@ -548,21 +562,13 @@ class FleetFrame(QtWidgets.QFrame):
                     print(f"Błąd API: {response.status_code}")
             except Exception as e:
                 print(f"Błąd przy ładowaniu danych: {str(e)}")
+
+                # Użycie QTimer dla opóźnienia wywołania adjust_column_widths z kluczem głównym dla pojazdu
+                QTimer.singleShot(0, self.adjust_column_widths)
+
         elif self.screen_type == ScreenType.CIAGNIKI:
+            self.primary_key_index=self.primary_key_index_pojazd
             self.tableView_flota.setModel(self.model_pojazd)
-
-            # Iteracja przez wszystkie kolumny w modelu
-            for i in range(self.model_kierowca.columnCount()):
-                # Dopasuj szerokość kolumny do zawartości, jeśli jest dłuższa niż 100 pikseli
-                self.tableView_flota.resizeColumnToContents(i)
-                # Sprawdź szerokość po dopasowaniu
-                if self.tableView_flota.columnWidth(i) < 100:
-                    # Jeśli zawartość jest krótsza niż 100 pikseli, ustaw na 100
-                    self.tableView_flota.setColumnWidth(i, 100)
-
-                # Jeśli klucz główny istnieje, ustaw jego szerokość na 0
-                if self.primary_key_index_pojazd is not None:
-                    self.tableView_flota.setColumnWidth(self.primary_key_index_pojazd, 0)
 
             try:
                 # Wykonanie żądania HTTP GET do API
@@ -574,7 +580,7 @@ class FleetFrame(QtWidgets.QFrame):
                     self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())  # Usuwamy poprzednie dane z modelu
                     for pojazd in pojazd_data:
                         self.model_pojazd.appendRow([QStandardItem(str(pojazd['ID pojazdu'])),
-                                              QStandardItem(pojazd['ID kierowca']),
+                                              QStandardItem(str(pojazd['ID kierowca'])),
                                               QStandardItem(pojazd['Dane kierowcy']),
                                               QStandardItem(pojazd['Typ pojazdu']),
                                               QStandardItem(pojazd['Marka']),
@@ -587,6 +593,8 @@ class FleetFrame(QtWidgets.QFrame):
             except Exception as e:
                 print(f"Błąd przy ładowaniu danych: {str(e)}")
 
+            # Użycie QTimer dla opóźnienia wywołania adjust_column_widths z kluczem głównym dla pojazdu
+            QTimer.singleShot(0, self.adjust_column_widths)
 
     def load_column_headers(self, model_class, model):
         # Wykonanie zapytania GET do API, aby pobrać nagłówki kolumn
@@ -599,10 +607,12 @@ class FleetFrame(QtWidgets.QFrame):
                 primary_key = None
                 headers = []
                 for i, column in enumerate(model_columns_info):
-                    headers.append(column["name"])  # Dodaj nazwę kolumny do nagłówków
+                    headers.append(column["friendly_name"])  # Dodaj nazwę kolumny do nagłówków
                     if column["primary_key"]:
                         primary_key = i  # Zapisz indeks kolumny będącej kluczem głównym
-
+                        # Ustaw właściwości kolumny, np. edytowalność, typ wejścia
+                        # if not column.get("editable", True):
+                        #     model.setColumnEditable(i, False)  # Zakładamy, że masz metodę do ustawienia edytowalności kolumny
                 # Ustaw nagłówki w modelu
                 model.setHorizontalHeaderLabels(headers)
 

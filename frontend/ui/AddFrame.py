@@ -1,7 +1,8 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
-    QAbstractItemView
+    QAbstractItemView, QComboBox
+
 import requests
 
 
@@ -178,7 +179,7 @@ class AddFrame(QFrame):
     def setup_fields(self, columns):
         row = 0
         for column in columns:
-            column_name = column['name']
+            column_name = column['friendly_name']
 
             if column['primary_key'] == True:
                 continue
@@ -187,6 +188,19 @@ class AddFrame(QFrame):
             label = QLabel(column_name)
             label.setFixedHeight(30)
             self.gridLayout_add.addWidget(label, row, 0)
+
+            # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+            if column['input_type'] == 'list':
+                combo_box = QComboBox()
+                # Dodajemy do combo boxa wszystkie wartości Enum TypPojazdu
+                combo_box.addItem("")  # Pusty element na początku, który będzie ustawiony jako wybrany
+                combo_box.addItems([typ for typ in column["inputs"]])
+                combo_box.setObjectName(f"combo_box_{column_name}")
+                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
+                self.gridLayout_add.addWidget(combo_box, row, 1)
+                self.fields[column_name] = combo_box
+                row += 1
+                continue
 
             # Tworzymy pole tekstowe
             line_edit = QLineEdit()
@@ -200,7 +214,11 @@ class AddFrame(QFrame):
     def clear_fields(self):
         # Przechodzimy przez wszystkie pola i ustawiamy pustą wartość
         for field in self.fields.values():
-            field.clear()
+            if isinstance(field, QComboBox):
+                # Ustawiamy QComboBox na domyślny (pierwszy element na liście lub pusty)
+                field.setCurrentIndex(0)  # Możesz użyć -1, jeśli chcesz, aby było puste
+            else:
+                field.clear()  # Dla innych pól (QLineEdit) czyścimy wartość
 
 
     def save_changes(self):
@@ -212,6 +230,11 @@ class AddFrame(QFrame):
                 field_value = field.text().strip()
                 print(f"Pole {field_name} ma wartość: {field_value}")  # Debugowanie
                 data[field_name] = field_value  # Dodajemy dane z pola do słownika
+            # Sprawdzamy, czy pole jest typu QComboBox
+            elif isinstance(field, QComboBox):
+                field_value = field.currentText().strip()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QComboBox do słownika
 
         # WALIDACJA DANYCH ZA POMOCĄ API
         try:

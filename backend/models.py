@@ -30,33 +30,72 @@ class BaseModel(db.Model):
 
     @classmethod
     def get_columns_info(cls):
-        """Zwraca informacje o kolumnach danego modelu z uwzględnieniem przyjaznych nazw i dodatkowych pól."""
+        """Zwraca szczegółowe informacje o kolumnach z przyjaznymi nazwami oraz innymi właściwościami z COLUMN_NAME_MAP."""
         columns_info = []
 
         # Mapowanie rzeczywistych kolumn
         actual_columns = {col.name: col for col in cls.__table__.columns}
 
-        for column_name, friendly_name in cls.COLUMN_NAME_MAP.items():
-            if column_name in actual_columns:
-                # Kolumna istnieje fizycznie, więc pobieramy jej właściwości
-                column = actual_columns[column_name]
+        for column_name, properties in cls.COLUMN_NAME_MAP.items():
+            if isinstance(properties, dict):  # Upewnij się, że 'properties' to słownik
                 column_info = {
-                    "name": friendly_name,
-                    "type": str(column.type),
-                    "primary_key": column.primary_key,
-                    "foreign_key": bool(column.foreign_keys)
+                    "name" : column_name,
+                    "friendly_name": properties['friendly_name'],
+                    "type": str(actual_columns[column_name].type) if column_name in actual_columns else None,
+                    "primary_key": actual_columns[column_name].primary_key if column_name in actual_columns else False,
+                    "foreign_key": bool(
+                        actual_columns[column_name].foreign_keys) if column_name in actual_columns else False,
+                    "editable": properties.get("editable", True),
+                    "input_type": properties.get("input_type", "text"),
+                     # Obsługa "inputs" dla typu 'list'
+                    "inputs": cls._serialize_inputs(properties.get("inputs")) if (properties.get("input_type") == 'list' and properties.get("inputs")) else None
                 }
+                columns_info.append(column_info)
             else:
-                # Kolumna nie istnieje fizycznie; ustawiamy domyślne wartości
-                column_info = {
-                    "name": friendly_name,
-                    "type": None,
-                    "primary_key": False,
-                    "foreign_key": False
-                }
-            columns_info.append(column_info)
+                print(f"Warning: Unexpected format for COLUMN_NAME_MAP entry '{column_name}'.")
 
         return columns_info
+
+    @staticmethod
+    def _serialize_inputs(inputs):
+        """Funkcja pomocnicza do serializacji enumów w polu 'inputs'."""
+        if inputs:
+            # Sprawdzenie, czy 'inputs' zawiera Enum
+            if isinstance(inputs[0], Enum):
+                return [item.name for item in inputs]  # Zwróć tylko nazwy elementów enum
+            else:
+                return inputs
+        return None
+
+    # @classmethod
+    # def get_columns_info(cls):
+    #     """Zwraca informacje o kolumnach danego modelu z uwzględnieniem przyjaznych nazw i dodatkowych pól."""
+    #     columns_info = []
+    #
+    #     # Mapowanie rzeczywistych kolumn
+    #     actual_columns = {col.name: col for col in cls.__table__.columns}
+    #
+    #     for column_name, friendly_name in cls.COLUMN_NAME_MAP.items():
+    #         if column_name in actual_columns:
+    #             # Kolumna istnieje fizycznie, więc pobieramy jej właściwości
+    #             column = actual_columns[column_name]
+    #             column_info = {
+    #                 "name": friendly_name,
+    #                 "type": str(column.type),
+    #                 "primary_key": column.primary_key,
+    #                 "foreign_key": bool(column.foreign_keys)
+    #             }
+    #         else:
+    #             # Kolumna nie istnieje fizycznie; ustawiamy domyślne wartości
+    #             column_info = {
+    #                 "name": friendly_name,
+    #                 "type": None,
+    #                 "primary_key": False,
+    #                 "foreign_key": False
+    #             }
+    #         columns_info.append(column_info)
+    #
+    #     return columns_info
 
     @classmethod
     def get_column_map(cls):
@@ -83,10 +122,26 @@ class Kierowca(BaseModel):
 
     # Mapa kolumn z przyjaznymi nazwami
     COLUMN_NAME_MAP = {
-        'idKierowca': 'ID kierowcy',
-        'imie': 'Imię',
-        'nazwisko': 'Nazwisko',
-        'nrTel': 'Nr telefonu'
+        'idKierowca': {
+            'friendly_name': 'ID kierowcy',
+            'editable': False,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        },
+        'imie': {
+            'friendly_name': 'Imię',
+            'editable': True,
+            'input_type': 'text'  # typ wejścia dla PyQt
+        },
+        'nazwisko': {
+            'friendly_name': 'Nazwisko',
+            'editable': True,
+            'input_type': 'text'
+        },
+        'nrTel': {
+            'friendly_name': 'Nr telefonu',
+            'editable': True,
+            'input_type': 'text'  # można dodać walidację np. numeru telefonu
+        }
     }
 
     @staticmethod
@@ -95,8 +150,10 @@ class Kierowca(BaseModel):
         Serializacja obiektu Kierowca z zamianą nazw kolumn na przyjazne.
         """
         serialized_data = {}
-        for column_name, friendly_name in Kierowca.COLUMN_NAME_MAP.items():
-            serialized_data[friendly_name] = getattr(kierowca, column_name)
+        for column_name, properties in Kierowca.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            value = getattr(kierowca, column_name)
+            serialized_data[friendly_name] = value
         return serialized_data
 
     @staticmethod
@@ -106,10 +163,10 @@ class Kierowca(BaseModel):
         Deserializacja danych z przyjaznymi nazwami na nazwy kolumn w bazie danych (te nie przyjazne).
         """
         deserialized_data = {}
-        for column_name, friendly_name in Kierowca.COLUMN_NAME_MAP.items():
-            for key, value in data.items():
-                if key == friendly_name:
-                    deserialized_data[column_name] = value
+        for column_name, properties in Kierowca.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            if friendly_name in data:
+                deserialized_data[column_name] = data[friendly_name]
 
         return deserialized_data
 
@@ -155,14 +212,47 @@ class Pojazd(BaseModel):
     dodatkoweInf = db.Column(db.String(100), nullable=True)
 
     COLUMN_NAME_MAP = {
-        'idPojazd': 'ID pojazdu',
-        'idKierowca': 'ID kierowca',
-        'Kierowca': 'Dane kierowcy',
-        'typPojazdu': 'Typ pojazdu',
-        'marka': 'Marka',
-        'model': 'Model',
-        'nrRejestracyjny': 'Numer rejestracyjny',
-        'dodatkoweInf': 'Dodatkowe informacje'
+        'idPojazd': {
+            'friendly_name': 'ID pojazdu',
+            'editable': False,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        },
+        'idKierowca': {
+            'friendly_name': 'ID kierowca',
+            'editable': True,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        },
+        'Kierowca': {
+            'friendly_name': 'Dane kierowcy',
+            'editable': True,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        },
+        'typPojazdu': {
+            'friendly_name': 'Typ pojazdu',
+            'editable': True,
+            'input_type': 'list',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa]
+        },
+        'marka': {
+            'friendly_name': 'Marka',
+            'editable': True,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        },
+        'model': {
+            'friendly_name': 'Model',
+            'editable': True,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        },
+        'nrRejestracyjny': {
+            'friendly_name': 'Numer rejestracyjny',
+            'editable': True,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        },
+        'dodatkoweInf': {
+            'friendly_name': 'Dodatkowe informacje',
+            'editable': True,
+            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+        }
     }
 
     @staticmethod
@@ -172,19 +262,23 @@ class Pojazd(BaseModel):
         w tym ID kierowcy i jego pełne imię i nazwisko.
         """
         serialized_data = {}
-        for column_name, friendly_name in Pojazd.COLUMN_NAME_MAP.items():
+
+        for column_name, properties in Pojazd.COLUMN_NAME_MAP.items():
             if column_name == 'Kierowca':
                 # Specjalny przypadek: dodajemy imię i nazwisko kierowcy
                 kierowca = Kierowca.query.get(pojazd.idKierowca) if pojazd.idKierowca else None
-                serialized_data[friendly_name] = f"{kierowca.imie} {kierowca.nazwisko} {kierowca.nrTel}" if kierowca else "Brak kierowcy"
+                serialized_data[properties[
+                    'friendly_name']] = f"{kierowca.imie} {kierowca.nazwisko} {kierowca.nrTel}" if kierowca else "Brak kierowcy"
             else:
                 # Standardowa serializacja
                 value = getattr(pojazd, column_name)
                 if column_name == 'typPojazdu' and isinstance(value, TypPojazdu):
                     # Zamiana typu Enum na jego wartość
-                    serialized_data[friendly_name] = value.value
+                    serialized_data[properties['friendly_name']] = value.value
+                elif column_name == 'idKierowca' and value == None:
+                    serialized_data[properties['friendly_name']] = ""
                 else:
-                    serialized_data[friendly_name] = value
+                    serialized_data[properties['friendly_name']] = value
 
         print(f"Serialized data pojazd: {serialized_data}")
         return serialized_data
@@ -197,10 +291,12 @@ class Pojazd(BaseModel):
         """
         deserialized_data = {}
         print(f"Before deserialization: {data}")
-        for column_name, friendly_name in Pojazd.COLUMN_NAME_MAP.items():
-            # Ustawienie identyfikatora kierowcy
+
+        for column_name, properties in Pojazd.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+
             if column_name == 'idKierowca' and friendly_name in data:
-                deserialized_data[column_name] = data[friendly_name]
+                deserialized_data[column_name] = data[friendly_name] if data[friendly_name] else None
             elif column_name == 'typPojazdu' and friendly_name in data:
                 # Przekształcenie wartości typu Enum
                 value = data[friendly_name]
@@ -210,9 +306,10 @@ class Pojazd(BaseModel):
                 except ValueError:
                     return {'message': f"Nieprawidłowa wartość dla {friendly_name}: {value}"}, 400
             elif column_name == "Kierowca":
-                continue
+                continue  # Pomijamy "Kierowca", bo nie jest fizyczną kolumną w tabeli
             elif friendly_name in data:
                 deserialized_data[column_name] = data[friendly_name]
+
         print(f"After deserialization: {deserialized_data}")
         return deserialized_data
 
@@ -243,14 +340,14 @@ class Pojazd(BaseModel):
             if typ_pojazdu not in [typ.name for typ in valid_types]:  # Typy Enum są w .name
                 return {'message': f"Nieprawidłowy typ pojazdu: {typ_pojazdu}"}, 400
 
-        # Walidacja ID kierowcy
-        if 'ID kierowca' in data:
+        # Walidacja ID kierowcy, jeśli jest obecne
+        if 'ID kierowca' in data and data['ID kierowca']:
             id_kierowca = data['ID kierowca']
             kierowca = Kierowca.query.get(id_kierowca)
             if not kierowca:
                 return {'message': f"Kierowca o ID {id_kierowca} nie istnieje."}, 400
 
-            # Walidacja numeru rejestracyjnego (alfanumeryczny, maksymalnie 8 znaków)
+        # Walidacja numeru rejestracyjnego (alfanumeryczny, maksymalnie 8 znaków)
         if 'Numer rejestracyjny' in data:
             nr_rejestracyjny = data['Numer rejestracyjny']
             if not re.match(r'^[A-Z0-9]{1,8}$', nr_rejestracyjny):

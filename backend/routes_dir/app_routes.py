@@ -18,6 +18,7 @@ def get_columns(table_name):
 
     # Uzyskaj listę kolumn i ich typów z metody get_columns_info
     columns = model_class.get_columns_info()
+    print(f"Columns: {columns}")
 
     # Zwrócenie informacji o kolumnach w formacie JSON
     return jsonify(columns)

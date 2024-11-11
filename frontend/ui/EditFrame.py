@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QLineEdit, QMessageBox, QGridLayout, QLabel, QPushButton, QAbstractItemView
+from PyQt5.QtWidgets import QFrame, QLineEdit, QMessageBox, QGridLayout, QLabel, QPushButton, QAbstractItemView, \
+    QComboBox
 import requests
 
 
@@ -182,7 +183,7 @@ class EditFrame(QFrame):
 
         # Iterowanie po dwóch kolekcjach jednocześnie (self.model_data i self.columns)
         for column in self.columns:
-            column_name = column['name']
+            column_name = column['friendly_name']
             column_value = self.model_data[column_name]
 
             if not column.get('primary_key'):  # Pomijamy kolumny będące kluczem głównym
@@ -191,34 +192,64 @@ class EditFrame(QFrame):
                 label.setFixedHeight(30)
                 self.gridLayout_edit.addWidget(label, row, 0)
 
+                # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+                if column['input_type'] == 'list':
+                    combo_box = QComboBox()
+                    # Dodajemy do combo boxa wszystkie wartości Enum TypPojazdu
+                    combo_box.addItem("")  # Pusty element na początku, który będzie ustawiony jako wybrany
+                    combo_box.addItems([typ for typ in column["inputs"]])
+                    combo_box.setObjectName(f"combo_box_{column_name}")
+
+                    # Ustawienie wybranej wartości na podstawie model_data
+                    if column_value:  # Jeżeli w model_data jest wartość
+                        index = combo_box.findText(str(column_value))  # Znajdujemy indeks opcji
+                        if index != -1:  # Jeśli wartość została znaleziona
+                            combo_box.setCurrentIndex(index)  # Ustawiamy odpowiednią opcję
+
+                    self.gridLayout_edit.addWidget(combo_box, row, 1)
+                    self.fields[column_name] = combo_box
+                    row += 1
+                    continue
+
                 # Pole edycyjne
                 line_edit = QLineEdit(str(column_value))
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
                 line_edit.setObjectName(f"line_edit_{column_name}")
                 self.gridLayout_edit.addWidget(line_edit, row, 1)
-
                 self.fields[column_name] = line_edit  # Dodaj pole do słownika
 
                 row += 1  # Zwiększamy numer wiersza
             else:
                 self.driver_id = column_value  # Przypisanie klucza głównego
 
-
     def restore_initial_values(self):
         row = 0
 
         # Przechodzimy przez wszystkie kolumny z model_data i przywracamy wartości do pól
         for column in self.columns:
-            column_name = column['name']
+            column_name = column['friendly_name']
             column_value = self.model_data[column_name]  # Pobierz oryginalną wartość
 
-            if not column.get('primary_key'):  # Pomijamy klucz główny
-                if column_name in self.fields:
-                    # Przywracamy wartość do odpowiedniego pola formularza
-                    line_edit = self.fields[column_name]
-                    line_edit.setText(str(column_value))  # Ustawiamy wartość pola na początkową
-                    row += 1  # Zwiększamy numer wiersza
+            if column.get('primary_key'):
+                continue  # Pomijamy klucz główny
+            elif column_name in self.fields:
+                field = self.fields[column_name]
 
+                if isinstance(field, QLineEdit):
+                    # Przywracamy wartość do pola QLineEdit
+                    field.setText(str(column_value))  # Ustawiamy wartość pola na początkową
+
+                elif isinstance(field, QComboBox):
+                    # Przywracamy wartość do pola QComboBox
+                    # Zakładając, że model_data zawiera wartość odpowiadającą jednej z opcji
+                    index = field.findText(str(column_value))  # Znajdujemy indeks odpowiadający wartości
+                    if index != -1:
+                        field.setCurrentIndex(index)  # Ustawiamy wartość na odpowiedni indeks
+                    else:
+                        field.setCurrentIndex(
+                            0)  # Jeśli wartość nie została znaleziona, ustawiamy domyślną wartość (np. pustą)
+
+                row += 1  # Zwiększamy numer wiersza
 
 
     def save_changes(self):
@@ -230,6 +261,10 @@ class EditFrame(QFrame):
                 field_value = field.text().strip()
                 print(f"Pole {field_name} ma wartość: {field_value}")  # Debugowanie
                 data[field_name] = field_value  # Dodajemy dane z pola do słownika
+            elif isinstance(field, QComboBox):
+                field_value = field.currentText().strip()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QComboBox do słownika
 
         # WALIDACJA DANYCH ZA POMOCĄ API
         try:
