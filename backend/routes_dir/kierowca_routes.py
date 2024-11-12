@@ -36,6 +36,21 @@ def pobierz_wszystkich_kierowcow():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# Pobieranie listy wszystkich kierowców
+@kierowca_bp.route('/kierowca/show/alltochoice', methods=['GET'])
+def pobierz_wszystkich_kierowcow_do_okna_wyboru():
+    try:
+        kierowcy = Kierowca.query.all()
+        wynik = []
+        for kierowca in kierowcy:
+            data = {'ID': kierowca.idKierowca, 'data': f"{kierowca.imie} {kierowca.nazwisko}, {kierowca.nrTel}"}
+            wynik.append(data)
+        return jsonify(wynik), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # Dodawanie nowego kierowcy
 @kierowca_bp.route('/kierowca/add', methods=['POST'])
 def dodaj_kierowce():

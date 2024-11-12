@@ -48,7 +48,7 @@ class BaseModel(db.Model):
                     "editable": properties.get("editable", True),
                     "input_type": properties.get("input_type", "text"),
                      # Obsługa "inputs" dla typu 'list'
-                    "inputs": cls._serialize_inputs(properties.get("inputs")) if (properties.get("input_type") == 'list' and properties.get("inputs")) else None
+                    "inputs": cls._serialize_inputs(properties.get("inputs")) if (properties.get("input_type") == 'enum' and properties.get("inputs")) else properties.get("inputs", None)
                 }
                 columns_info.append(column_info)
             else:
@@ -220,17 +220,18 @@ class Pojazd(BaseModel):
         'idKierowca': {
             'friendly_name': 'ID kierowca',
             'editable': True,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'Dane kierowcy'  # lub np. 'number', jeśli liczba, 'readonly' itp.
         },
         'Kierowca': {
             'friendly_name': 'Dane kierowcy',
             'editable': True,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'list',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'inputs': 'kierowca/show/alltochoice'
         },
         'typPojazdu': {
             'friendly_name': 'Typ pojazdu',
             'editable': True,
-            'input_type': 'list',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'enum',  # lub np. 'number', jeśli liczba, 'readonly' itp.
             'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa]
         },
         'marka': {
@@ -268,7 +269,7 @@ class Pojazd(BaseModel):
                 # Specjalny przypadek: dodajemy imię i nazwisko kierowcy
                 kierowca = Kierowca.query.get(pojazd.idKierowca) if pojazd.idKierowca else None
                 serialized_data[properties[
-                    'friendly_name']] = f"{kierowca.imie} {kierowca.nazwisko} {kierowca.nrTel}" if kierowca else "Brak kierowcy"
+                    'friendly_name']] = f"{kierowca.imie} {kierowca.nazwisko}, {kierowca.nrTel}" if kierowca else "Brak kierowcy"
             else:
                 # Standardowa serializacja
                 value = getattr(pojazd, column_name)
@@ -344,7 +345,7 @@ class Pojazd(BaseModel):
         if 'ID kierowca' in data and data['ID kierowca']:
             id_kierowca = data['ID kierowca']
             kierowca = Kierowca.query.get(id_kierowca)
-            if not kierowca:
+            if not id_kierowca:
                 return {'message': f"Kierowca o ID {id_kierowca} nie istnieje."}, 400
 
         # Walidacja numeru rejestracyjnego (alfanumeryczny, maksymalnie 8 znaków)

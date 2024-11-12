@@ -121,3 +121,5 @@ def validate_pojazd():
         return jsonify(validation_result[0]), validation_result[1]
 
     return jsonify({'message': 'Dane są poprawne'}), 200
+
+

@@ -2,8 +2,9 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFrame, QLineEdit, QMessageBox, QGridLayout, QLabel, QPushButton, QAbstractItemView, \
     QComboBox
+from urllib.parse import urlparse
 import requests
-
+from functools import partial
 
 class EditFrame(QFrame):
     def __init__(self, class_name, data, api_url, parent=None, header_title="title", refresh_callback=None):
@@ -180,37 +181,69 @@ class EditFrame(QFrame):
 
     def setup_fields(self):
         row = 0
+        tmp = {}
 
         # Iterowanie po dwóch kolekcjach jednocześnie (self.model_data i self.columns)
         for column in self.columns:
             column_name = column['friendly_name']
             column_value = self.model_data[column_name]
+            input_type = column.get('input_type')
+            inputs = column.get('inputs')
 
-            if not column.get('primary_key'):  # Pomijamy kolumny będące kluczem głównym
-                # Etykieta dla kolumny
-                label = QLabel(column_name)
+            if column['primary_key'] == True:
+                self.driver_id = column_value  # Przypisanie klucza głównego
+                continue
+
+            # Etykieta dla kolumny
+            label = QLabel(column_name)
+            label.setFixedHeight(30)
+            self.gridLayout_edit.addWidget(label, row, 0)
+
+            # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+            if column['foreign_key'] == True:
+                tmp = column
+                label = QLabel(str(column_value))
                 label.setFixedHeight(30)
-                self.gridLayout_edit.addWidget(label, row, 0)
+                self.fields[column_name] = label
+                self.gridLayout_edit.addWidget(label, row, 1)
+            # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+            elif input_type == 'enum':
+                combo_box = QComboBox()
+                # Dodajemy do combo boxa wszystkie wartości Enum TypPojazdu
+                combo_box.addItem("")  # Pusty element na początku, który będzie ustawiony jako wybrany
+                combo_box.addItems([typ for typ in inputs])
+                combo_box.setObjectName(f"combo_box_{column_name}")
 
-                # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
-                if column['input_type'] == 'list':
-                    combo_box = QComboBox()
-                    # Dodajemy do combo boxa wszystkie wartości Enum TypPojazdu
-                    combo_box.addItem("")  # Pusty element na początku, który będzie ustawiony jako wybrany
-                    combo_box.addItems([typ for typ in column["inputs"]])
-                    combo_box.setObjectName(f"combo_box_{column_name}")
+                # Ustawienie wybranej wartości na podstawie model_data
+                if column_value:  # Jeżeli w model_data jest wartość
+                    index = combo_box.findText(str(column_value))  # Znajdujemy indeks opcji
+                    if index != -1:  # Jeśli wartość została znaleziona
+                        combo_box.setCurrentIndex(index)  # Ustawiamy odpowiednią opcję
 
-                    # Ustawienie wybranej wartości na podstawie model_data
-                    if column_value:  # Jeżeli w model_data jest wartość
-                        index = combo_box.findText(str(column_value))  # Znajdujemy indeks opcji
-                        if index != -1:  # Jeśli wartość została znaleziona
-                            combo_box.setCurrentIndex(index)  # Ustawiamy odpowiednią opcję
+                self.gridLayout_edit.addWidget(combo_box, row, 1)
+                self.fields[column_name] = combo_box
 
-                    self.gridLayout_edit.addWidget(combo_box, row, 1)
-                    self.fields[column_name] = combo_box
-                    row += 1
-                    continue
+            # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+            elif input_type == 'list' and isinstance(inputs, str):
+                combo_box = QComboBox()
+                combo_box.addItem("", "")  # Pusty element na początku
+                domian_url = urlparse(self.api_url).netloc  # sparsowanie domeny
+                # Dodajemy dane z API do combo box
+                self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
+                self.fields[column_name] = combo_box
+                name_to_connect = tmp['friendly_name'] if tmp['input_type'] == column_name else "None"
 
+                # Ustawienie wybranej wartości na podstawie model_data
+                if column_value:  # Jeżeli w model_data jest wartość
+                    index = combo_box.findText(str(column_value))  # Znajdujemy indeks opcji
+                    if index != -1:  # Jeśli wartość została znaleziona
+                        combo_box.setCurrentIndex(index)  # Ustawiamy odpowiednią opcję
+
+                self.gridLayout_edit.addWidget(combo_box, row, 1)
+                # Aktualizacja pola ID przy wyborze z ComboBox
+                # combo_box.currentIndexChanged.connect(lambda idx, cb=combo_box: self.update_id_field(cb, column_name))
+                combo_box.currentIndexChanged.connect(partial(self.update_id_field, combo_box, name_to_connect))
+            else:
                 # Pole edycyjne
                 line_edit = QLineEdit(str(column_value))
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
@@ -218,9 +251,37 @@ class EditFrame(QFrame):
                 self.gridLayout_edit.addWidget(line_edit, row, 1)
                 self.fields[column_name] = line_edit  # Dodaj pole do słownika
 
-                row += 1  # Zwiększamy numer wiersza
+            row += 1  # Zwiększamy numer wiersza
+
+
+    def populate_combo_box_from_api(self, combo_box, api_endpoint):
+        """
+        Pobiera dane z API i ładuje do QComboBox.
+        """
+        try:
+            response = requests.get(api_endpoint)
+            if response.status_code == 200:
+                data = response.json()
+                for item in data:
+                    display_text = item['data']
+                    combo_box.addItem(display_text, item['ID'])  # Ustawiamy `ID` jako ukryte dane
+
             else:
-                self.driver_id = column_value  # Przypisanie klucza głównego
+                print(f"API error: {response.status_code}")
+
+        except Exception as e:
+            print(f"Error fetching data from API: {e}")
+
+    def update_id_field(self, combo_box, field_name):
+        """
+        Aktualizuje pole ID w `model_data` na podstawie wyboru w `QComboBox`.
+        """
+        print(f"Trying to update FIELD {field_name} to {combo_box.currentData()}")
+
+        selected_id = combo_box.currentData()
+        if field_name != None:
+            self.fields[field_name].setText(str(selected_id))   # Aktualizuje `idKierowca` lub inne powiązane pole ID
+
 
     def restore_initial_values(self):
         row = 0
@@ -263,6 +324,10 @@ class EditFrame(QFrame):
                 data[field_name] = field_value  # Dodajemy dane z pola do słownika
             elif isinstance(field, QComboBox):
                 field_value = field.currentText().strip()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QComboBox do słownika
+            elif isinstance(field, QLabel):
+                field_value = field.text().strip()  # Pobieramy aktualnie wybraną wartość
                 print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
                 data[field_name] = field_value  # Dodajemy wartość z QComboBox do słownika
 
