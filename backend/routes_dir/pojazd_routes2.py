@@ -70,12 +70,12 @@ def pobierz_i_sortuj_pojazdy():
         # Dynamiczne filtrowanie na podstawie przekazanych parametrów
         for param, value in combined_params.items():
             if param in ['typPojazdu', 'marka', 'model', 'nrRejestracyjny', 'dodatkoweInf']:  # Możesz dodać inne parametry do listy
-                query = query.filter(getattr(Pojazd, param) == value)
+                query = query.filter(getattr(Pojazd, param).ilike(f"%{value}%"))
 
             # Filtrowanie po `imie` i `nazwisko` jeśli podano
             if param == 'imie' or param == 'nazwisko':
                 query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
-                query = query.filter(getattr(Kierowca, param) == value)
+                query = query.filter(getattr(Kierowca, param).ilike(f"%{value}%"))
 
         # Ustalanie kolumny do sortowania
         if sort_by == "Dane kierowcy":
