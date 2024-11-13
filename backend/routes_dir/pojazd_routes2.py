@@ -68,6 +68,10 @@ def pobierz_i_sortuj_pojazdy():
         # Budowanie podstawowego zapytania
         query = db.session.query(Pojazd)
 
+        # Filtrowanie po `typPojazdu`, jeśli podano
+        if typ_pojazdu:
+            query = query.filter(Pojazd.typPojazdu == typ_pojazdu)
+
         # Dynamiczne filtrowanie na podstawie przekazanych parametrów
         for param, value in combined_params.items():
             if param in ['marka', 'model', 'nrRejestracyjny', 'dodatkoweInf']:  # Możesz dodać inne parametry do listy

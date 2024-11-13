@@ -626,11 +626,17 @@ class FleetFrame(QtWidgets.QFrame):
         if 'dodatkowe informacje' in combined_parameters_lower:
             combined_parameters_lower['dodatkoweInf'] = combined_parameters_lower.pop('dodatkowe informacje')
 
+        if self.screen_type == ScreenType.CIAGNIKI:
+            # Budowanie URL z parametrami w wymaganym formacie
+            query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
+            full_url = f"{self.api_url}/pojazd/show?typPojazdu=Ciągnik&{query_string}"
+            print(f"Final URL: {full_url}")
 
-        # Budowanie URL z parametrami w wymaganym formacie
-        query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-        full_url = f"{self.api_url}/pojazd/show?{query_string}"
-        print(f"Final URL: {full_url}")
+        if self.screen_type == ScreenType.NACZEPY:
+            # Budowanie URL z parametrami w wymaganym formacie
+            query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
+            full_url = f"{self.api_url}/pojazd/show?typPojazdu=Naczepa&{query_string}"
+            print(f"Final URL: {full_url}")
 
         try:
             # Wykonanie żądania HTTP GET z pełnym URL
