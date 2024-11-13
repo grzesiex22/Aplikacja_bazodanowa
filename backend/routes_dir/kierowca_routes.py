@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from Aplikacja_bazodanowa.backend.database import db
 from Aplikacja_bazodanowa.backend.models import Kierowca
 import traceback
+from sqlalchemy import asc, desc
+
 
 # Blueprint dla kierowców
 kierowca_bp = Blueprint('kierowca', __name__)
@@ -37,6 +39,38 @@ def pobierz_wszystkich_kierowcow():
         return jsonify({'error': str(e)}), 500
 
 
+@kierowca_bp.route('/kierowca/show', methods=['GET'])
+def pobierz_i_sortuj_kierowcow():
+    # Pobierz parametry zapytania
+    sort_by = request.args.get('sort_by', 'ID kierowcy')  # Domyślnie sortowanie po `idKierowca`
+    order = request.args.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
+
+    kierunek_sortowania = asc if order == 'asc' else desc
+    sort_column_name = None
+
+    try:
+        # Ustalanie kolumny do sortowania
+        for column_name, column_info in Kierowca.COLUMN_NAME_MAP.items():
+            if column_info['friendly_name'] == sort_by:
+                sort_column_name = column_name
+                break
+
+        # Pobieramy obiekt kolumny SQLAlchemy na podstawie `sort_column_name` lub domyślnie `idKierowca`
+        sort_column = getattr(Kierowca, sort_column_name, Kierowca.idKierowca)
+        sort_direction = kierunek_sortowania(sort_column)
+
+        # Wykonujemy zapytanie do bazy danych, sortując wyniki
+        kierowcy = Kierowca.query.order_by(sort_direction).all()
+
+        # Konwertuj wyniki na format JSON
+        wynik = [Kierowca.serialize(kierowca) for kierowca in kierowcy]
+
+        return jsonify(wynik), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # Pobieranie listy wszystkich kierowców
 @kierowca_bp.route('/kierowca/show/alltochoice', methods=['GET'])
 def pobierz_wszystkich_kierowcow_do_okna_wyboru():
@@ -44,7 +78,7 @@ def pobierz_wszystkich_kierowcow_do_okna_wyboru():
         kierowcy = Kierowca.query.all()
         wynik = []
         for kierowca in kierowcy:
-            data = {'ID': kierowca.idKierowca, 'data': f"{kierowca.imie} {kierowca.nazwisko}, {kierowca.nrTel}"}
+            data = {'ID': kierowca.idKierowca, 'data': f"{kierowca.imie} {kierowca.nazwisko}, tel. {kierowca.nrTel}"}
             wynik.append(data)
         return jsonify(wynik), 200
     except Exception as e:
@@ -125,3 +159,33 @@ def validate_kierowca():
         return jsonify(validation_result[0]), validation_result[1]
 
     return jsonify({'message': 'Dane są poprawne'}), 200
+
+@kierowca_bp.route('/kierowca/sort', methods=['GET'])
+def sort_pojazdy():
+    # Pobierz parametry zapytania
+    sort_by = request.args.get('sort_by', 'ID kierowcy')  # Domyślnie sortowanie po `idPojazd`
+    order = request.args.get('order', 'asc')
+    print(f"demanding sort_by: {sort_by}")
+
+    sort_column_name = None
+    kierunek_sortowania = asc if order == 'asc' else desc
+
+    # Dla innych kolumn ustalamy sortowanie dynamicznie
+    for column_name, column_info in Kierowca.COLUMN_NAME_MAP.items():
+        if column_info['friendly_name'] == sort_by:
+            sort_column_name = column_name
+            break
+
+    # Pobierz obiekt kolumny SQLAlchemy na podstawie `sort_column_name`
+    sort_column = getattr(Kierowca, sort_column_name, Kierowca.idKierowca)
+    sort_direction = kierunek_sortowania(sort_column)
+
+    # Wykonaj zapytanie do bazy danych, sortując wyniki
+    kierowcy = Kierowca.query.order_by(sort_direction).all()
+
+    # Konwertuj wyniki na format JSON
+    wynik = []
+    for kierowca in kierowcy:
+        wynik.append(Kierowca.serialize(kierowca))
+
+    return jsonify(wynik), 200

@@ -1,0 +1,60 @@
+
+QTableView {    /* Cała tabela */
+    border: 2px solid #accccb;
+    border-radius: 15px;
+    background-color: #dff0ef;
+    gridline-color: transparent;
+    alternate-background-color: #dff0ef; /* Kolor tła dla co drugiego wiersza */
+    padding: 0px 5px 5px 0px;  /* Dodanie marginesu dolnego (15px) */
+}
+QTableView::item {    /* Element tabeli */
+    border: 1px solid #accccb;
+    border-radius: 10px;
+    background-color: #caf0ef;
+    color: #5d5d5d;
+    padding: 5px;
+    margin: 2px;
+    text-align: left;
+}
+
+QTableView::item:alternate {    /* Element altenatywny tabeli */
+    background-color: #c0e1e2; /* Kolor co drugiego wiersza */
+    border-radius: 10px;
+}
+QTableView::item:selected {    /* Element tabeli - wybrany rząd */
+    background-color: #82b3ba;
+    color: white;
+    border: 2px solid #accccb;
+}
+QTableView::item:selected:focus {   /* Element tabeli - wybrany element */
+    background-color: #92c9d1;
+    outline: none; /* Usunięcie ramki focusa */
+    border: 2px solid #7baab0; /* Ramka dla aktywnego elementu */
+}
+QTableView::item:hover {    /* Element tabeli - po najechnaiu na niego */
+    background-color: #8dc2ca;
+    border: 2px solid #accccb;
+}
+QAbstractItemView:focus{
+    outline: none;
+}
+QHeaderView {   /* Tło nagłówków */
+    background-color: #dff0ef; /* Kolor tła dla całego nagłówka */
+}
+QHeaderView::section {   /* Nagłówki */
+    background-color: #b9dcdb; /* Półprzezroczyste */
+    color: #5d5d5d;
+    border-radius: 10px;
+    padding: 4px;
+    border: 2px solid #accccb;
+    margin: 2px;
+    text-align: center;
+
+}
+QTableCornerButton::section {   /* Lewy górny narożnik */
+    background-color: transparent; /* Kolor tła w rogu */
+    border-radius: 10px; /* Zmniejszyłem na 10px */
+    border: none; /* Obramowanie w rogu */
+}
+
+

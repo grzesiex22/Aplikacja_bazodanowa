@@ -3,6 +3,8 @@ from Aplikacja_bazodanowa.backend.database import db
 from Aplikacja_bazodanowa.backend.models import Pojazd, Kierowca, TypPojazdu
 import re
 import traceback
+from sqlalchemy import asc, desc
+
 
 # Blueprint dla pojazdów
 pojazd_bp = Blueprint('pojazd', __name__)
@@ -40,6 +42,56 @@ def pobierz_pojazdy():
         wynik = []
         for pojazd in pojazdy:
             wynik.append(Pojazd.serialize(pojazd))
+
+        return jsonify(wynik), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@pojazd_bp.route('/pojazd/show', methods=['GET'])
+def pobierz_i_sortuj_pojazdy():
+    # Pobierz parametry zapytania
+    typ_pojazdu = request.args.get('Typ pojazdu')  # Filtrowanie po `typPojazdu`
+    sort_by = request.args.get('sort_by', 'ID pojazdu')  # Sortowanie po `idPojazd` domyślnie
+    order = request.args.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
+
+    # Ustal kierunek sortowania
+    kierunek_sortowania = asc if order == 'asc' else desc
+
+    try:
+        # Budowanie podstawowego zapytania
+        query = db.session.query(Pojazd)
+
+        # Filtrowanie po `typPojazdu`, jeśli podano
+        if typ_pojazdu:
+            query = query.filter(Pojazd.typPojazdu == typ_pojazdu)
+
+        # Ustalanie kolumny do sortowania
+        if sort_by == "Dane kierowcy":
+            # Sortowanie po `imie` i `nazwisko` w tabeli Kierowca
+            query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
+            query = query.order_by(
+                kierunek_sortowania(Kierowca.imie),
+                kierunek_sortowania(Kierowca.nazwisko)
+            )
+        else:
+            # Mapowanie `friendly_name` na rzeczywiste kolumny `Pojazd`
+            sort_column_name = None
+            for column_name, column_info in Pojazd.COLUMN_NAME_MAP.items():
+                if column_info['friendly_name'] == sort_by:
+                    sort_column_name = column_name
+                    break
+
+            # Pobieramy kolumnę modelu na podstawie `sort_column_name`, lub domyślnie `idPojazd`
+            sort_column = getattr(Pojazd, sort_column_name, Pojazd.idPojazd)
+            query = query.order_by(kierunek_sortowania(sort_column))
+
+        # Pobranie wyników
+        pojazdy = query.all()
+
+        # Konwersja wyników do formatu JSON
+        wynik = [Pojazd.serialize(pojazd) for pojazd in pojazdy]
 
         return jsonify(wynik), 200
 
@@ -121,5 +173,3 @@ def validate_pojazd():
         return jsonify(validation_result[0]), validation_result[1]
 
     return jsonify({'message': 'Dane są poprawne'}), 200
-
-

@@ -1,0 +1,102 @@
+QAbstractScrollArea {
+    background-color: transparent;
+}
+QAbstractScrollArea::corner {
+    background-color: transparent;
+}
+
+/* Styl dla pionowego paska przewijania */
+QScrollBar:vertical {
+    border: 2px solid #accccb;
+    background: #b9dcdb;
+    width: 30px;
+    margin: 78px 0px 37px 5px; /* top right bottom left */
+}
+QScrollBar::handle:vertical {
+    background: #b9dcdb;
+    border: 1px solid #accccb;
+    min-height: 20px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {     /* Przewijanie */
+    background: #accccb;
+    height: 30px;
+    width: 25px;
+    border-radius: 8px;
+}
+QScrollBar::add-line:vertical {     /* Przewijanie w dół */
+    subcontrol-origin: margin;
+    subcontrol-position: bottom;
+    margin: 0px 0px 5px 5px; /* top right bottom left */
+}
+QScrollBar::sub-line:vertical {     /* Przewijanie w górę */
+    subcontrol-origin: margin;
+    subcontrol-position: top;
+    margin: 46px 0px 0px 5px; /* top right bottom left */
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+    background: transparent;
+    width: 19px;
+    height: 30px; /* Ustaw wysokość strzałek */
+    border-radius: 8px;
+}
+
+QScrollBar::up-arrow:vertical {
+    image: url(icons/angle-up.png);
+    subcontrol-origin: margin;
+    subcontrol-position: top;
+    margin: 46px 3px 0px 8px; /* top right bottom left */
+}
+QScrollBar::down-arrow:vertical {
+    image: url(icons/angle-down.png);
+    subcontrol-origin: margin;
+    subcontrol-position: bottom;
+    margin: 0px 3px 5px 8px; /* top right bottom left */
+}
+
+/* Styl dla poziomego paska przewijania */
+QScrollBar:horizontal  {
+    border: 2px solid #accccb;
+    background: #b9dcdb;
+    height: 30px;
+    margin: 5px 37px 0px 78px; /* top right bottom left */
+}
+QScrollBar::handle:horizontal {
+    background: #b9dcdb;
+    border: 1px solid #accccb;
+    min-width: 20px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    background: #accccb;
+    height: 25px;
+    width: 30px;
+    border-radius: 8px;
+}
+QScrollBar::add-line:horizontal {
+    subcontrol-origin: margin;
+    subcontrol-position: right;
+    margin: 5px 5px 0px 0px;  /* top right bottom left */
+}
+QScrollBar::sub-line:horizontal {
+    subcontrol-origin: margin;
+    subcontrol-position: left;
+    margin: 5px 0px 0px 46px; /* top right bottom left */
+}
+QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+    background: transparent;
+    width: 30px;
+    height: 19px;
+    border-radius: 8px;
+}
+QScrollBar::left-arrow:horizontal {
+    image: url(icons/angle-left.png);
+    subcontrol-origin: margin;
+    subcontrol-position: left;
+    margin: 8px 0px 3px 46px; /* top right bottom left */
+}
+QScrollBar::right-arrow:horizontal {
+    image: url(icons/angle-right.png);
+    subcontrol-origin: margin;
+    subcontrol-position: right;
+    margin: 8px 5px 3px 0px; /* top right bottom left */
+}

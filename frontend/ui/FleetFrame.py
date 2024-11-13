@@ -1,12 +1,14 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon  # Poprawny import
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Poprawny import
 from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
-
+from Aplikacja_bazodanowa.backend.models import TypPojazdu
+import os
 from enum import Enum, auto
 import requests
+
 
 class ScreenType(Enum):
     CIAGNIKI = 1
@@ -22,16 +24,24 @@ class FleetFrame(QtWidgets.QFrame):
         self.screen_type = ScreenType.CIAGNIKI
         self.api_url = api_url
 
+        # Informacje dla tabeli pojazdy
         self.model_pojazd = QStandardItemModel()
-        self.model_pojazd_columns_info, self.primary_key_index_pojazd \
+        self.model_pojazd_columns_info, self.primary_key_index_pojazd, self.foreign_key_index_pojazd \
             = self.load_column_headers("pojazd", model=self.model_pojazd)
+        self.sort_parameteres_pojazd = {}  # przechowuje aktualne parametry sortowania pojazdu
+        self.filtr_parameteres_pojazd = {}  # przechowuje aktualne parametry sortowania pojazdu
+        self.current_sorted_column_pojazd = None  # potrzebne do zmiany sortowania asc/desc
 
+        # Informacje dla tabeli kierowcy
         self.model_kierowca = QStandardItemModel()
-        self.model_kierowca_columns_info, self.primary_key_index_kierowca \
+        self.model_kierowca_columns_info, self.primary_key_index_kierowca, self.foreign_key_index_kierowca \
             = self.load_column_headers("kierowca", model=self.model_kierowca)
+        self.sort_parameteres_kierowca = {}  # przechowuje aktualne parametry sortowania kierowcy
+        self.filtr_parameteres_pojazd['Typ pojazdu'] = TypPojazdu.Ciągnik.value   # przechowuje aktualne parametry sortowania pojazdu
+        self.current_sorted_column_kierowca = None  # potrzebne do zmiany sortowania asc/desc
 
-        self.primary_key_index = None
-
+        self.primary_key_index = None  # aktualne pole z kluczem głównym (potrzebne by było wiadomow skąd pobrać ID i aby ukryć kolumne)
+        self.foreign_key_index = []  # aktualne pole z kluczem głównym (potrzebne by ukryć kolumny)
 
         # Ustawienie rozmiaru floty
         self.width = 0
@@ -41,8 +51,9 @@ class FleetFrame(QtWidgets.QFrame):
         self.height = available_rect.height()
         self.setFixedSize(self.width, self.height)
 
-        self.setup_fleet()  # Ustawienie ramki flot
-        self.hide()
+        self.setup_fleet()  # Ustawienie ramki floty
+
+        self.hide()  # schowanie się
 
     def setup_fleet(self):
 
@@ -111,172 +122,21 @@ class FleetFrame(QtWidgets.QFrame):
         self.scroll_area.setGeometry(QtCore.QRect(
             table_fleet_side_margin, table_fleet_top_margin, table_fleet_width, table_fleet_height))
         self.scroll_area.setWidgetResizable(False)  # Rozciąganie zawartości
-        self.scroll_area.setStyleSheet("""
-            QAbstractScrollArea { 
-                background-color: transparent; 
-            }
-            QAbstractScrollArea::corner { 
-                background-color: transparent; 
-            }
-            
-            /* Styl dla pionowego paska przewijania */
-            QScrollBar:vertical {
-                border: 2px solid #accccb;
-                background: #b9dcdb;
-                width: 30px;
-                margin: 78px 0px 37px 5px; /* top right bottom left */
-            }
-            QScrollBar::handle:vertical {
-                background: #b9dcdb;
-                border: 1px solid #accccb;
-                min-height: 20px;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {     /* Przewijanie */
-                background: #accccb; 
-                height: 30px; 
-                width: 25px; 
-                border-radius: 8px; 
-            }
-            QScrollBar::add-line:vertical {     /* Przewijanie w dół */
-                subcontrol-origin: margin; 
-                subcontrol-position: bottom; 
-                margin: 0px 0px 5px 5px; /* top right bottom left */
-            }
-            QScrollBar::sub-line:vertical {     /* Przewijanie w górę */
-                subcontrol-origin: margin; 
-                subcontrol-position: top; 
-                margin: 46px 0px 0px 5px; /* top right bottom left */
-            }
-
-            QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
-                background: transparent; 
-                width: 19px; 
-                height: 30px; /* Ustaw wysokość strzałek */
-                border-radius: 8px;
-            }
-
-            QScrollBar::up-arrow:vertical {
-                image: url(icons/angle-up.png);                 
-                subcontrol-origin: margin; 
-                subcontrol-position: top; 
-                margin: 46px 3px 0px 8px; /* top right bottom left */
-            }
-            QScrollBar::down-arrow:vertical {
-                image: url(icons/angle-down.png);                 
-                subcontrol-origin: margin; 
-                subcontrol-position: bottom; 
-                margin: 0px 3px 5px 8px; /* top right bottom left */
-            }
-            
-            /* Styl dla poziomego paska przewijania */
-            QScrollBar:horizontal  {
-                border: 2px solid #accccb;
-                background: #b9dcdb;
-                height: 30px;
-                margin: 5px 37px 0px 78px; /* top right bottom left */
-            }
-            QScrollBar::handle:horizontal {
-                background: #b9dcdb;
-                border: 1px solid #accccb;
-                min-width: 20px;              
-            }
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-                background: #accccb; 
-                height: 25px;
-                width: 30px; 
-                border-radius: 8px; 
-            }
-            QScrollBar::add-line:horizontal {
-                subcontrol-origin: margin; 
-                subcontrol-position: right; 
-                margin: 5px 5px 0px 0px;  /* top right bottom left */
-            }
-            QScrollBar::sub-line:horizontal {
-                subcontrol-origin: margin; 
-                subcontrol-position: left; 
-                margin: 5px 0px 0px 46px; /* top right bottom left */
-            }
-            QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
-                background: transparent; 
-                width: 30px; 
-                height: 19px;
-                border-radius: 8px;
-            }
-            QScrollBar::left-arrow:horizontal {
-                image: url(icons/angle-left.png);
-                subcontrol-origin: margin;
-                subcontrol-position: left;
-                margin: 8px 0px 3px 46px; /* top right bottom left */
-            }
-            QScrollBar::right-arrow:horizontal {
-                image: url(icons/angle-right.png);
-                subcontrol-origin: margin;
-                subcontrol-position: right;
-                margin: 8px 5px 3px 0px; /* top right bottom left */
-            }
-        """)
+        # Wczytanie stylu z pliku
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QScrollArea.qss')
+        with open(file_path, "r") as file:
+            stylesheet = file.read()
+        self.scroll_area.setStyleSheet(stylesheet)
         self.scroll_area.viewport().update()
 
         # Ustawienie tabeli
         self.tableView_flota = QTableView(self.scroll_area)
         self.tableView_flota.setGeometry(QtCore.QRect(0, 0, table_fleet_width, table_fleet_height))
-        self.tableView_flota.setStyleSheet("""
-                                        QTableView {    /* Cała tabela */
-                                            border: 2px solid #accccb;
-                                            border-radius: 15px;
-                                            background-color: #dff0ef;
-                                            gridline-color: transparent;
-                                            alternate-background-color: #dff0ef; /* Kolor tła dla co drugiego wiersza */                                            
-                                            padding: 0px 5px 5px 0px;  /* Dodanie marginesu dolnego (15px) */
-                                        }
-                                        QTableView::item {    /* Element tabeli */
-                                            border: 1px solid #accccb;
-                                            border-radius: 10px;
-                                            background-color: #caf0ef;
-                                            padding: 5px;
-                                            margin: 2px;
-                                            text-align: left;  
-                                        }
-                                        
-                                        QTableView::item:alternate {    /* Element altenatywny tabeli */
-                                            background-color: #c0e1e2; /* Kolor co drugiego wiersza */
-                                            border-radius: 10px;
-                                        }
-                                        QTableView::item:selected {    /* Element tabeli - wybrany rząd */
-                                            background-color: #82b3ba;
-                                            color: white;
-                                            border: 2px solid #accccb;
-                                        }
-                                        QTableView::item:selected:focus {   /* Element tabeli - wybrany element */
-                                            background-color: #92c9d1;
-                                            outline: none; /* Usunięcie ramki focusa */
-                                            border: 2px solid #7baab0; /* Ramka dla aktywnego elementu */
-                                        }
-                                        QTableView::item:hover {    /* Element tabeli - po najechnaiu na niego */
-                                            background-color: #8dc2ca;
-                                            border: 2px solid #accccb;
-                                        }
-                                        QAbstractItemView:focus{
-                                            outline: none;
-                                        }
-                                        QHeaderView {   /* Tło nagłówków */
-                                            background-color: #dff0ef; /* Kolor tła dla całego nagłówka */
-                                        }
-                                        QHeaderView::section {   /* Nagłówki */
-                                            background-color: #b9dcdb; /* Półprzezroczyste */
-                                            color: #5d5d5d;
-                                            border-radius: 10px; 
-                                            padding: 4px;
-                                            border: 2px solid #accccb;
-                                            margin: 2px;
-                                            text-align: center;
-                                        }
-                                        QTableCornerButton::section {   /* Lewy górny narożnik */
-                                            background-color: transparent; /* Kolor tła w rogu */
-                                            border-radius: 10px; /* Zmniejszyłem na 10px */
-                                            border: none; /* Obramowanie w rogu */
-                                        }
-                                    """)
+        # Wczytanie stylu z pliku
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QTableView.qss')
+        with open(file_path, "r") as file:
+            stylesheet = file.read()
+        self.tableView_flota.setStyleSheet(stylesheet)
 
         self.tableView_flota.setObjectName("tableView_flota")
         self.tableView_flota.setModel(self.model_kierowca)
@@ -299,12 +159,7 @@ class FleetFrame(QtWidgets.QFrame):
 
         # Połączenie sygnału podwójnego kliknięcia z funkcją
         self.tableView_flota.doubleClicked.connect(self.on_table_double_click)
-
-        # Dodanie naddatku do każdej kolumny
-        additional_width = 20  # naddatek w pikselach dla każdej kolumny
-        for i in range(self.tableView_flota.model().columnCount()):
-            original_width = self.tableView_flota.columnWidth(i)
-            self.tableView_flota.setColumnWidth(i, original_width + additional_width)
+        self.tableView_flota.horizontalHeader().sectionClicked.connect(self.sort_by_column)
 
         """
         Przyciski
@@ -404,6 +259,31 @@ class FleetFrame(QtWidgets.QFrame):
 
 
 
+    def sort_by_column(self, column_index):
+        column_name = self.tableView_flota.model().headerData(column_index, Qt.Horizontal)
+
+        if self.screen_type == ScreenType.KIEROWCY:
+            if self.current_sorted_column_kierowca == column_index:
+                # Przełączamy pomiędzy 'asc' a 'desc'
+                order = 'desc' if self.sort_parameteres_kierowca['order'] == 'asc' else 'asc'
+            else:
+                order = 'asc'
+            self.current_sorted_column_kierowca = column_index
+            self.sort_parameteres_kierowca = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
+
+        else:
+            if self.current_sorted_column_pojazd == column_index:
+                # Przełączamy pomiędzy 'asc' a 'desc'
+                order = 'desc' if self.sort_parameteres_pojazd['order'] == 'asc' else 'asc'
+            else:
+                order = 'asc'
+            self.current_sorted_column_pojazd = column_index
+            self.sort_parameteres_pojazd = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
+
+        self.load_data()
+        # self.highlight_sorted_column(column_index, 'asc')
+
+
     def update_screen_type(self, screen_value):
         # Zmiana wartości zmiennej na podstawie ID przycisku
         self.screen_type = ScreenType(screen_value)
@@ -473,7 +353,7 @@ class FleetFrame(QtWidgets.QFrame):
 
         if self.screen_type == ScreenType.KIEROWCY:
             kierowca_id = self.model_kierowca.data(
-                self.model_kierowca.index(row, self.primary_key_index_kierowca))  # Zakładam, że ID jest w kolumnie 0
+                self.model_kierowca.index(row, self.primary_key_index_kierowca))
 
             # Wykonanie żądania GET do API, aby pobrać dane kierowcy
             try:
@@ -492,9 +372,9 @@ class FleetFrame(QtWidgets.QFrame):
             except Exception as e:
                 QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
-        elif self.screen_type == ScreenType.CIAGNIKI:
+        else:
             pojazd_id = self.model_pojazd.data(
-                self.model_pojazd.index(row, self.primary_key_index_pojazd))  # Zakładam, że ID jest w kolumnie 0
+                self.model_pojazd.index(row, self.primary_key_index_pojazd))
 
             # Wykonanie żądania GET do API, aby pobrać dane kierowcy
             try:
@@ -515,7 +395,7 @@ class FleetFrame(QtWidgets.QFrame):
 
     def adjust_column_widths(self):
         """
-        Dostosowanie szerokości kolumn do zawartości i nagłówków z ustawieniem minimalnej szerokości.
+        Dostosowanie szerokości kolumn do zawartości nagłówków (+20 szerokości) z ustawieniem minimalnej szerokości.
         """
         model = self.tableView_flota.model()
         if not model:
@@ -526,7 +406,7 @@ class FleetFrame(QtWidgets.QFrame):
             self.tableView_flota.resizeColumnToContents(i)
 
             # Uzyskaj szerokości zawartości i nagłówka
-            content_width = self.tableView_flota.columnWidth(i)
+            content_width = self.tableView_flota.columnWidth(i)+20
             header_width = self.tableView_flota.horizontalHeader().sectionSize(i)
 
             # Wybierz większą szerokość, ale ustaw minimum na 100 pikseli
@@ -537,17 +417,25 @@ class FleetFrame(QtWidgets.QFrame):
         if self.primary_key_index is not None:
             self.tableView_flota.setColumnWidth(self.primary_key_index, 0)
 
+        # Ustaw szerokość kolumn kluczy obcych na 0
+        print(f"foreign_keys: {self.foreign_key_index}")
+        if self.foreign_key_index:
+            for foreign_key in self.foreign_key_index:
+                print(f"foreign_key: {foreign_key}")
+                self.tableView_flota.setColumnWidth(foreign_key, 0)
+
 
 
     def load_data(self):
-        # API URL - endpoint, który zwraca listę kierowców
+
         if self.screen_type == ScreenType.KIEROWCY:
             self.primary_key_index = self.primary_key_index_kierowca
+            self.foreign_key_index = self.foreign_key_index_kierowca
             self.tableView_flota.setModel(self.model_kierowca)
 
             try:
                 # Wykonanie żądania HTTP GET do API
-                response = requests.get(f"{self.api_url}/kierowca/show/all")
+                response = requests.get(f"{self.api_url}/kierowca/show", params=self.sort_parameteres_kierowca)
                 if response.status_code == 200:
                     kierowcy_data = response.json()  # Pobranie danych w formacie JSON
 
@@ -563,16 +451,22 @@ class FleetFrame(QtWidgets.QFrame):
             except Exception as e:
                 print(f"Błąd przy ładowaniu danych: {str(e)}")
 
-                # Użycie QTimer dla opóźnienia wywołania adjust_column_widths z kluczem głównym dla pojazdu
-                QTimer.singleShot(0, self.adjust_column_widths)
+            # Użycie QTimer dla opóźnienia wywołania adjust_column_widths z kluczem głównym dla pojazdu
+            QTimer.singleShot(0, self.adjust_column_widths)
 
         elif self.screen_type == ScreenType.CIAGNIKI:
-            self.primary_key_index=self.primary_key_index_pojazd
+            self.primary_key_index = self.primary_key_index_pojazd
+            self.foreign_key_index = self.foreign_key_index_pojazd
+
             self.tableView_flota.setModel(self.model_pojazd)
+
+            self.filtr_parameteres_pojazd['Typ pojazdu'] = TypPojazdu.Ciągnik.value
+            combined_parameters = {**self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
+            print(f"Combined_param: {combined_parameters}")
 
             try:
                 # Wykonanie żądania HTTP GET do API
-                response = requests.get(f"{self.api_url}/pojazd/show/all")
+                response = requests.get(f"{self.api_url}/pojazd/show", params=combined_parameters)
                 if response.status_code == 200:
                     pojazd_data = response.json()  # Pobranie danych w formacie JSON
 
@@ -596,6 +490,40 @@ class FleetFrame(QtWidgets.QFrame):
             # Użycie QTimer dla opóźnienia wywołania adjust_column_widths z kluczem głównym dla pojazdu
             QTimer.singleShot(0, self.adjust_column_widths)
 
+        elif self.screen_type == ScreenType.NACZEPY:
+            self.primary_key_index = self.primary_key_index_pojazd
+            self.tableView_flota.setModel(self.model_pojazd)
+
+            self.filtr_parameteres_pojazd['Typ pojazdu'] = TypPojazdu.Naczepa.value
+            combined_parameters = {**self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
+            print(f"Combined_param: {combined_parameters}")
+
+            try:
+                # Wykonanie żądania HTTP GET do API
+                response = requests.get(f"{self.api_url}/pojazd/show", params=combined_parameters)
+                if response.status_code == 200:
+                    pojazd_data = response.json()  # Pobranie danych w formacie JSON
+
+                    # Dodanie danych do modelu
+                    self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())  # Usuwamy poprzednie dane z modelu
+                    for pojazd in pojazd_data:
+                        self.model_pojazd.appendRow([QStandardItem(str(pojazd['ID pojazdu'])),
+                                                     QStandardItem(str(pojazd['ID kierowca'])),
+                                                     QStandardItem(pojazd['Dane kierowcy']),
+                                                     QStandardItem(pojazd['Typ pojazdu']),
+                                                     QStandardItem(pojazd['Marka']),
+                                                     QStandardItem(pojazd['Model']),
+                                                     QStandardItem(pojazd['Numer rejestracyjny']),
+                                                     QStandardItem(pojazd['Dodatkowe informacje'])
+                                                     ])
+                else:
+                    print(f"Błąd API: {response.status_code}")
+            except Exception as e:
+                print(f"Błąd przy ładowaniu danych: {str(e)}")
+
+            # Użycie QTimer dla opóźnienia wywołania adjust_column_widths z kluczem głównym dla pojazdu
+            QTimer.singleShot(0, self.adjust_column_widths)
+
     def load_column_headers(self, model_class, model):
         # Wykonanie zapytania GET do API, aby pobrać nagłówki kolumn
         try:
@@ -605,20 +533,65 @@ class FleetFrame(QtWidgets.QFrame):
             if response.status_code == 200:
                 model_columns_info = response.json()  # Odpowiedź z listą kolumn
                 primary_key = None
+                foreign_key = []
                 headers = []
                 for i, column in enumerate(model_columns_info):
                     headers.append(column["friendly_name"])  # Dodaj nazwę kolumny do nagłówków
                     if column["primary_key"]:
                         primary_key = i  # Zapisz indeks kolumny będącej kluczem głównym
-                        # Ustaw właściwości kolumny, np. edytowalność, typ wejścia
-                        # if not column.get("editable", True):
-                        #     model.setColumnEditable(i, False)  # Zakładamy, że masz metodę do ustawienia edytowalności kolumny
+                    if column["foreign_key"]:
+                        foreign_key.append(i)  # Zapisz indeks kolumny będącej kluczem głównym
+
                 # Ustaw nagłówki w modelu
                 model.setHorizontalHeaderLabels(headers)
 
-                return model_columns_info, primary_key
+                return model_columns_info, primary_key, foreign_key
 
         except requests.exceptions.RequestException as e:
             print(f"Error while fetching columns: {str(e)}")
 
         return None, None
+
+    # def highlight_sorted_column(self, column_index, order):
+    #     """
+    #     Podświetlenie nagłówka dla danej kolumny.
+    #     Dodanie strzałki sortowania.
+    #     """
+    #     header = self.tableView_flota.horizontalHeader()
+    #
+    #     # Resetowanie stylu nagłówków przed ustawieniem podświetlenia dla nowej kolumny
+    #     for i in range(header.count()):
+    #         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QTableView.qss')
+    #         with open(file_path, "r") as file:
+    #             stylesheet = file.read()
+    #         self.tableView_flota.setStyleSheet(stylesheet)
+    #
+    #     # Styl dla aktualnie posortowanej kolumny
+    #     if order == "asc":
+    #         sort_icon = "↑"  # Ikona strzałki w górę
+    #     else:
+    #         sort_icon = "↓"  # Ikona strzałki w dół
+    #
+    #     file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QTableView_sorted.qss')
+    #     with open(file_path, "r") as file:
+    #         stylesheet = file.read()
+    #     self.tableView_flota.setStyleSheet(stylesheet)
+    #
+    #     # Dodanie stylu do nagłówka do wczytanego stylesheet
+    #     header_style = f"""
+    #         QHeaderView::section:nth-child({column_index + 1}) {{
+    #             background-color: #ADD8E6;
+    #             color: darkblue;
+    #             font-weight: bold;
+    #             padding-left: 20px;
+    #             background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="10" y="40" font-size="30" fill="black">{sort_icon}</text></svg>');
+    #             background-repeat: no-repeat;
+    #             background-position: right center;
+    #         }}
+    #     """
+    #
+    #     # Połączenie stylu z pliku z dodatkowym stylem dla nagłówka
+    #     final_stylesheet = stylesheet + header_style
+    #
+    #     # Ustawienie połączonego stylu na tableView
+    #     self.tableView_flota.setStyleSheet(final_stylesheet)

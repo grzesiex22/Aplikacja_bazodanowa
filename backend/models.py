@@ -219,7 +219,7 @@ class Pojazd(BaseModel):
         },
         'idKierowca': {
             'friendly_name': 'ID kierowca',
-            'editable': True,
+            'editable': False,
             'input_type': 'Dane kierowcy'  # lub np. 'number', jeśli liczba, 'readonly' itp.
         },
         'Kierowca': {
@@ -269,7 +269,7 @@ class Pojazd(BaseModel):
                 # Specjalny przypadek: dodajemy imię i nazwisko kierowcy
                 kierowca = Kierowca.query.get(pojazd.idKierowca) if pojazd.idKierowca else None
                 serialized_data[properties[
-                    'friendly_name']] = f"{kierowca.imie} {kierowca.nazwisko}, {kierowca.nrTel}" if kierowca else "Brak kierowcy"
+                    'friendly_name']] = f"{kierowca.imie} {kierowca.nazwisko}, tel. {kierowca.nrTel}" if kierowca else "Brak kierowcy"
             else:
                 # Standardowa serializacja
                 value = getattr(pojazd, column_name)
