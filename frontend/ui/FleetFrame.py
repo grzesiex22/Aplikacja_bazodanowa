@@ -4,6 +4,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Popra
 from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
+from Aplikacja_bazodanowa.frontend.ui.FilterFleetFrame import FilterFleetFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
@@ -256,6 +257,29 @@ class FleetFrame(QtWidgets.QFrame):
         # Ustawienie stylów przycisków i początkowego stanu
         self.button_flota_ciagniki.setChecked(True)
         self.update_screen_type(ScreenType.CIAGNIKI.value)  # Ustawienie początkowej wartości zmiennej
+
+        self.button_filtruj = QtWidgets.QPushButton(self)
+        self.button_filtruj.setText("Filtruj")
+        self.button_filtruj.setStyleSheet("""
+            QPushButton {
+                color: #5d5d5d;
+                background-color: #79cf65;
+                border: 2px solid #5d5d5d;
+                border-radius: 15px;
+                padding: 5px;
+                font-size: 20px;
+                font-family: Arial, sans-serif;
+            }
+            QPushButton:hover {
+                background-color: #6bb558;
+            }
+            QPushButton:pressed {
+                background-color: #4e8340;
+                border: 2px solid #4e8340;
+            }
+        """)
+        self.button_filtruj.clicked.connect(self.show_filter_dialog)  # Połącz przycisk z metodą show_filter_dialog
+        self.horizontalLayout_buttons.addWidget(self.button_filtruj)
 
 
 
@@ -551,6 +575,88 @@ class FleetFrame(QtWidgets.QFrame):
             print(f"Error while fetching columns: {str(e)}")
 
         return None, None
+
+
+    #########################################################################################################
+    ########################################################################################################
+    ########################################################################################################
+    ########################################################################################################
+
+    #tutaj beda filtry
+    def show_filter_dialog(self):
+        """
+        Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
+        """
+        # Przekazujemy referencję do funkcji filtrujFlote jako callback
+        self.button_filtruj = FilterFleetFrame(class_name="pojazd", api_url=f"{self.api_url}/pojazd",
+                                               parent=self, header_title="Filtrowanie pojazdów",
+                                               refresh_callback=self.load_data_filtered)
+        self.button_filtruj.show()
+
+    def load_data_filtered(self, filtr_parameteres_pojazd=None):
+        # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
+        if filtr_parameteres_pojazd is not None:
+            self.filtr_parameteres_pojazd = filtr_parameteres_pojazd
+
+        print("Wywołano load_data_filtered z filtrami:", self.filtr_parameteres_pojazd)
+
+        # Ustawienie domyślnych filtrów
+        default_filters = {
+            'typPojazdu': None,
+            'marka': None,
+            'model': None,
+            'nrRejestracyjny': None,
+            'dodatkoweInf': None
+        }
+
+        # Łączenie filtrów z domyślnymi, aby zapewnić, że odpowiednie filtry zawsze będą w zapytaniu
+        combined_parameters = {**default_filters, **self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
+        print(f"Combined_param: {combined_parameters}")
+
+        # Przekonwertowanie kluczy na małe litery
+        combined_parameters_lower = {key.lower(): value for key, value in combined_parameters.items() if
+                                     value is not None}
+        print(f"Final Combined_param (with lowercase keys): {combined_parameters_lower}")
+
+        # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
+        if 'numer rejestracyjny' in combined_parameters_lower:
+            combined_parameters_lower['nrRejestracyjny'] = combined_parameters_lower.pop('numer rejestracyjny')
+
+        # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
+        if 'dodatkowe informacje' in combined_parameters_lower:
+            combined_parameters_lower['dodatkoweInf'] = combined_parameters_lower.pop('dodatkowe informacje')
+
+
+        # Budowanie URL z parametrami w wymaganym formacie
+        query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
+        full_url = f"{self.api_url}/pojazd/show?{query_string}"
+        print(f"Final URL: {full_url}")
+
+        try:
+            # Wykonanie żądania HTTP GET z pełnym URL
+            response = requests.get(full_url)
+            if response.status_code == 200:
+                pojazd_data = response.json()
+
+                # Aktualizacja modelu pojazdów na podstawie danych z API
+                self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())
+                for pojazd in pojazd_data:
+                    self.model_pojazd.appendRow([QStandardItem(str(pojazd['ID pojazdu'])),
+                                                 QStandardItem(str(pojazd['ID kierowca'])),
+                                                 QStandardItem(pojazd['Dane kierowcy']),
+                                                 QStandardItem(pojazd['Typ pojazdu']),
+                                                 QStandardItem(pojazd['Marka']),
+                                                 QStandardItem(pojazd['Model']),
+                                                 QStandardItem(pojazd['Numer rejestracyjny']),
+                                                 QStandardItem(pojazd['Dodatkowe informacje'])
+                                                 ])
+            else:
+                print(f"Błąd API: {response.status_code}")
+        except Exception as e:
+            print(f"Błąd przy ładowaniu danych: {str(e)}")
+
+        # Ustawienie opóźnienia dla adjust_column_widths
+        QTimer.singleShot(0, self.adjust_column_widths)
 
     # def highlight_sorted_column(self, column_index, order):
     #     """
