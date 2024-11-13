@@ -57,6 +57,7 @@ def pobierz_i_sortuj_pojazdy():
     # Pobierz parametry zapytania jako słownik
     combined_params = request.args.to_dict()
 
+    typ_pojazdu = request.args.get('Typ pojazdu')
     sort_by = combined_params.get('sort_by', 'ID pojazdu')  # Domyślnie sortowanie po `idPojazd`
     order = combined_params.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
 
@@ -69,7 +70,7 @@ def pobierz_i_sortuj_pojazdy():
 
         # Dynamiczne filtrowanie na podstawie przekazanych parametrów
         for param, value in combined_params.items():
-            if param in ['typPojazdu', 'marka', 'model', 'nrRejestracyjny', 'dodatkoweInf']:  # Możesz dodać inne parametry do listy
+            if param in ['marka', 'model', 'nrRejestracyjny', 'dodatkoweInf']:  # Możesz dodać inne parametry do listy
                 query = query.filter(getattr(Pojazd, param).ilike(f"%{value}%"))
 
             # Filtrowanie po `imie` i `nazwisko` jeśli podano
