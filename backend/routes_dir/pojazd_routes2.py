@@ -10,6 +10,7 @@ from sqlalchemy import asc, desc
 pojazd_bp = Blueprint('pojazd', __name__)
 
 
+
 @pojazd_bp.route('/pojazd/show/<int:id>', methods=['GET'])
 def pobierz_pojazd(id):
     print(f"pojazd/show/{id}")
@@ -49,12 +50,16 @@ def pobierz_pojazdy():
         return jsonify({'error': str(e)}), 500
 
 
+from sqlalchemy.orm import aliased
+
 @pojazd_bp.route('/pojazd/show', methods=['GET'])
 def pobierz_i_sortuj_pojazdy():
-    # Pobierz parametry zapytania
-    typ_pojazdu = request.args.get('Typ pojazdu')  # Filtrowanie po `typPojazdu`
-    sort_by = request.args.get('sort_by', 'ID pojazdu')  # Sortowanie po `idPojazd` domyślnie
-    order = request.args.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
+    # Pobierz parametry zapytania jako słownik
+    combined_params = request.args.to_dict()
+
+    typ_pojazdu = request.args.get('Typ pojazdu')
+    sort_by = combined_params.get('sort_by', 'ID pojazdu')  # Domyślnie sortowanie po `idPojazd`
+    order = combined_params.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
 
     # Ustal kierunek sortowania
     kierunek_sortowania = asc if order == 'asc' else desc
@@ -63,9 +68,15 @@ def pobierz_i_sortuj_pojazdy():
         # Budowanie podstawowego zapytania
         query = db.session.query(Pojazd)
 
-        # Filtrowanie po `typPojazdu`, jeśli podano
-        if typ_pojazdu:
-            query = query.filter(Pojazd.typPojazdu == typ_pojazdu)
+        # Dynamiczne filtrowanie na podstawie przekazanych parametrów
+        for param, value in combined_params.items():
+            if param in ['marka', 'model', 'nrRejestracyjny', 'dodatkoweInf']:  # Możesz dodać inne parametry do listy
+                query = query.filter(getattr(Pojazd, param).ilike(f"%{value}%"))
+
+            # Filtrowanie po `imie` i `nazwisko` jeśli podano
+            if param == 'imie' or param == 'nazwisko':
+                query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
+                query = query.filter(getattr(Kierowca, param).ilike(f"%{value}%"))
 
         # Ustalanie kolumny do sortowania
         if sort_by == "Dane kierowcy":
@@ -97,6 +108,55 @@ def pobierz_i_sortuj_pojazdy():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# @pojazd_bp.route('/pojazd/show', methods=['GET'])
+# def pobierz_i_sortuj_pojazdy():
+#     # Pobierz parametry zapytania
+#     typ_pojazdu = request.args.get('Typ pojazdu')  # Filtrowanie po `typPojazdu`
+#     sort_by = request.args.get('sort_by', 'ID pojazdu')  # Sortowanie po `idPojazd` domyślnie
+#     order = request.args.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
+#
+#     # Ustal kierunek sortowania
+#     kierunek_sortowania = asc if order == 'asc' else desc
+#
+#     try:
+#         # Budowanie podstawowego zapytania
+#         query = db.session.query(Pojazd)
+#
+#         # Filtrowanie po `typPojazdu`, jeśli podano
+#         if typ_pojazdu:
+#             query = query.filter(Pojazd.typPojazdu == typ_pojazdu)
+#
+#         # Ustalanie kolumny do sortowania
+#         if sort_by == "Dane kierowcy":
+#             # Sortowanie po `imie` i `nazwisko` w tabeli Kierowca
+#             query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
+#             query = query.order_by(
+#                 kierunek_sortowania(Kierowca.imie),
+#                 kierunek_sortowania(Kierowca.nazwisko)
+#             )
+#         else:
+#             # Mapowanie `friendly_name` na rzeczywiste kolumny `Pojazd`
+#             sort_column_name = None
+#             for column_name, column_info in Pojazd.COLUMN_NAME_MAP.items():
+#                 if column_info['friendly_name'] == sort_by:
+#                     sort_column_name = column_name
+#                     break
+#
+#             # Pobieramy kolumnę modelu na podstawie `sort_column_name`, lub domyślnie `idPojazd`
+#             sort_column = getattr(Pojazd, sort_column_name, Pojazd.idPojazd)
+#             query = query.order_by(kierunek_sortowania(sort_column))
+#
+#         # Pobranie wyników
+#         pojazdy = query.all()
+#
+#         # Konwersja wyników do formatu JSON
+#         wynik = [Pojazd.serialize(pojazd) for pojazd in pojazdy]
+#
+#         return jsonify(wynik), 200
+#
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
 
 
 # Dodawanie nowego pojazdu
