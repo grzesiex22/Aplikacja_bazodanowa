@@ -194,7 +194,7 @@ class FleetFrame(QtWidgets.QFrame):
 
 
         self.widget_choice_buttons = QtWidgets.QWidget(self)
-        self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-800/2), 70, 800, 60))
+        self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-1000/2), 70, 1000, 60))
         self.widget_choice_buttons.setObjectName("widget_choice_buttons")
         self.widget_choice_buttons.setStyleSheet("""
             QPushButton {
@@ -256,11 +256,15 @@ class FleetFrame(QtWidgets.QFrame):
 
         # Tworzenie przycisku button_filtruj
         self.button_filtruj = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_filtruj.setText("Filtruj")
+        self.button_filtruj.setFixedWidth(70)
         self.button_filtruj.setObjectName("button_filtruj")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("icons/filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_filtruj.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
-        self.horizontalLayout_buttons.addWidget(self.button_filtruj)
+        self.button_filtruj.setIcon(icon)
+        self.button_filtruj.setIconSize(QtCore.QSize(30, 30))
 
+        self.horizontalLayout_buttons.addWidget(self.button_filtruj)
         self.button_filtruj.clicked.connect(self.show_filter_dialog)
 
         # Ustawienie stylu dla przycisku button_filtruj
@@ -285,9 +289,13 @@ class FleetFrame(QtWidgets.QFrame):
         ######przycisk wyczyść filtry####################
         # Tworzenie przycisku button_filtruj
         self.button_wyczysc_filtry = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_wyczysc_filtry.setText("Wyczyść filtry")
+        self.button_wyczysc_filtry.setFixedWidth(70)
         self.button_wyczysc_filtry.setObjectName("button_wyczysc_filtry")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("icons/clear_filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_wyczysc_filtry.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
+        self.button_wyczysc_filtry.setIcon(icon)
+        self.button_wyczysc_filtry.setIconSize(QtCore.QSize(30, 30))
         self.horizontalLayout_buttons.addWidget(self.button_wyczysc_filtry)
 
         self.button_wyczysc_filtry.clicked.connect(self.erase_filters)
