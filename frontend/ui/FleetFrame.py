@@ -267,7 +267,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_filtruj.setStyleSheet("""
                     QPushButton {
                         color: #5d5d5d;
-                        background-color: #FFD700; /* Złoty kolor */
+                        background-color: #D8B7DD; /* Złoty kolor */
                         border: 2px solid #5d5d5d;
                         border-radius: 15px;
                         padding: 5px;
@@ -275,10 +275,39 @@ class FleetFrame(QtWidgets.QFrame):
                         font-family: Arial, sans-serif;
                     }
                     QPushButton:hover {
-                        background-color: #FFC107;
+                        background-color: #E1C6EB;
                     }
                     QPushButton:pressed {
-                        background-color: #FFA000;
+                        background-color: #C8A1D1;
+                    }
+                """)
+
+        ######przycisk wyczyść filtry####################
+        # Tworzenie przycisku button_filtruj
+        self.button_wyczysc_filtry = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_wyczysc_filtry.setText("Wyczyść filtry")
+        self.button_wyczysc_filtry.setObjectName("button_wyczysc_filtry")
+        self.button_wyczysc_filtry.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
+        self.horizontalLayout_buttons.addWidget(self.button_wyczysc_filtry)
+
+        self.button_wyczysc_filtry.clicked.connect(self.erase_filters)
+
+        # Ustawienie stylu dla przycisku button_wyczysc_filtry
+        self.button_wyczysc_filtry.setStyleSheet("""
+                        QPushButton {
+                        color: #5d5d5d;
+                        background-color: #D8B7DD; /* Złoty kolor */
+                        border: 2px solid #5d5d5d;
+                        border-radius: 15px;
+                        padding: 5px;
+                        font-size: 20px;
+                        font-family: Arial, sans-serif;
+                    }
+                    QPushButton:hover {
+                        background-color: #E1C6EB;
+                    }
+                    QPushButton:pressed {
+                        background-color: #C8A1D1;
                     }
                 """)
 
@@ -289,6 +318,8 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_flota_ciagniki.setChecked(True)
         self.update_screen_type(ScreenType.CIAGNIKI.value)  # Ustawienie początkowej wartości zmiennej
 
+    def erase_filters(self):
+        self.load_data()
 
     def sort_by_column(self, column_index):
         column_name = self.tableView_flota.model().headerData(column_index, Qt.Horizontal)
@@ -324,9 +355,11 @@ class FleetFrame(QtWidgets.QFrame):
 
         if self.screen_type == ScreenType.KIEROWCY:
             self.button_filtruj.setVisible(False)
+            self.button_wyczysc_filtry.setVisible(False)
             print("schowałem filtruj")
         else:
             self.button_filtruj.setVisible(True)
+            self.button_wyczysc_filtry.setVisible(True)
 
         self.load_data()
 
@@ -500,7 +533,7 @@ class FleetFrame(QtWidgets.QFrame):
 
             self.tableView_flota.setModel(self.model_pojazd)
 
-            self.filtr_parameteres_pojazd['Typ pojazdu'] = TypPojazdu.Ciągnik.value
+            self.filtr_parameteres_pojazd['typPojazdu'] = TypPojazdu.Ciągnik.value
             combined_parameters = {**self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
             print(f"Combined_param: {combined_parameters}")
 
@@ -534,7 +567,7 @@ class FleetFrame(QtWidgets.QFrame):
             self.primary_key_index = self.primary_key_index_pojazd
             self.tableView_flota.setModel(self.model_pojazd)
 
-            self.filtr_parameteres_pojazd['Typ pojazdu'] = TypPojazdu.Naczepa.value
+            self.filtr_parameteres_pojazd['typPojazdu'] = TypPojazdu.Naczepa.value
             combined_parameters = {**self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
             print(f"Combined_param: {combined_parameters}")
 
@@ -619,7 +652,7 @@ class FleetFrame(QtWidgets.QFrame):
 
         # Ustawienie domyślnych filtrów
         default_filters = {
-            'typPojazdu': None,
+            'Typ Pojazdu': None,
             'marka': None,
             'model': None,
             'nrRejestracyjny': None,
@@ -635,6 +668,10 @@ class FleetFrame(QtWidgets.QFrame):
                                      value is not None}
         print(f"Final Combined_param (with lowercase keys): {combined_parameters_lower}")
 
+        # Usuń 'Dane kierowcy' z parametrów, aby nie pojawił się w URL
+        if 'dane kierowcy' in combined_parameters_lower:
+            combined_parameters_lower.pop('dane kierowcy')
+
         # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
         if 'numer rejestracyjny' in combined_parameters_lower:
             combined_parameters_lower['nrRejestracyjny'] = combined_parameters_lower.pop('numer rejestracyjny')
@@ -642,6 +679,9 @@ class FleetFrame(QtWidgets.QFrame):
         # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
         if 'dodatkowe informacje' in combined_parameters_lower:
             combined_parameters_lower['dodatkoweInf'] = combined_parameters_lower.pop('dodatkowe informacje')
+
+        if 'id kierowca' in combined_parameters_lower:
+            combined_parameters_lower['idKierowca'] = combined_parameters_lower.pop('id kierowca')
 
         if self.screen_type == ScreenType.CIAGNIKI:
             # Budowanie URL z parametrami w wymaganym formacie
