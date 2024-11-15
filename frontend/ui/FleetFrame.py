@@ -28,6 +28,9 @@ class FleetFrame(QtWidgets.QFrame):
         # Inicjalizacja flagi
         self.is_filtering = False
 
+        # Flaga, która będzie informować, czy filtry zostały ustawione
+        self.filters_set = False
+
         # Informacje dla tabeli pojazdy
         self.model_pojazd = QStandardItemModel()
         self.model_pojazd_columns_info, self.primary_key_index_pojazd, self.foreign_key_index_pojazd \
@@ -364,12 +367,17 @@ class FleetFrame(QtWidgets.QFrame):
         if self.screen_type == ScreenType.KIEROWCY:
             self.button_filtruj.setVisible(False)
             self.button_wyczysc_filtry.setVisible(False)
-            print("schowałem filtruj")
+            self.filters_set = False
         else:
             self.button_filtruj.setVisible(True)
             self.button_wyczysc_filtry.setVisible(True)
 
-        self.load_data()
+        # if self.filters_set and self.screen_type != ScreenType.KIEROWCY:
+        if self.filters_set:
+            self.load_data_filtered()
+        else:
+            self.load_data()
+
 
 
     def save_changes(self, row):
@@ -655,6 +663,7 @@ class FleetFrame(QtWidgets.QFrame):
         # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
         if filtr_parameteres_pojazd is not None:
             self.filtr_parameteres_pojazd = filtr_parameteres_pojazd
+            self.filters_set = True
 
         print("Wywołano load_data_filtered z filtrami:", self.filtr_parameteres_pojazd)
 
