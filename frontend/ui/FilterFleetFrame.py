@@ -190,7 +190,7 @@ class FilterFleetFrame(QFrame):
             label.setFixedHeight(30)
             self.gridLayout_add.addWidget(label, row, 0)
 
-            # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+            # Tworzymy rozwijaną listę (QComboBox) dla idKierowcy
             if column['foreign_key'] == True:
                 tmp = column
                 label = QLabel("")
@@ -199,16 +199,18 @@ class FilterFleetFrame(QFrame):
                 self.gridLayout_add.addWidget(label, row, 1)
             # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
             elif input_type == 'enum':
-                combo_box = QComboBox()
-                # Dodajemy do combo boxa wszystkie wartości Enum TypPojazdu
-                combo_box.addItem("")  # Pusty element na początku, który będzie ustawiony jako wybrany
-                combo_box.addItems([typ for typ in inputs])
-                combo_box.setObjectName(f"combo_box_{column_name}")
-                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
-                self.gridLayout_add.addWidget(combo_box, row, 1)
-                self.fields[column_name] = combo_box
+                # combo_box = QComboBox()
+                # # Dodajemy do combo boxa wszystkie wartości Enum TypPojazdu
+                # combo_box.addItem("")  # Pusty element na początku, który będzie ustawiony jako wybrany
+                # combo_box.addItems([typ for typ in inputs])
+                # combo_box.setObjectName(f"combo_box_{column_name}")
+                # combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
+                # self.gridLayout_add.addWidget(combo_box, row, 1)
+                # self.fields[column_name] = combo_box
+                continue
 
             # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+            #elif input_type == 'list' and isinstance(inputs, str):
             elif input_type == 'list' and isinstance(inputs, str):
                 combo_box = QComboBox()
                 combo_box.addItem("", "")  # Pusty element na początku
