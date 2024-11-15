@@ -474,6 +474,7 @@ class FleetFrame(QtWidgets.QFrame):
                     self.edit_frame = EditFrame(class_name="pojazd", data=pojazd_data,
                                                 api_url=f"{self.api_url}/pojazd",
                                                 parent=self, header_title="Edycja pojazdu",
+                                                filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
                                                 refresh_callback=self.load_data)
                     self.edit_frame.show()
                 else:
