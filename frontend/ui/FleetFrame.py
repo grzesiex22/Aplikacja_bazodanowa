@@ -25,6 +25,9 @@ class FleetFrame(QtWidgets.QFrame):
         self.screen_type = ScreenType.CIAGNIKI
         self.api_url = api_url
 
+        # Inicjalizacja flagi
+        self.is_filtering = False
+
         # Informacje dla tabeli pojazdy
         self.model_pojazd = QStandardItemModel()
         self.model_pojazd_columns_info, self.primary_key_index_pojazd, self.foreign_key_index_pojazd \
@@ -251,36 +254,40 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_group.addButton(self.button_flota_naczepy, ScreenType.NACZEPY.value)
         self.button_group.addButton(self.button_flota_kierowcy, ScreenType.KIEROWCY.value)
 
+        # Tworzenie przycisku button_filtruj
+        self.button_filtruj = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_filtruj.setText("Filtruj")
+        self.button_filtruj.setObjectName("button_filtruj")
+        self.button_filtruj.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
+        self.horizontalLayout_buttons.addWidget(self.button_filtruj)
+
+        self.button_filtruj.clicked.connect(self.show_filter_dialog)
+
+        # Ustawienie stylu dla przycisku button_filtruj
+        self.button_filtruj.setStyleSheet("""
+                    QPushButton {
+                        color: #5d5d5d;
+                        background-color: #FFD700; /* Złoty kolor */
+                        border: 2px solid #5d5d5d;
+                        border-radius: 15px;
+                        padding: 5px;
+                        font-size: 20px;
+                        font-family: Arial, sans-serif;
+                    }
+                    QPushButton:hover {
+                        background-color: #FFC107;
+                    }
+                    QPushButton:pressed {
+                        background-color: #FFA000;
+                    }
+                """)
+
         # Podłączenie sygnału dla grupy przycisków
         self.button_group.buttonClicked[int].connect(self.update_screen_type)
 
         # Ustawienie stylów przycisków i początkowego stanu
         self.button_flota_ciagniki.setChecked(True)
         self.update_screen_type(ScreenType.CIAGNIKI.value)  # Ustawienie początkowej wartości zmiennej
-
-        self.button_filtruj = QtWidgets.QPushButton(self)
-        self.button_filtruj.setText("Filtruj")
-        self.button_filtruj.setStyleSheet("""
-            QPushButton {
-                color: #5d5d5d;
-                background-color: #79cf65;
-                border: 2px solid #5d5d5d;
-                border-radius: 15px;
-                padding: 5px;
-                font-size: 20px;
-                font-family: Arial, sans-serif;
-            }
-            QPushButton:hover {
-                background-color: #6bb558;
-            }
-            QPushButton:pressed {
-                background-color: #4e8340;
-                border: 2px solid #4e8340;
-            }
-        """)
-        self.button_filtruj.clicked.connect(self.show_filter_dialog)  # Połącz przycisk z metodą show_filter_dialog
-        self.horizontalLayout_buttons.addWidget(self.button_filtruj)
-
 
 
     def sort_by_column(self, column_index):
@@ -312,6 +319,15 @@ class FleetFrame(QtWidgets.QFrame):
         # Zmiana wartości zmiennej na podstawie ID przycisku
         self.screen_type = ScreenType(screen_value)
         print(f"Aktualna wartość zmiennej: {self.screen_type.name}")
+
+        self.is_filtering = False
+
+        if self.screen_type == ScreenType.KIEROWCY:
+            self.button_filtruj.setVisible(False)
+            print("schowałem filtruj")
+        else:
+            self.button_filtruj.setVisible(True)
+
         self.load_data()
 
 
@@ -588,10 +604,11 @@ class FleetFrame(QtWidgets.QFrame):
         Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
         """
         # Przekazujemy referencję do funkcji filtrujFlote jako callback
-        self.button_filtruj = FilterFleetFrame(class_name="pojazd", api_url=f"{self.api_url}/pojazd",
+        self.filter_dialog = FilterFleetFrame(class_name="pojazd", api_url=f"{self.api_url}/pojazd",
                                                parent=self, header_title="Filtrowanie pojazdów",
                                                refresh_callback=self.load_data_filtered)
-        self.button_filtruj.show()
+
+        self.filter_dialog.show()
 
     def load_data_filtered(self, filtr_parameteres_pojazd=None):
         # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie

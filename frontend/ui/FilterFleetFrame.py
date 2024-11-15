@@ -163,7 +163,6 @@ class FilterFleetFrame(QFrame):
         self.button_save.clicked.connect(self.save_changes)
 
     def load_columns(self):
-
         try:
             # Żądanie do endpointu pobierania kolumn
             tmp = f"http://127.0.0.1:5000/api/columns/{self.class_name}"
