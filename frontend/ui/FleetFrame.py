@@ -330,6 +330,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.update_screen_type(ScreenType.CIAGNIKI.value)  # Ustawienie początkowej wartości zmiennej
 
     def erase_filters(self):
+        self.filters_set = False
         self.load_data()
 
     def sort_by_column(self, column_index):
@@ -353,7 +354,10 @@ class FleetFrame(QtWidgets.QFrame):
             self.current_sorted_column_pojazd = column_index
             self.sort_parameteres_pojazd = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
 
-        self.load_data()
+        if self.filters_set:
+            self.load_data_filtered()
+        else:
+            self.load_data()
         # self.highlight_sorted_column(column_index, 'asc')
 
 
@@ -654,10 +658,23 @@ class FleetFrame(QtWidgets.QFrame):
         Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
         """
         # Przekazujemy referencję do funkcji filtrujFlote jako callback
-        self.filter_dialog = FilterFleetFrame(class_name="pojazd", api_url=f"{self.api_url}/pojazd",
-                                               parent=self, header_title="Filtrowanie pojazdów",
-                                               refresh_callback=self.load_data_filtered)
+        # self.filter_dialog = FilterFleetFrame(class_name="pojazd", api_url=f"{self.api_url}/pojazd",
+        #                                        parent=self, header_title="Filtrowanie pojazdów",
+        #                                        refresh_callback=self.load_data_filtered)
+        #
+        # self.filter_dialog.show()
 
+        if self.filters_set == False:
+            # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
+            self.filter_dialog = FilterFleetFrame(
+                class_name="pojazd",
+                api_url=f"{self.api_url}/pojazd",
+                parent=self,
+                header_title="Filtrowanie pojazdów",
+                # Przekazujemy istniejące filtry
+                refresh_callback=self.load_data_filtered
+            )
+            # Pokazujemy istniejący dialog (nowy lub już wcześniej utworzony)
         self.filter_dialog.show()
 
     def load_data_filtered(self, filtr_parameteres_pojazd=None):
