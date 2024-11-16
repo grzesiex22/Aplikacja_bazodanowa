@@ -90,7 +90,7 @@ class FleetFrame(QtWidgets.QFrame):
                                                 "    border-radius: 15px;"
                                                 "}"
                                                "QLabel {"
-                                               "    color: #5d5d5d;  /* Kolor tekstu dla etykiet */"
+                                               "    color: #333333;  /* Kolor tekstu dla etykiet */"
                                                "    background-color: transparent;  /* Przezroczyste tło dla etykiet */"
                                                "    border: none;  /* Brak ramki dla etykiet */"
                                                "    font-size: 20px;  /* Rozmiar czcionki */"
@@ -183,7 +183,7 @@ class FleetFrame(QtWidgets.QFrame):
             table_fleet_top_margin + table_fleet_height + 20, 500, 60))
         self.button_flota_dodaj.setText("DODAJ")
         self.button_flota_dodaj.setStyleSheet("QPushButton {"
-                                              "     color: #5d5d5d;"
+                                              "     color: #333333;"
                                               "    background-color: #79cf65; /* Ustawia przezroczyste tło */"
                                               "    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */"
                                               "    border-radius: 15px; /* Zaokrąglone rogi ramki */"
@@ -208,7 +208,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.widget_choice_buttons.setStyleSheet("""
             QPushButton {
                 height: 60px;
-                color: #5d5d5d;
+                color: #333333;
                 background-color: #B0C4DE; /* Ustawia przezroczyste tło */
                 border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
                 border-radius: 15px; /* Zaokrąglone rogi ramki */
@@ -279,13 +279,10 @@ class FleetFrame(QtWidgets.QFrame):
         # Ustawienie stylu dla przycisku button_filtruj
         self.button_filtruj.setStyleSheet("""
                     QPushButton {
-                        color: #5d5d5d;
-                        background-color: #c4bbf0; /* Złoty kolor */
+                        background-color: #c4bbf0; /* kolor */
                         border: 2px solid #5d5d5d;
                         border-radius: 15px;
                         padding: 5px;
-                        font-size: 20px;
-                        font-family: Arial, sans-serif;
                     }
                     QPushButton:hover {
                         background-color: #ac97e2;
@@ -312,21 +309,18 @@ class FleetFrame(QtWidgets.QFrame):
         # Ustawienie stylu dla przycisku button_wyczysc_filtry
         self.button_wyczysc_filtry.setStyleSheet("""
                         QPushButton {
-                        color: #5d5d5d;
                         background-color: #c4bbf0; /* Złoty kolor */
                         border: 2px solid #5d5d5d;
                         border-radius: 15px;
                         padding: 5px;
-                        font-size: 20px;
-                        font-family: Arial, sans-serif;
-                    }
-                    QPushButton:hover {
-                        background-color: #ac97e2;
-                    }
-                    QPushButton:pressed {
-                        background-color: #927fbf;
-                    }
-                """)
+                        }
+                        QPushButton:hover {
+                            background-color: #ac97e2;
+                        }
+                        QPushButton:pressed {
+                            background-color: #927fbf;
+                        }
+                        """)
 
         # Podłączenie sygnału dla grupy przycisków
         self.button_group.buttonClicked[int].connect(self.update_screen_type)

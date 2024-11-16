@@ -55,7 +55,7 @@ class EditFrame(QFrame):
                                 border: 2px solid #cfb796 ; 
                             }
                             QPushButton {
-                                color: #5d5d5d;
+                                color: #333333;
                                 background-color: #b9bece; /* Ustawia przezroczyste tło */
                                 border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
                                 border-radius: 10px; /* Zaokrąglone rogi ramki */
@@ -75,7 +75,7 @@ class EditFrame(QFrame):
                                 border: 2px solid #95a5a6;  /* Obramowanie dla nieaktywnych przycisków */
                             }
                             QLabel {
-                                color: #5d5d5d;  /* Kolor tekstu dla etykiet (przykład: pomarańczowy) */
+                                color: #333333;  /* Kolor tekstu dla etykiet (przykład: pomarańczowy) */
                                 background-color: transparent;  /* Przezroczyste tło dla etykiet */
                                 border: none;  /* Brak ramki dla etykiet */
                             }""")
