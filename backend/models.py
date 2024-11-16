@@ -48,7 +48,10 @@ class BaseModel(db.Model):
                     "editable": properties.get("editable", True),
                     "input_type": properties.get("input_type", "text"),
                      # Obsługa "inputs" dla typu 'list'
-                    "inputs": cls._serialize_inputs(properties.get("inputs")) if (properties.get("input_type") == 'enum' and properties.get("inputs")) else properties.get("inputs", None)
+                    "inputs": cls._serialize_inputs(properties.get("inputs"))
+                        if (properties.get("input_type") == 'enum' and properties.get("inputs"))
+                        else properties.get("inputs", None),
+                    "filter": properties.get("filter", False)
                 }
                 columns_info.append(column_info)
             else:
@@ -125,22 +128,26 @@ class Kierowca(BaseModel):
         'idKierowca': {
             'friendly_name': 'ID kierowcy',
             'editable': False,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'filter': False
         },
         'imie': {
             'friendly_name': 'Imię',
             'editable': True,
-            'input_type': 'text'  # typ wejścia dla PyQt
+            'input_type': 'text',  # typ wejścia dla PyQt
+            'filter': 'select'
         },
         'nazwisko': {
             'friendly_name': 'Nazwisko',
             'editable': True,
-            'input_type': 'text'
+            'input_type': 'text',
+            'filter': 'text'
         },
         'nrTel': {
             'friendly_name': 'Nr telefonu',
             'editable': True,
-            'input_type': 'text'  # można dodać walidację np. numeru telefonu
+            'input_type': 'text',  # można dodać walidację np. numeru telefonu
+            'filter': 'text'
         }
     }
 
@@ -215,44 +222,52 @@ class Pojazd(BaseModel):
         'idPojazd': {
             'friendly_name': 'ID pojazdu',
             'editable': False,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'filter': False
         },
         'idKierowca': {
             'friendly_name': 'ID kierowca',
             'editable': False,
-            'input_type': 'Dane kierowcy'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'Dane kierowcy',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'filter': False
         },
         'Kierowca': {
             'friendly_name': 'Dane kierowcy',
             'editable': True,
             'input_type': 'list',  # lub np. 'number', jeśli liczba, 'readonly' itp.
-            'inputs': 'kierowca/show/alltochoice'
+            'inputs': 'kierowca/show/alltochoice',
+            'filter': 'select'
         },
         'typPojazdu': {
             'friendly_name': 'Typ pojazdu',
             'editable': True,
             'input_type': 'enum',  # lub np. 'number', jeśli liczba, 'readonly' itp.
-            'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa]
+            'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa],
+            'filter': False
         },
         'marka': {
             'friendly_name': 'Marka',
             'editable': True,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'filter': 'select'
         },
         'model': {
             'friendly_name': 'Model',
             'editable': True,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'filter': 'select'
         },
         'nrRejestracyjny': {
             'friendly_name': 'Numer rejestracyjny',
             'editable': True,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'filter': 'text'
         },
         'dodatkoweInf': {
             'friendly_name': 'Dodatkowe informacje',
             'editable': True,
-            'input_type': 'readonly'  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'filter': 'text'
         }
     }
 

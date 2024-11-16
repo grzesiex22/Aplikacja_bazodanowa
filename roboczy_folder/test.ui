@@ -779,6 +779,260 @@ QPushButton:pressed {
       </item>
      </layout>
     </widget>
+    <widget class="QFrame" name="frame_filter">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>290</y>
+       <width>461</width>
+       <height>421</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+	background-color: #c4bbf0;
+}
+QPushButton {
+	color: #5d5d5d;
+    background-color: #b9bece; /* Ustawia przezroczyste tło */
+    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
+    border-radius: 10px; /* Zaokrąglone rogi ramki */
+    padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
+    font-size: 14px;  /* Rozmiar czcionki */
+    font-family: Arial, sans-serif;  /* Czcionka */
+}
+
+QPushButton:hover {
+	background-color: #a2a6b4; /* Ustawia kolor tła po najechaniu */
+}
+
+QPushButton:pressed {
+    background-color: #8a8e9a;  /* Kolor tła po kliknięciu */
+}
+
+QPushButton:disabled {
+    background-color: #bdc3c7;  /* Kolor tła dla nieaktywnych przycisków */
+    color: #7f8c8d;  /* Kolor tekstu dla nieaktywnych przycisków */
+    border: 2px solid #95a5a6;  /* Obramowanie dla nieaktywnych przycisków */
+}
+
+QLabel {
+    color: #5d5d5d;  /* Kolor tekstu dla etykiet (przykład: pomarańczowy) */
+    background-color: transparent;  /* Przezroczyste tło dla etykiet */
+    border: none;  /* Brak ramki dla etykiet */
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QScrollArea" name="scrollArea_frame_filter">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>441</width>
+        <height>311</height>
+       </rect>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents_2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>441</width>
+         <height>311</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    border: 1px solid #5d5d5d ;  /* Brak ramki dla etykiet */
+	border-radius: 5px;
+	font-size: 14px;
+
+}</string>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>441</width>
+          <height>311</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_frame_edit_2">
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lineEdit_3"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEdit_4"/>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="button_save_2">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>370</y>
+        <width>120</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+    background-color: #94e17e; /* Ustawia przezroczyste tło */
+}
+
+QPushButton:hover {
+	background-color: #89ce74; /* Ustawia kolor tła po najechaniu */
+}
+
+QPushButton:pressed {
+    background-color: #70a85f;  /* Kolor tła po kliknięciu */
+}
+
+</string>
+      </property>
+      <property name="text">
+       <string>Zapisz</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="widget_header_frame_edit_2" native="true">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>461</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QWidget {
+	background: #cfb796;
+	border-radius: 10px;
+} </string>
+      </property>
+      <widget class="QLabel" name="label_frame_edit_2">
+       <property name="geometry">
+        <rect>
+         <x>190</x>
+         <y>10</y>
+         <width>81</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+	font-size: 16px;
+	font-weight: bold;  /* Ustawienie pogrubienia tekstu */
+}</string>
+       </property>
+       <property name="text">
+        <string>Filter</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_exit_frame_edit_2">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>420</x>
+         <y>0</y>
+         <width>30</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+    background-color: #c84043; /* Ustawia przezroczyste tło */
+    border: 2px solid white; /* Ustawia kolor ramki (czarny) */
+    border-radius: 15px; /* Zaokrąglone rogi ramki */
+    padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
+	opacity: 0.5;
+}
+
+QPushButton:hover {
+	background-color: #a73639; /* Ustawia kolor tła po najechaniu */
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>cross_white.png</normaloff>cross_white.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>15</width>
+         <height>15</height>
+        </size>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="button_clear_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>370</y>
+        <width>120</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Wyczyść zmiany</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_delete_2">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>370</y>
+        <width>120</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+    background-color: #da6163; /* Ustawia przezroczyste tło */
+}
+
+QPushButton:hover {
+	background-color: #c54e5a; /* Ustawia kolor tła po najechaniu */
+}
+
+QPushButton:pressed {
+    background-color: #b04652;  /* Kolor tła po kliknięciu */
+}</string>
+      </property>
+      <property name="text">
+       <string>Usuń</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
    <widget class="QWidget" name="widget_system" native="true">
     <property name="geometry">

@@ -1,199 +1,208 @@
 from PyQt5.QtGui import QRegion
 from PyQt5.QtWidgets import QApplication, QMainWindow, QComboBox, QListWidget, QListWidgetItem, QWidget, QVBoxLayout, \
-    QHBoxLayout, QLabel, QWidgetAction, QMenu, QAbstractItemView, QPushButton
+    QHBoxLayout, QLabel, QWidgetAction, QMenu, QAbstractItemView, QPushButton, QSizePolicy
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 import sys
 
 
-# MultiSelectComboBox QSS
-combo_qss = """
+# # MultiSelectComboBox QSS
+# combo_qss = """
+#
+# QWidget {    /* wokół pasków przewijania */
+#     border: 0px solid #fccccb;
+#     border-radius: 10px;
+#     background-color: transparent;
+# }
+#
+# /* Styl dla QComboBox */
+# QComboBox {
+#     border: 2px solid #ac97e2;
+#     border-radius: 5px;
+#     padding: 2px;
+#     background-color: #c4bbf0;
+#     color: #333333;
+# }
+#
+# QComboBox QAbstractItemView {
+#     selection-background-color: #d7d1f0;  /* Kolor zaznaczonego elementu */
+#     background-color: #d7d1f0;
+#     color: #333333;
+#     border: 2px solid #ac97e2;
+#     border-radius: 10px;
+#     margin: 2px 0px 0px 0px; /* top right bottom left */
+# }
+#
+# QComboBox::drop-down {
+#     subcontrol-origin: margin;
+#     subcontrol-position: top right;
+#     width: 30px;
+#     border-left: 1px solid #ac97e2;
+# }
+#
+# QComboBox::down-arrow {
+#     image: url("../icons/angle-down.png");  /* Możesz podać swoją ikonę */
+#     subcontrol-origin: margin;
+#     subcontrol-position: center;
+#     width: 20px;  /* Możesz zmienić rozmiar */
+#     height: 20px; /* Możesz dostosować wysokość */
+# }
+#
+# /* Styl dla QListWidget */
+# QListWidget {
+#     background-color: #transparent;
+#     border: none;
+#     color: #dff0ef;
+#     border-radius: 10px;
+#     outline: none;
+# }
+# QListWidget::item {
+#     padding: 5px;
+#     background-color: transparent;  /* Ustawienie przezroczystego tła dla elementów */
+#     border-radius: 10px;
+#     border: none;
+#     margin: 0px 25px 0px 0px; /* top right bottom left */
+#
+# }
+# QListWidget::item:selected:active {
+#     background-color: transparent;
+#     color: green;
+#     border: none;
+# }
+#
+# QListWidget::item:focus {
+#     outline: none;
+# }
+#
+#
+#
+# /* PASKI PRZEWIJANIA */
+# QAbstractScrollArea::corner {
+#     border-radius: 10px;
+#     background-color: #ac97e2;
+#     margin: 2px;
+# }
+#
+# /* PASEK PRZEWIJANIA PIONOWY */
+# QScrollBar:vertical {
+#     border: 2px solid #ac97e2;
+#     background: #c4bbf0;
+#     width: 30px;
+#     margin: 28px 2px 28px 4px; /* top right bottom left */
+#     border-radius: None;
+# }
+# QScrollBar::handle:vertical {
+#     background: #c4bbf0;
+#     border: 1px solid #ac97e2;
+#     min-height: 10px;
+#     border-radius: None;
+# }
+# QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {     /* Przewijanie */
+#     background: #ac97e2;
+#     height: 24px;
+#     width: 24px;
+#     border-radius: 8px;
+# }
+# QScrollBar::add-line:vertical {     /* Przewijanie w dół */
+#     subcontrol-origin: margin;
+#     subcontrol-position: bottom;
+#     margin: 0px 2px 2px 4px; /* top right bottom left */
+# }
+# QScrollBar::sub-line:vertical {     /* Przewijanie w górę */
+#     subcontrol-origin: margin;
+#     subcontrol-position: top;
+#     margin: 2px 2px 0px 4px; /* top right bottom left */
+# }
+#
+# QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+#     background: transparent;
+#     width: 20px;
+#     height: 20px; /* Ustaw wysokość strzałek */
+#     border-radius: 6px;
+#     margin: 0; /* Środkowanie strzałki */
+#     padding: 2px;  /* Dodajemy mały padding, by wyrównać pozycję */
+# }
+#
+# QScrollBar::up-arrow:vertical {
+#     image: url("icons/angle-up.png");
+#     subcontrol-origin: padding;
+#     subcontrol-position: center;
+#
+# }
+# QScrollBar::down-arrow:vertical {
+#     image: url("icons/angle-down.png");
+#     subcontrol-origin: padding;
+#     subcontrol-position: center;
+#
+# }
+#
+# /* PASEK PRZEWIJANIA POZIOMY */
+# QScrollBar:horizontal  {
+#     border: 2px solid #ac97e2;
+#     background: #c4bbf0;
+#     height: 30px;
+#     margin: 4px 28px 2px 28px; /* top right bottom left */
+#     border-radius: 0px;
+# }
+# QScrollBar::handle:horizontal {
+#     background: #c4bbf0;
+#     border: 1px solid #ac97e2;
+#     min-width: 10px;
+#
+# }
+# QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+#     background: #ac97e2;
+#     height: 24px;
+#     width: 24px;
+#     border-radius: 6px;
+# }
+# QScrollBar::add-line:horizontal { /* Przewijanie w lewo */
+#     subcontrol-origin: margin;
+#     subcontrol-position: right;
+#     margin: 4px 2px 2px 0px;  /* top right bottom left */
+# }
+# QScrollBar::sub-line:horizontal { /* Przewijanie w prawo */
+#     subcontrol-origin: margin;
+#     subcontrol-position: left;
+#     margin: 4px 0px 2px 2px; /* top right bottom left */
+# }
+# QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+#     background: transparent;
+#     width: 20px;
+#     height: 20px;
+#     border-radius: 6px;
+#     margin: 0; /* Środkowanie strzałki */
+#     padding: 2px;  /* Dodajemy mały padding, by wyrównać pozycję */
+# }
+# QScrollBar::left-arrow:horizontal {
+#     image: url(icons/angle-left.png);
+#     subcontrol-origin: padding;
+#     subcontrol-position: center;
+# }
+# QScrollBar::right-arrow:horizontal {
+#     image: url(../icons/angle-right.png);
+#     subcontrol-origin: padding;
+#     subcontrol-position: center;
+# }
+#
+# """
+#
 
-QWidget {    /* wokół pasków przewijania */
-    border: 0px solid #fccccb;
-    border-radius: 10px;
-    background-color: transparent;
-}
-
-/* Styl dla QComboBox */
-QComboBox {
-    border: 2px solid #927fbf;
-    border-radius: 5px;
-    padding: 10px;
-    background-color: #c4bbf0;
-    color: #333333;
-}
-
-QComboBox QAbstractItemView {
-    selection-background-color: #d7d1f0;  /* Kolor zaznaczonego elementu */
-    background-color: #d7d1f0;
-    color: #333333;
-    border: 2px solid #927fbf;
-    border-radius: 10px;
-    margin: 2px 0px 0px 0px; /* top right bottom left */
-}
-
-QComboBox::drop-down {
-    subcontrol-origin: margin;
-    subcontrol-position: top right;
-    width: 30px;
-    border-left: 1px solid #927fbf;
-}
-
-QComboBox::down-arrow {
-    image: url("../icons/angle-down.png");  /* Możesz podać swoją ikonę */
-    subcontrol-origin: margin;
-    subcontrol-position: center;
-    width: 20px;  /* Możesz zmienić rozmiar */
-    height: 20px; /* Możesz dostosować wysokość */
-}
-
-/* Styl dla QListWidget */
-QListWidget {
-    background-color: #transparent;
-    border: none;
-    color: #dff0ef;
-    border-radius: 10px;
-    outline: none;
-}
-QListWidget::item {
-    padding: 5px;
-    background-color: transparent;  /* Ustawienie przezroczystego tła dla elementów */
-    border-radius: 10px;
-    border: none;
-    margin: 0px 25px 0px 0px; /* top right bottom left */
-    
-}
-QListWidget::item:selected:active {
-    background-color: transparent;
-    color: green;
-    border: none;
-}
-
-QListWidget::item:focus {
-    outline: none;
-}
-
-
-
-/* PASKI PRZEWIJANIA */
-QAbstractScrollArea::corner {
-    border-radius: 10px;
-    background-color: #927fbf;
-    margin: 2px;
-}
-
-/* PASEK PRZEWIJANIA PIONOWY */
-QScrollBar:vertical {
-    border: 2px solid #927fbf;
-    background: #c4bbf0;
-    width: 30px;
-    margin: 28px 2px 28px 4px; /* top right bottom left */
-    border-radius: None;
-}
-QScrollBar::handle:vertical {
-    background: #c4bbf0;
-    border: 1px solid #927fbf;
-    min-height: 10px;
-    border-radius: None;
-}
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {     /* Przewijanie */
-    background: #927fbf;
-    height: 24px;
-    width: 24px;
-    border-radius: 8px;
-}
-QScrollBar::add-line:vertical {     /* Przewijanie w dół */
-    subcontrol-origin: margin;
-    subcontrol-position: bottom;
-    margin: 0px 2px 2px 4px; /* top right bottom left */
-}
-QScrollBar::sub-line:vertical {     /* Przewijanie w górę */
-    subcontrol-origin: margin;
-    subcontrol-position: top;
-    margin: 2px 2px 0px 4px; /* top right bottom left */
-}
-
-QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
-    background: transparent;
-    width: 20px;
-    height: 20px; /* Ustaw wysokość strzałek */
-    border-radius: 6px;
-    margin: 0; /* Środkowanie strzałki */
-    padding: 2px;  /* Dodajemy mały padding, by wyrównać pozycję */
-}
-
-QScrollBar::up-arrow:vertical {
-    image: url("../icons/angle-up.png");
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-  
-}
-QScrollBar::down-arrow:vertical {
-    image: url("../icons/angle-down.png");
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-   
-}
-
-/* PASEK PRZEWIJANIA POZIOMY */
-QScrollBar:horizontal  {
-    border: 2px solid #927fbf;
-    background: #c4bbf0;
-    height: 30px;
-    margin: 4px 28px 2px 28px; /* top right bottom left */
-    border-radius: 0px;
-}
-QScrollBar::handle:horizontal {
-    background: #c4bbf0;
-    border: 1px solid #927fbf;
-    min-width: 10px;
-    
-}
-QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-    background: #927fbf;
-    height: 24px;
-    width: 24px;
-    border-radius: 6px;
-}
-QScrollBar::add-line:horizontal { /* Przewijanie w lewo */
-    subcontrol-origin: margin;
-    subcontrol-position: right;
-    margin: 4px 2px 2px 0px;  /* top right bottom left */
-}
-QScrollBar::sub-line:horizontal { /* Przewijanie w prawo */
-    subcontrol-origin: margin;
-    subcontrol-position: left;
-    margin: 4px 0px 2px 2px; /* top right bottom left */
-}
-QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
-    background: transparent;
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    margin: 0; /* Środkowanie strzałki */
-    padding: 2px;  /* Dodajemy mały padding, by wyrównać pozycję */
-}
-QScrollBar::left-arrow:horizontal {
-    image: url(../icons/angle-left.png);
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-}
-QScrollBar::right-arrow:horizontal {
-    image: url(../icons/angle-right.png);
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-}
-
-"""
 
 class MultiSelectComboBox(QComboBox):
-    def __init__(self, items=None, width=100):
+    def __init__(self, items=None, width=100, height = 20):
         super().__init__()
+
         # Ustawienie QSS
-        self.width = width
-        self.setFixedWidth(self.width)
-        self.setStyleSheet(combo_qss)
+        # self.setStyleSheet(combo_qss)
+
+        # Inicjalizacja rozmiarów
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        # self.setMinimumWidth(width)  # Minimalna szerokość
+        # self.setMinimumHeight(height)  # Minimalna wysokość
+
+        self.width = self.width()
+        self.height = self.height()
 
         # Ustawienia pola wyboru
         self.setEditable(True)
@@ -205,13 +214,25 @@ class MultiSelectComboBox(QComboBox):
         self.list_widget.setSelectionMode(QListWidget.NoSelection)
 
 
-        # Dodajemy przekazane elementy (jeśli są) jako opcje do wyboru
+        # Dodajemy elementy z obsługą słowników
+        self.items_data = {}  # Słownik przechowujący oryginalne dane elementów
         if items:
-            for item_text in items:
-                item = QListWidgetItem(item_text)
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                item.setCheckState(Qt.Unchecked)
-                self.list_widget.addItem(item)
+            for item in items:
+                if isinstance(item, dict):
+                    # Zakładamy, że słownik ma jeden klucz-wartość, np. {'ID1': 'Nazwa1'}
+                    key, value = next(iter(item.items()))
+                    list_item = QListWidgetItem(value)  # Wyświetlamy tylko wartość
+                    list_item.setData(Qt.UserRole, key)  # Przechowujemy klucz jako dane użytkownika
+                    self.items_data[key] = value
+                else:
+                    # Dla elementów, które nie są słownikami, traktujemy je jako zwykły tekst
+                    list_item = QListWidgetItem(item)
+                    self.items_data[item] = item  # Przechowujemy tekst jako klucz i wartość
+
+                list_item.setFlags(list_item.flags() | Qt.ItemIsUserCheckable)
+                list_item.setCheckState(Qt.Unchecked)
+                self.list_widget.addItem(list_item)
+
 
         # Dodanie listy do rozwijanego menu
         widget_action = QWidgetAction(self)
@@ -226,101 +247,159 @@ class MultiSelectComboBox(QComboBox):
         self.menu.setAttribute(Qt.WA_TranslucentBackground)
 
         # # Obsługa kliknięcia elementu na liście (przełączanie stanu checkboxa)
-        self.list_widget.itemPressed.connect(self.toggle_item_check_state)
-        self.list_widget.itemChanged.connect(self.toggle_checkbox_check_state)
+        self.list_widget.itemPressed.connect(self.toggleItemCheckState)
+        self.list_widget.itemChanged.connect(self.toggleCheckboxCheckState)
 
         # Obsługa zmiany stanu elementów
-        self.list_widget.itemChanged.connect(self.update_line_edit)
+        self.list_widget.itemChanged.connect(self.updateLineEdit)
 
     def showPopup(self):
-        # Wyświetlanie menu
-        # Ustawiamy szerokość menu rozwijanego na szerokość QComboBox
+        """
+        Funkcja wyświetlająca menu rozwijane.
+        Ustawia szerokość menu rozwijanego na szerokość QComboBox
+        i wyświetla menu w lokalizacji QComboBox.
+        """
         self.list_widget.setFixedWidth(self.width)
         self.menu.setFixedWidth(self.width)
+        self.list_widget.setMaximumHeight(200)  # Maksymalna wysokość rozwijanej listy (np. 200px)
         self.menu.exec_(self.mapToGlobal(self.rect().bottomLeft()))
 
     def hidePopup(self):
-        pass  # Zapobiega domyślnemu chowaniu menu
+        """
+        Przesłonięcie funkcji hidePopup, aby zapobiec domyślnemu
+        chowaniu menu, dzięki czemu można ręcznie kontrolować
+        zamykanie menu rozwijanego.
+        """
+        pass
 
     def eventFilter(self, source, event):
+        """
+        Nasłuchiwanie kliknięcia na polu tekstowym.
+        Jeśli użytkownik kliknie pole tekstowe QComboBox, wyświetlane
+        jest menu rozwijane.
+        """
         if event.type() == event.MouseButtonPress and source == self.lineEdit():
             self.showPopup()
         return super().eventFilter(source, event)
 
-    def toggle_item_check_state(self, item):
-        # Przełącza stan checkboxa przy kliknięciu elementu
+    def toggleItemCheckState(self, item):
+        """
+        Zmiana stanu checkboxa elementu.
+        Jeśli checkbox elementu jest zaznaczony, odznacz go, i odwrotnie.
+        """
         if item.checkState() == Qt.Checked:
             item.setCheckState(Qt.Unchecked)
         else:
             item.setCheckState(Qt.Checked)
 
-    def toggle_checkbox_check_state(self, item):
+    def toggleCheckboxCheckState(self, item):
+        """
+        Synchronizacja stanu zaznaczenia elementu z jego checkboxem.
+        Jeśli element jest zaznaczony w checkboxie, ustawia stan selected
+        na True i odwrotnie.
+        """
         if item.checkState() == Qt.Checked:
             item.setSelected(True)
         else:
             item.setSelected(False)
 
-
-    def update_line_edit(self):
-        # Aktualizowanie pola tekstowego, aby wyświetlić wybrane elementy
-        selected_items = [item.text() for item in self.list_widget.findItems("", Qt.MatchContains) if
-                          item.checkState() == Qt.Checked]
+    def updateLineEdit(self):
+        """
+        Aktualizowanie pola tekstowego QComboBox, aby wyświetlić
+        wybrane elementy. Wybiera teksty elementów, które są zaznaczone,
+        i ustawia je jako tekst w polu tekstowym.
+        """
+        selected_items = [item.text() for item in self.list_widget.findItems("", Qt.MatchContains)
+                          if item.checkState() == Qt.Checked]
         self.lineEdit().setText(', '.join(selected_items))
 
-    def get_selected_items(self):
-        """Zwraca listę zaznaczonych elementów."""
-        return [item.text() for item in self.list_widget.findItems("", Qt.MatchContains) if
-                item.checkState() == Qt.Checked]
+    def selectedItems(self):
+        """
+        Zwraca listę zaznaczonych elementów. Jeśli element został wprowadzony jako słownik,
+        zwraca klucz (np. 'ID'). Dla zwykłych tekstów zwraca sam tekst.
+        """
+        selected_items = []
+        for item in self.list_widget.findItems("", Qt.MatchContains):
+            if item.checkState() == Qt.Checked:
+                key = item.data(Qt.UserRole)
+                selected_items.append({key: item.text()} if key is not None else item.text())
+        return selected_items
 
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Aplikacja z Polem Wielokrotnego Wyboru")
-        self.setGeometry(QtCore.QRect(100, 100, 500, 500))
-
-        # Tworzymy centralny widget i layout
-        central_widget = QWidget(self)
-        central_widget.setGeometry(QtCore.QRect(25, 50, 450, 100))
-        central_widget.setStyleSheet("""
-        QWidget {    /* Cała tabela */
-            border: 2px solid #fccccb;
-            border-radius: 15px;
-            background-color: #fff0ef;
-        }""")
-        # Tworzymy layout poziomy do umieszczenia dwóch MultiSelectComboBox obok siebie
-        combo_layout = QHBoxLayout(central_widget)
-
-        items1 = []
-        # Tworzymy i dodajemy dwa MultiSelectComboBox do layoutu poziomego
-        for i in range (10):
-            if i % 2:
-                items1.append(f"Eleeeeeeeeeeeeeeeement {i}")
+    def setSelectedItems(self, selected_items):
+        """
+        Ustawia zaznaczone elementy na podstawie podanej listy kluczy lub tekstów.
+        """
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            key = item.data(Qt.UserRole)
+            # Sprawdzamy, czy klucz lub tekst jest w wybranych elementach
+            if (key is not None and key in selected_items) or (item.text() in selected_items):
+                item.setCheckState(Qt.Checked)
             else:
-                items1.append(f"Eleeeeeeeeement {i}")
-
-        self.multi_select_combo1 = MultiSelectComboBox(items1, 200)
-        combo_layout.addWidget(self.multi_select_combo1)
-
-        items2 = ["Opcja A", "Opcja B", "Opcja C", "Opcja D", "Opcja E", "Opcja F", "Opcja G"]
-        multi_select_combo2 = MultiSelectComboBox(items2, 200)
-        combo_layout.addWidget(multi_select_combo2)
-
-        button = QPushButton(self)
-        button.setGeometry(QtCore.QRect(250, 300, 100, 50))
-        button.clicked.connect(self.print_combo)
+                item.setCheckState(Qt.Unchecked)
+        self.updateLineEdit()
 
 
-    def print_combo(self):
-        selected_items = self.multi_select_combo1.get_selected_items()
+    def clearItems(self):
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            item.setCheckState(Qt.Unchecked)
+            item.setSelected(False)
 
-        # Wydrukowanie zaznaczonych elementów
-        print(selected_items)  # Na przykład: ["Opcja 1", "Opcja 3"]
+        # Aktualizujemy widok
+        self.updateLineEdit()
 
 
 
-# Uruchomienie aplikacji
-app = QApplication(sys.argv)
-window = MainWindow()
-window.show()
-sys.exit(app.exec_())
+# class MainWindow(QMainWindow):
+#     def __init__(self):
+#         super().__init__()
+#         self.setWindowTitle("Aplikacja z Polem Wielokrotnego Wyboru")
+#         self.setGeometry(QtCore.QRect(100, 100, 500, 500))
+#
+#         # Tworzymy centralny widget i layout
+#         central_widget = QWidget(self)
+#         central_widget.setGeometry(QtCore.QRect(25, 50, 450, 100))
+#         central_widget.setStyleSheet("""
+#         QWidget {    /* Cała tabela */
+#             border: 2px solid #fccccb;
+#             border-radius: 15px;
+#             background-color: #fff0ef;
+#         }""")
+#         # Tworzymy layout poziomy do umieszczenia dwóch MultiSelectComboBox obok siebie
+#         combo_layout = QHBoxLayout(central_widget)
+#
+#         items1 = []
+#         # Tworzymy i dodajemy dwa MultiSelectComboBox do layoutu poziomego
+#         for i in range (10):
+#             if i % 2:
+#                 items1.append(f"Eleeeeeeeeeeeeeeeement {i}")
+#             else:
+#                 items1.append(f"Eleeeeeeeeement {i}")
+#
+#         self.multi_select_combo1 = MultiSelectComboBox(items1, 200)
+#         combo_layout.addWidget(self.multi_select_combo1)
+#
+#         items2 = ["Opcja A", "Opcja B", "Opcja C", "Opcja D", "Opcja E", "Opcja F", "Opcja G"]
+#         multi_select_combo2 = MultiSelectComboBox(items2, 200)
+#         combo_layout.addWidget(multi_select_combo2)
+#
+#         button = QPushButton(self)
+#         button.setGeometry(QtCore.QRect(250, 300, 100, 50))
+#         button.clicked.connect(self.print_combo)
+#
+#
+#     def print_combo(self):
+#         selected_items = self.multi_select_combo1.getSelectedItems()
+#
+#         # Wydrukowanie zaznaczonych elementów
+#         print(selected_items)  # Na przykład: ["Opcja 1", "Opcja 3"]
+#
+#
+#
+# # Uruchomienie aplikacji
+# app = QApplication(sys.argv)
+# window = MainWindow()
+# window.show()
+# sys.exit(app.exec_())

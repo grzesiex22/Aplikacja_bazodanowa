@@ -193,7 +193,7 @@ class AddFrame(QFrame):
             label.setFixedHeight(30)
             self.gridLayout_add.addWidget(label, row, 0)
 
-            # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
+            # Tworzymy rozwijaną listę (QComboBox) dla kluczy obcych
             if column['foreign_key'] == True:
                 tmp = column
                 label = QLabel("")
@@ -208,6 +208,7 @@ class AddFrame(QFrame):
                 combo_box.addItems([typ for typ in inputs])
                 combo_box.setObjectName(f"combo_box_{column_name}")
                 combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
+                combo_box.setFixedHeight(30)
                 self.gridLayout_add.addWidget(combo_box, row, 1)
                 self.fields[column_name] = combo_box
 
@@ -219,7 +220,7 @@ class AddFrame(QFrame):
                 # Dodajemy dane z API do combo box
                 self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
                 self.fields[column_name] = combo_box
-
+                combo_box.setFixedHeight(30)
                 name_to_connect = tmp['friendly_name'] if tmp['input_type'] == column_name else "None"
 
                 self.gridLayout_add.addWidget(combo_box, row, 1)
@@ -230,6 +231,7 @@ class AddFrame(QFrame):
                 # Tworzymy pole tekstowe
                 line_edit = QLineEdit()
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
+                line_edit.setFixedHeight(30)
                 line_edit.setObjectName(f"line_edit_{column_name}")
                 self.gridLayout_add.addWidget(line_edit, row, 1)
                 self.fields[column_name] = line_edit
