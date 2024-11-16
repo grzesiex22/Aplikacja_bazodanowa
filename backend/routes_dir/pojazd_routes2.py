@@ -135,11 +135,17 @@ def jakie_filtry_dla_pojazdy():
 
             # Formatowanie wyników dla każdego kierowcy do listy
             unique_values = []
+            data = {
+                'ID': None,
+                'data': f"Brak kierowcy"}
+            unique_values.append(data)
+
             for kierowca in kierowcy_query:
                 data = {
                     'ID': kierowca.idKierowca,
                     'data': f"{kierowca.imie} {kierowca.nazwisko}, tel. {kierowca.nrTel}"}
                 unique_values.append(data)
+
 
         elif rodzaj_pojazdu:
             # Sprawdzamy, czy kolumna 'typPojazdu' istnieje w tabeli Pojazd
@@ -251,14 +257,19 @@ def pobierz_i_sortuj_pojazdy():
                     if friendly_name == 'Dane kierowcy':
                         print("Handling 'Dane kierowcy' filter")
 
-                        # Wyciągamy listę IDs kierowców z przekazanych danych
-                        kierowcy_ids = [kierowca['ID'] for kierowca in values]
-                        print(f"Kierowcy IDs: {kierowcy_ids}")
+                        # Lista IDs kierowców, którzy są zaznaczeni w filtrze (pomijamy None)
+                        kierowcy_ids = [kierowca['ID'] for kierowca in values if kierowca['ID'] is not None]
+                        print(f"Kierowcy IDs (excluding None): {kierowcy_ids}")
 
-                        # Dodajemy filtr na podstawie 'idKierowca' w tabeli Pojazd
-                        query = query.filter(Pojazd.idKierowca.in_(kierowcy_ids))
+                        # Jeśli filtr zawiera "Brak kierowcy" (ID: None), uwzględniamy pojazdy bez przypisanego kierowcy
+                        if any(kierowca['ID'] is None for kierowca in values):
+                            print("Including vehicles without a driver (idKierowca IS NULL)")
+                            query = query.filter((Pojazd.idKierowca.is_(None)) | Pojazd.idKierowca.in_(kierowcy_ids))
+                        else:
+                            # Filtrujemy tylko po przypisanych kierowcach
+                            query = query.filter(Pojazd.idKierowca.in_(kierowcy_ids))
+
                         print("Filter applied for 'Dane kierowcy' by IDs.")
-
                     else:
                         # Mapowanie na inne kolumny w tabeli Pojazd
                         print(f"Searching for column corresponding to {friendly_name}")
