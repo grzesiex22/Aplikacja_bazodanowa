@@ -592,6 +592,8 @@ class FleetFrame(QtWidgets.QFrame):
 
         elif self.screen_type == ScreenType.NACZEPY:
             self.primary_key_index = self.primary_key_index_pojazd
+            self.foreign_key_index = self.foreign_key_index_pojazd
+
             self.tableView_flota.setModel(self.model_pojazd)
 
             params = {
