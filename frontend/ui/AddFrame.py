@@ -1,13 +1,17 @@
+import os
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
-    QAbstractItemView, QComboBox
+    QAbstractItemView, QComboBox, QStyleOptionComboBox, QListView
 from urllib.parse import urlparse
 import requests
 from functools import partial
 
 
 class AddFrame(QFrame):
+    finished = pyqtSignal()  # Sygnał do informowania o zakończeniu pracy okna
+
     def __init__(self, class_name, api_url, parent=None, header_title="title", refresh_callback=None):
         super().__init__(parent)
 
@@ -15,6 +19,15 @@ class AddFrame(QFrame):
         self.class_name = class_name
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
 
+        # styl dla QComboBox
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'AddFrame_QComboBox.qss')
+        with open(file_path, "r") as file:
+            self.combobox_style = file.read()
+
+        # styl dla QLineEdit
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'AddFrame_QLineEdit.qss')
+        with open(file_path, "r") as file:
+            self.lineEdit_style = file.read()
 
         # Dane potrzebne do zrobienia formularza
         self.fields = {}
@@ -33,7 +46,7 @@ class AddFrame(QFrame):
         self.row_height = 50
         self.row_count = sum(1 for col in self.columns if not col.get('primary_key'))
         self.height = self.row_count * self.row_height + 120
-        self.width = 500
+        self.width = 550
 
         # Ustawienie UI
         self.setup_ui(header_title)
@@ -73,7 +86,7 @@ class AddFrame(QFrame):
 
         # główny widget na formularz
         self.addAreaWidget = QtWidgets.QWidget(self)
-        self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, 400, self.row_count * self.row_height))
+        self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, 450, self.row_count * self.row_height))
         self.addAreaWidget.setStyleSheet("""QLabel {
                                                 background-color: #90aa92;
                                                 padding: 2px;
@@ -207,8 +220,21 @@ class AddFrame(QFrame):
                 combo_box.addItem("")  # Pusty element na początku, który będzie ustawiony jako wybrany
                 combo_box.addItems([typ for typ in inputs])
                 combo_box.setObjectName(f"combo_box_{column_name}")
+
+                """ stylizaca """
+                combo_box.setStyleSheet(self.combobox_style)  # styl
+                combo_box.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
+
+                view = QListView(combo_box)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+                combo_box.setView(view)
+                combo_box.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
                 combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
                 combo_box.setFixedHeight(30)
+                combo_box.setMaxVisibleItems(8)
+                """ koniec stylizaci """
+
                 self.gridLayout_add.addWidget(combo_box, row, 1)
                 self.fields[column_name] = combo_box
 
@@ -220,21 +246,41 @@ class AddFrame(QFrame):
                 # Dodajemy dane z API do combo box
                 self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
                 self.fields[column_name] = combo_box
+
+                """ stylizaca """
+                combo_box.setStyleSheet(self.combobox_style)  # styl
+                combo_box.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
+
+                view = QListView(combo_box)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+                combo_box.setView(view)
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+                combo_box.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+
+                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
                 combo_box.setFixedHeight(30)
+                combo_box.setMaxVisibleItems(8)
+                """ koniec stylizaci """
+
                 name_to_connect = tmp['friendly_name'] if tmp['input_type'] == column_name else "None"
 
                 self.gridLayout_add.addWidget(combo_box, row, 1)
                 # Aktualizacja pola ID przy wyborze z ComboBox
                 # combo_box.currentIndexChanged.connect(lambda idx, cb=combo_box: self.update_id_field(cb, column_name))
                 combo_box.currentIndexChanged.connect(partial(self.update_id_field, combo_box, name_to_connect))
-            else:
+            elif input_type == 'text':
                 # Tworzymy pole tekstowe
                 line_edit = QLineEdit()
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
                 line_edit.setFixedHeight(30)
                 line_edit.setObjectName(f"line_edit_{column_name}")
+                line_edit.setStyleSheet(self.lineEdit_style)
                 self.gridLayout_add.addWidget(line_edit, row, 1)
                 self.fields[column_name] = line_edit
+            elif input_type == 'readonly':
+                label = QLabel("")
+                label.setFixedHeight(30)
+                self.fields[column_name] = label
+                self.gridLayout_add.addWidget(label, row, 1)
 
             row += 1
 
@@ -337,6 +383,8 @@ class AddFrame(QFrame):
     def close_window(self):
         if self.refresh_callback:
             self.refresh_callback()  # Wywołujemy metodę odświeżania, jeżeli została przekazana
+
+        self.finished.emit()  # Emitowanie sygnału zakończenia
         self.close()  # Zamykamy okno
 
     # Mouse event overrides for dragging

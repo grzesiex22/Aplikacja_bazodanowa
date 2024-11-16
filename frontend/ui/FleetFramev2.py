@@ -1,7 +1,8 @@
 import json
 
 from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
+from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, \
+    QHBoxLayout, QMessageBox, QApplication
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Poprawny import
 from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
@@ -18,6 +19,14 @@ class ScreenType(Enum):
     NACZEPY = 2
     KIEROWCY = 3
 
+class OverlayWidget(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setGeometry(parent.rect())
+        self.setStyleSheet("background-color: rgba(0, 0, 0, 120);")  # Semi-transparent black
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)  # To block mouse events
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setCursor(Qt.WaitCursor)  # Ustawienie kursora oczekiwania na czas blokad
 
 class FleetFrame(QtWidgets.QFrame):
     def __init__(self, parent=None, api_url=None):
@@ -361,23 +370,6 @@ class FleetFrame(QtWidgets.QFrame):
         self.load_data()
 
 
-    # def update_screen_type(self, screen_value):
-    #     # Zmiana wartości zmiennej na podstawie ID przycisku
-    #     self.screen_type = ScreenType(screen_value)
-    #     print(f"Aktualna wartość zmiennej: {self.screen_type.name}")
-    #
-    #     self.is_filtering = False
-    #
-    #     if self.screen_type == ScreenType.KIEROWCY:
-    #         self.button_filtruj.setVisible(False)
-    #         self.button_wyczysc_filtry.setVisible(False)
-    #         print("schowałem filtruj")
-    #     else:
-    #         self.button_filtruj.setVisible(True)
-    #         self.button_wyczysc_filtry.setVisible(True)
-    #
-    #     self.load_data()
-
     def update_screen_type(self, screen_value):
         # Zmiana wartości zmiennej na podstawie ID przycisku
         self.screen_type = ScreenType(screen_value)
@@ -423,6 +415,10 @@ class FleetFrame(QtWidgets.QFrame):
 
 
     def add_new_line(self):
+        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         if self.screen_type == ScreenType.KIEROWCY:
             self.add_frame = AddFrame(class_name="kierowca", api_url=f"{self.api_url}/kierowca",
                                       parent=self, header_title="Dodawanie kierowcy", refresh_callback=self.load_data)
@@ -432,8 +428,15 @@ class FleetFrame(QtWidgets.QFrame):
                                       parent=self, header_title="Dodawanie pojazdu", refresh_callback=self.load_data)
             self.add_frame.show()
 
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.add_frame.finished.connect(self.remove_overlay)
+
 
     def on_table_double_click(self, index):
+        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         row = index.row()
 
         if self.screen_type == ScreenType.KIEROWCY:
@@ -478,6 +481,9 @@ class FleetFrame(QtWidgets.QFrame):
             except Exception as e:
                 QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.edit_frame.finished.connect(self.remove_overlay)
+
     def adjust_column_widths(self):
         """
         Dostosowanie szerokości kolumn do zawartości nagłówków (+20 szerokości) z ustawieniem minimalnej szerokości.
@@ -512,6 +518,7 @@ class FleetFrame(QtWidgets.QFrame):
 
 
     def load_data(self):
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
 
         if self.screen_type == ScreenType.KIEROWCY:
             self.primary_key_index = self.primary_key_index_kierowca
@@ -712,6 +719,10 @@ class FleetFrame(QtWidgets.QFrame):
         """
         Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
         """
+        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         if self.screen_type == ScreenType.KIEROWCY:
             # Przekazujemy referencję do funkcji filtrujFlote jako callback
             self.filter_dialog = FilterFrame(columns_info=self.model_kierowca_columns_info,
@@ -721,14 +732,16 @@ class FleetFrame(QtWidgets.QFrame):
                                              refresh_callback=self.load_data())
         elif self.screen_type == ScreenType.CIAGNIKI:
             # Przekazujemy referencję do funkcji filtrujFlote jako callback
-            self.filter_dialog = FilterFrame(columns_info=self.model_pojazd_columns_info,
+            self.filter_dialog = FilterFrame(screen_type=self.filtr_parameteres_ciagnik['Typ pojazdu'],
+                                             columns_info=self.model_pojazd_columns_info,
                                              filters=self.filtr_parameteres_ciagnik,
                                              api_url=f"{self.api_url}/pojazd",
                                              parent=self, header_title="Filtrowanie ciągników",
                                              refresh_callback=self.load_data())
-        else:
+        elif self.screen_type == ScreenType.NACZEPY:
             # Przekazujemy referencję do funkcji filtrujFlote jako callback
-            self.filter_dialog = FilterFrame(columns_info=self.model_pojazd_columns_info,
+            self.filter_dialog = FilterFrame(screen_type=self.filtr_parameteres_naczepa['Typ pojazdu'],
+                                             columns_info=self.model_pojazd_columns_info,
                                              filters=self.filtr_parameteres_naczepa,
                                              api_url=f"{self.api_url}/pojazd",
                                              parent=self, header_title="Filtrowanie naczep",
@@ -736,186 +749,16 @@ class FleetFrame(QtWidgets.QFrame):
 
         self.filter_dialog.filtersUpdated.connect(self.on_filters_updated)
 
+        # Zamykanie kursora oczekiwania, aby użytkownik widział normalny kursor po zakończeniu
         self.filter_dialog.show()
 
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.filter_dialog.finished.connect(self.remove_overlay)
 
-    # def load_data_filtered(self, filtr_parameteres_pojazd=None):
-    #     # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
-    #     if filtr_parameteres_pojazd is not None:
-    #         self.filtr_parameteres_pojazd = filtr_parameteres_pojazd
-    #
-    #     print("Wywołano load_data_filtered z filtrami:", self.filtr_parameteres_pojazd)
-    #
-    #     # Ustawienie domyślnych filtrów
-    #     default_filters = {
-    #         'Typ Pojazdu': None,
-    #         'marka': None,
-    #         'model': None,
-    #         'nrRejestracyjny': None,
-    #         'dodatkoweInf': None
-    #     }
-    #
-    #     # Łączenie filtrów z domyślnymi, aby zapewnić, że odpowiednie filtry zawsze będą w zapytaniu
-    #     combined_parameters = {**default_filters, **self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
-    #     print(f"Combined_param: {combined_parameters}")
-    #
-    #     # Przekonwertowanie kluczy na małe litery
-    #     combined_parameters_lower = {key.lower(): value for key, value in combined_parameters.items() if
-    #                                  value is not None}
-    #     print(f"Final Combined_param (with lowercase keys): {combined_parameters_lower}")
-    #
-    #     # Usuń 'Dane kierowcy' z parametrów, aby nie pojawił się w URL
-    #     if 'dane kierowcy' in combined_parameters_lower:
-    #         combined_parameters_lower.pop('dane kierowcy')
-    #
-    #     # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-    #     if 'numer rejestracyjny' in combined_parameters_lower:
-    #         combined_parameters_lower['nrRejestracyjny'] = combined_parameters_lower.pop('numer rejestracyjny')
-    #
-    #     # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-    #     if 'dodatkowe informacje' in combined_parameters_lower:
-    #         combined_parameters_lower['dodatkoweInf'] = combined_parameters_lower.pop('dodatkowe informacje')
-    #
-    #     if 'id kierowca' in combined_parameters_lower:
-    #         combined_parameters_lower['idKierowca'] = combined_parameters_lower.pop('id kierowca')
-    #
-    #     if self.screen_type == ScreenType.CIAGNIKI:
-    #         # Budowanie URL z parametrami w wymaganym formacie
-    #         query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-    #         full_url = f"{self.api_url}/pojazd/show?typPojazdu=Ciągnik&{query_string}"
-    #         print(f"Final URL: {full_url}")
-    #
-    #     if self.screen_type == ScreenType.NACZEPY:
-    #         # Budowanie URL z parametrami w wymaganym formacie
-    #         query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-    #         full_url = f"{self.api_url}/pojazd/show?typPojazdu=Naczepa&{query_string}"
-    #         print(f"Final URL: {full_url}")
-    #
-    #     try:
-    #         # Wykonanie żądania HTTP GET z pełnym URL
-    #         response = requests.get(full_url)
-    #         if response.status_code == 200:
-    #             pojazd_data = response.json()
-    #
-    #             # Aktualizacja modelu pojazdów na podstawie danych z API
-    #             self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())
-    #             for pojazd in pojazd_data:
-    #                 self.model_pojazd.appendRow([QStandardItem(str(pojazd['ID pojazdu'])),
-    #                                              QStandardItem(str(pojazd['ID kierowca'])),
-    #                                              QStandardItem(pojazd['Dane kierowcy']),
-    #                                              QStandardItem(pojazd['Typ pojazdu']),
-    #                                              QStandardItem(pojazd['Marka']),
-    #                                              QStandardItem(pojazd['Model']),
-    #                                              QStandardItem(pojazd['Numer rejestracyjny']),
-    #                                              QStandardItem(pojazd['Dodatkowe informacje'])
-    #                                              ])
-    #         else:
-    #             print(f"Błąd API: {response.status_code}")
-    #     except Exception as e:
-    #         print(f"Błąd przy ładowaniu danych: {str(e)}")
-    #
-    #     # Ustawienie opóźnienia dla adjust_column_widths
-    #     QTimer.singleShot(0, self.adjust_column_widths)
+    def remove_overlay(self):
+        # Usuwamy nakładkę po zamknięciu FilterFrame
+        self.overlay.deleteLater()
 
-
-
-
-
-
-    #########################################################################################################
-    ########################################################################################################
-    ########################################################################################################
-    ########################################################################################################
-
-    # #tutaj beda filtry
-    # def show_filter_dialog(self):
-    #     """
-    #     Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
-    #     """
-    #     # Przekazujemy referencję do funkcji filtrujFlote jako callback
-    #     self.filter_dialog = FilterFrame(class_name="pojazd", api_url=f"{self.api_url}/pojazd",
-    #                                            parent=self, header_title="Filtrowanie pojazdów",
-    #                                            refresh_callback=self.load_data_filtered)
-    #
-    #     self.filter_dialog.show()
-    #
-    # def load_data_filtered(self, filtr_parameteres_pojazd=None):
-    #     # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
-    #     if filtr_parameteres_pojazd is not None:
-    #         self.filtr_parameteres_pojazd = filtr_parameteres_pojazd
-    #
-    #     print("Wywołano load_data_filtered z filtrami:", self.filtr_parameteres_pojazd)
-    #
-    #     # Ustawienie domyślnych filtrów
-    #     default_filters = {
-    #         'Typ Pojazdu': None,
-    #         'marka': None,
-    #         'model': None,
-    #         'nrRejestracyjny': None,
-    #         'dodatkoweInf': None
-    #     }
-    #
-    #     # Łączenie filtrów z domyślnymi, aby zapewnić, że odpowiednie filtry zawsze będą w zapytaniu
-    #     combined_parameters = {**default_filters, **self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
-    #     print(f"Combined_param: {combined_parameters}")
-    #
-    #     # Przekonwertowanie kluczy na małe litery
-    #     combined_parameters_lower = {key.lower(): value for key, value in combined_parameters.items() if
-    #                                  value is not None}
-    #     print(f"Final Combined_param (with lowercase keys): {combined_parameters_lower}")
-    #
-    #     # Usuń 'Dane kierowcy' z parametrów, aby nie pojawił się w URL
-    #     if 'dane kierowcy' in combined_parameters_lower:
-    #         combined_parameters_lower.pop('dane kierowcy')
-    #
-    #     # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-    #     if 'numer rejestracyjny' in combined_parameters_lower:
-    #         combined_parameters_lower['nrRejestracyjny'] = combined_parameters_lower.pop('numer rejestracyjny')
-    #
-    #     # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-    #     if 'dodatkowe informacje' in combined_parameters_lower:
-    #         combined_parameters_lower['dodatkoweInf'] = combined_parameters_lower.pop('dodatkowe informacje')
-    #
-    #     if 'id kierowca' in combined_parameters_lower:
-    #         combined_parameters_lower['idKierowca'] = combined_parameters_lower.pop('id kierowca')
-    #
-    #     if self.screen_type == ScreenType.CIAGNIKI:
-    #         # Budowanie URL z parametrami w wymaganym formacie
-    #         query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-    #         full_url = f"{self.api_url}/pojazd/show?typPojazdu=Ciągnik&{query_string}"
-    #         print(f"Final URL: {full_url}")
-    #
-    #     if self.screen_type == ScreenType.NACZEPY:
-    #         # Budowanie URL z parametrami w wymaganym formacie
-    #         query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-    #         full_url = f"{self.api_url}/pojazd/show?typPojazdu=Naczepa&{query_string}"
-    #         print(f"Final URL: {full_url}")
-    #
-    #     try:
-    #         # Wykonanie żądania HTTP GET z pełnym URL
-    #         response = requests.get(full_url)
-    #         if response.status_code == 200:
-    #             pojazd_data = response.json()
-    #
-    #             # Aktualizacja modelu pojazdów na podstawie danych z API
-    #             self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())
-    #             for pojazd in pojazd_data:
-    #                 self.model_pojazd.appendRow([QStandardItem(str(pojazd['ID pojazdu'])),
-    #                                              QStandardItem(str(pojazd['ID kierowca'])),
-    #                                              QStandardItem(pojazd['Dane kierowcy']),
-    #                                              QStandardItem(pojazd['Typ pojazdu']),
-    #                                              QStandardItem(pojazd['Marka']),
-    #                                              QStandardItem(pojazd['Model']),
-    #                                              QStandardItem(pojazd['Numer rejestracyjny']),
-    #                                              QStandardItem(pojazd['Dodatkowe informacje'])
-    #                                              ])
-    #         else:
-    #             print(f"Błąd API: {response.status_code}")
-    #     except Exception as e:
-    #         print(f"Błąd przy ładowaniu danych: {str(e)}")
-    #
-    #     # Ustawienie opóźnienia dla adjust_column_widths
-    #     QTimer.singleShot(0, self.adjust_column_widths)
 
     # def highlight_sorted_column(self, column_index, order):
     #     """

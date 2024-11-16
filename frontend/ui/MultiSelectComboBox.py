@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 import sys
 
 
-# # MultiSelectComboBox QSS
+# # MultiSelectComboBox.qss QSS
 # combo_qss = """
 #
 # QWidget {    /* wokół pasków przewijania */
@@ -198,11 +198,8 @@ class MultiSelectComboBox(QComboBox):
 
         # Inicjalizacja rozmiarów
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        # self.setMinimumWidth(width)  # Minimalna szerokość
-        # self.setMinimumHeight(height)  # Minimalna wysokość
-
-        self.width = self.width()
-        self.height = self.height()
+        self.setMinimumWidth(width)  # Minimalna szerokość
+        self.setMinimumHeight(height)  # Minimalna wysokość
 
         # Ustawienia pola wyboru
         self.setEditable(True)
@@ -212,7 +209,6 @@ class MultiSelectComboBox(QComboBox):
         # Tworzymy listę z możliwością wielokrotnego wyboru
         self.list_widget = QListWidget()
         self.list_widget.setSelectionMode(QListWidget.NoSelection)
-
 
         # Dodajemy elementy z obsługą słowników
         self.items_data = {}  # Słownik przechowujący oryginalne dane elementów
@@ -264,15 +260,21 @@ class MultiSelectComboBox(QComboBox):
         # Obsługa zmiany stanu elementów
         self.list_widget.itemChanged.connect(self.updateLineEdit)
 
+
+
+        self.width_box = self.width()
+
     def showPopup(self):
         """
         Funkcja wyświetlająca menu rozwijane.
         Ustawia szerokość menu rozwijanego na szerokość QComboBox
         i wyświetla menu w lokalizacji QComboBox.
         """
-        self.list_widget.setFixedWidth(self.width)
-        self.menu.setFixedWidth(self.width)
-        self.list_widget.setMaximumHeight(200)  # Maksymalna wysokość rozwijanej listy (np. 200px)
+        # Ustaw szerokość menu na szerokość QComboBox
+        self.width_box = self.width()
+        self.menu.setFixedWidth(self.width_box)  # Ustaw szerokość menu
+        self.list_widget.setFixedWidth(self.width_box)  # Szerokość dopasowana do QComboBox
+
         self.menu.exec_(self.mapToGlobal(self.rect().bottomLeft()))
 
     def hidePopup(self):
@@ -404,22 +406,22 @@ class MultiSelectComboBox(QComboBox):
 #             border-radius: 15px;
 #             background-color: #fff0ef;
 #         }""")
-#         # Tworzymy layout poziomy do umieszczenia dwóch MultiSelectComboBox obok siebie
+#         # Tworzymy layout poziomy do umieszczenia dwóch MultiSelectComboBox.qss obok siebie
 #         combo_layout = QHBoxLayout(central_widget)
 #
 #         items1 = []
-#         # Tworzymy i dodajemy dwa MultiSelectComboBox do layoutu poziomego
+#         # Tworzymy i dodajemy dwa MultiSelectComboBox.qss do layoutu poziomego
 #         for i in range (10):
 #             if i % 2:
 #                 items1.append(f"Eleeeeeeeeeeeeeeeement {i}")
 #             else:
 #                 items1.append(f"Eleeeeeeeeement {i}")
 #
-#         self.multi_select_combo1 = MultiSelectComboBox(items1, 200)
+#         self.multi_select_combo1 = MultiSelectComboBox.qss(items1, 200)
 #         combo_layout.addWidget(self.multi_select_combo1)
 #
 #         items2 = ["Opcja A", "Opcja B", "Opcja C", "Opcja D", "Opcja E", "Opcja F", "Opcja G"]
-#         multi_select_combo2 = MultiSelectComboBox(items2, 200)
+#         multi_select_combo2 = MultiSelectComboBox.qss(items2, 200)
 #         combo_layout.addWidget(multi_select_combo2)
 #
 #         button = QPushButton(self)

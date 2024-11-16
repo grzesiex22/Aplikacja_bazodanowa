@@ -1,3 +1,5 @@
+import os
+
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
@@ -9,201 +11,33 @@ from Aplikacja_bazodanowa.frontend.ui.MultiSelectComboBox import MultiSelectComb
 
 
 
-# MultiSelectComboBox QSS
-combo_qss = """
-
-QWidget {    /* wokół pasków przewijania */
-    border: 0px solid #fccccb;
-    border-radius: 10px;
-    background-color: transparent;
-}
-
-/* Styl dla QComboBox */
-QComboBox {
-    border: 2px solid #ac97e2;
-    border-radius: 5px;
-    padding: 2px;
-    background-color: #c4bbf0;
-    color: #333333;
-}
-
-QComboBox QAbstractItemView {
-    selection-background-color: #d7d1f0;  /* Kolor zaznaczonego elementu */
-    background-color: #d7d1f0;
-    color: #333333;
-    border: 2px solid #ac97e2;
-    border-radius: 10px;
-    margin: 2px 0px 0px 0px; /* top right bottom left */
-}
-
-QComboBox::drop-down {
-    subcontrol-origin: margin;
-    subcontrol-position: top right;
-    width: 30px;
-    border-left: 1px solid #ac97e2;
-}
-
-QComboBox::down-arrow {
-    image: url("icons/angle-down.png");  /* Możesz podać swoją ikonę */
-    subcontrol-origin: margin;
-    subcontrol-position: center;
-    width: 20px;  /* Możesz zmienić rozmiar */
-    height: 20px; /* Możesz dostosować wysokość */
-}
-
-/* Styl dla QListWidget */
-QListWidget {
-    background-color: #transparent;
-    border: none;
-    color: #dff0ef;
-    border-radius: 10px;
-    outline: none;
-}
-QListWidget::item {
-    padding: 5px;
-    background-color: transparent;  /* Ustawienie przezroczystego tła dla elementów */
-    border-radius: 10px;
-    border: none;
-    margin: 0px 25px 0px 0px; /* top right bottom left */
-
-}
-QListWidget::item:selected:active {
-    background-color: transparent;
-    color: green;
-    border: none;
-}
-
-QListWidget::item:focus {
-    outline: none;
-}
-
-
-
-/* PASKI PRZEWIJANIA */
-QAbstractScrollArea::corner {
-    border-radius: 10px;
-    background-color: #ac97e2;
-    margin: 2px;
-}
-
-/* PASEK PRZEWIJANIA PIONOWY */
-QScrollBar:vertical {
-    border: 2px solid #ac97e2;
-    background: #c4bbf0;
-    width: 30px;
-    margin: 28px 2px 28px 4px; /* top right bottom left */
-    border-radius: None;
-}
-QScrollBar::handle:vertical {
-    background: #c4bbf0;
-    border: 1px solid #ac97e2;
-    min-height: 10px;
-    border-radius: None;
-}
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {     /* Przewijanie */
-    background: #ac97e2;
-    height: 24px;
-    width: 24px;
-    border-radius: 8px;
-}
-QScrollBar::add-line:vertical {     /* Przewijanie w dół */
-    subcontrol-origin: margin;
-    subcontrol-position: bottom;
-    margin: 0px 2px 2px 4px; /* top right bottom left */
-}
-QScrollBar::sub-line:vertical {     /* Przewijanie w górę */
-    subcontrol-origin: margin;
-    subcontrol-position: top;
-    margin: 2px 2px 0px 4px; /* top right bottom left */
-}
-
-QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
-    background: transparent;
-    width: 20px;
-    height: 20px; /* Ustaw wysokość strzałek */
-    border-radius: 6px;
-    margin: 0; /* Środkowanie strzałki */
-    padding: 2px;  /* Dodajemy mały padding, by wyrównać pozycję */
-}
-
-QScrollBar::up-arrow:vertical {
-    image: url("icons/angle-up.png");
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-
-}
-QScrollBar::down-arrow:vertical {
-    image: url("icons/angle-down.png");
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-
-}
-
-/* PASEK PRZEWIJANIA POZIOMY */
-QScrollBar:horizontal  {
-    border: 2px solid #ac97e2;
-    background: #c4bbf0;
-    height: 30px;
-    margin: 4px 28px 2px 28px; /* top right bottom left */
-    border-radius: 0px;
-}
-QScrollBar::handle:horizontal {
-    background: #c4bbf0;
-    border: 1px solid #ac97e2;
-    min-width: 10px;
-
-}
-QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-    background: #ac97e2;
-    height: 24px;
-    width: 24px;
-    border-radius: 6px;
-}
-QScrollBar::add-line:horizontal { /* Przewijanie w lewo */
-    subcontrol-origin: margin;
-    subcontrol-position: right;
-    margin: 4px 2px 2px 0px;  /* top right bottom left */
-}
-QScrollBar::sub-line:horizontal { /* Przewijanie w prawo */
-    subcontrol-origin: margin;
-    subcontrol-position: left;
-    margin: 4px 0px 2px 2px; /* top right bottom left */
-}
-QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
-    background: transparent;
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    margin: 0; /* Środkowanie strzałki */
-    padding: 2px;  /* Dodajemy mały padding, by wyrównać pozycję */
-}
-QScrollBar::left-arrow:horizontal {
-    image: url(icons/angle-left.png);
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-}
-QScrollBar::right-arrow:horizontal {
-    image: url(icons/angle-right.png);
-    subcontrol-origin: padding;
-    subcontrol-position: center;
-}
-
-"""
-
-
-
 class FilterFrame(QFrame):
     # Deklaracja sygnału
     filtersUpdated = pyqtSignal(dict)  # Sygnał, który wysyła słownik filtrów
+    finished = pyqtSignal()  # Sygnał do informowania o zakończeniu pracy okna
 
-    def __init__(self, columns_info, filters, api_url, parent=None, header_title="title", refresh_callback=None):
+    def __init__(self, columns_info, filters, api_url, screen_type=None,  parent=None, header_title="title", refresh_callback=None):
         super().__init__(parent)
 
 
         self.api_url = api_url  # URL dla POST danych
         self.columns = columns_info
         self.filters = filters
+        self.screen_type = screen_type
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
+
+        self.filtr_parameteres = {}
+
+
+        # styl dla MultiSelectComboBox
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'MultiSelectComboBox.qss')
+        with open(file_path, "r") as file:
+            self.combobox_style = file.read()
+
+        # styl dla QLineEdit
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FiltrFrame_QLineEdit.qss')
+        with open(file_path, "r") as file:
+            self.lineEdit_style = file.read()
 
         # Dane potrzebne do zrobienia formularza
         self.fields = {}
@@ -222,11 +56,12 @@ class FilterFrame(QFrame):
         self.row_height = 50
         self.row_count = sum(1 for col in self.columns if col.get('filter'))
         self.height = self.row_count * self.row_height + 120
-        self.width = 500
+        self.width = 600
         self.multiSelectWidth = 200
 
         # Ustawienie UI
         self.setup_ui(header_title)
+
 
     def setup_ui(self, title):
         self.setGeometry(int(self.app_width / 2 - self.width / 2), int(self.app_height / 2 - self.height / 2),
@@ -263,19 +98,19 @@ class FilterFrame(QFrame):
                             }""")
 
         # główny widget na formularz
-        self.addAreaWidget = QtWidgets.QWidget(self)
-        self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, 400, self.row_count * self.row_height))
-        self.addAreaWidget.setStyleSheet("""QLabel {
+        self.filtrAreaWidget = QtWidgets.QWidget(self)
+        self.filtrAreaWidget.setGeometry(QtCore.QRect(50, 50, 500, self.row_count * self.row_height))
+        self.filtrAreaWidget.setStyleSheet("""QLabel {
                                                 background-color: #ac97e2;
                                                 padding: 2px;
                                                 border: none ;  /* Brak ramki dla etykiet */
                                                 border-radius: 5px;
                                                 font-size: 14px;
                                             }""")
-        self.addAreaWidget.setObjectName("scrollAreaWidgetContents")
+        self.filtrAreaWidget.setObjectName("scrollAreaWidgetContents")
 
         # układ formularza
-        self.gridLayout_add = QtWidgets.QGridLayout(self.addAreaWidget)
+        self.gridLayout_add = QtWidgets.QGridLayout(self.filtrAreaWidget)
         self.gridLayout_add.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_add.setSpacing(10)  # Ustaw stały odstęp między elementami
         self.gridLayout_add.setObjectName("gridLayout_edit")
@@ -353,6 +188,10 @@ class FilterFrame(QFrame):
         self.button_save.setObjectName("button_save")
         self.button_save.clicked.connect(self.save_changes)
 
+        # Ustawienie okna jako modalnego
+        # self.setWindowModality(Qt.ApplicationModal)
+        # self.setAttribute(Qt.WA_TransparentForMouseEvents)
+
 
     def setup_fields(self, columns):
         row = 0
@@ -387,6 +226,7 @@ class FilterFrame(QFrame):
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
                 line_edit.setObjectName(f"line_edit_{column_name}")
                 line_edit.setFixedHeight(30)
+                line_edit.setStyleSheet(self.lineEdit_style)
 
                 # ustawia tekst na podstawie wczytanych filtrów jeśli istnieją
                 if column_name in self.filters:
@@ -398,16 +238,27 @@ class FilterFrame(QFrame):
             elif filter_type == 'select':
                 # tu połączenie po api i pobranie danych do filtrów
                 try:
-                    # if column_name == 'Dane kierowcy':
-                    #     continue
+                    if self.screen_type:
+                        # Jeśli 'screen_type' jest ustawiony, dodajemy go do parametrów zapytania
+                        params = {
+                            'filtr': column_name,
+                            'Typ pojazdu': self.screen_type  # Dodanie 'Typ pojazdu' do parametrów
+                        }
+                    else:
+                        # Jeśli 'screen_type' nie jest ustawiony, wysyłamy zapytanie bez tego parametru
+                        params = {
+                            'filtr': column_name
+                        }
+
                     # Wykonanie żądania HTTP GET do API
-                    response = requests.get(f"{self.api_url}/filtry", params=f'filtr={column_name}')
+                    response = requests.get(f"{self.api_url}/filtry", params=params)
                     if response.status_code == 200:
                         items_data = response.json()  # Pobranie danych w formacie JSON
 
                         # Tworzymy rozwijane checkboxy
                         line_edit = MultiSelectComboBox(items=items_data)
-                        line_edit.setStyleSheet(combo_qss)
+
+                        line_edit.setStyleSheet(self.combobox_style)
                         line_edit.setObjectName(f"multiselect_edit_{column_name}")
 
                         # Ustawia zaznaczone filtry na podstawie wczytanych filtrów
@@ -442,52 +293,48 @@ class FilterFrame(QFrame):
             Zapisuje wartości wprowadzone przez użytkownika do słownika filtrów,
             a następnie uruchamia proces odświeżania.
         """
-        self.filtr_parameteres_pojazd = {}
+        self.filtr_parameteres = {}
         print(f"Zapis z FilterFramev2")
 
         for field_name, field in self.fields.items():
             if isinstance(field, QLineEdit):
                 field_value = field.text().strip()
                 if field_value:
-                    self.filtr_parameteres_pojazd[field_name] = field_value
+                    self.filtr_parameteres[field_name] = field_value
                     print(f"Pole {field_name} ma wartość: {field_value}")
 
             elif isinstance(field, MultiSelectComboBox):
                 field_value = field.selectedItems()  # Zbieramy wybrane elementy
                 if field_value:
-                    self.filtr_parameteres_pojazd[field_name] = field_value
+                    self.filtr_parameteres[field_name] = field_value
                     print(f"Pole {field_name} ma wybrane wartości: {field_value}")
 
         for field_name, field in self.stable_fields.items():
             if isinstance(field, str):
                 field_value = field.strip()
                 if field_value:
-                    self.filtr_parameteres_pojazd[field_name] = field_value
+                    self.filtr_parameteres[field_name] = field_value
                     print(f"Pole {field_name} ma wartość: {field_value}")
                 else:
                     print(f"Pole {field_name} nie jest stringiem: {field_value}")
 
         # Potwierdzenie, że filtr został zapisany
-        print("Zapisane filtry:", self.filtr_parameteres_pojazd)
+        print("Zapisane filtry:", self.filtr_parameteres)
 
-        self.filtersUpdated.emit(self.filtr_parameteres_pojazd)
-
-        # Wywołujemy funkcję odświeżania z zapisanymi filtrami
-        if self.refresh_callback:
-            self.refresh_callback()
-
-        self.close()  # Zamykamy okno
+        self.close_window()  # Zamykamy okno
 
     def close_window(self):
         """
         Metoda zamykająca okno i emitująca sygnał z filtrami.
         """
-        # Emitujemy sygnał z filtrami
-
+        self.filtersUpdated.emit(self.filtr_parameteres)  # Emitujemy sygnał z filtrami
 
         if self.refresh_callback:
             self.refresh_callback()  # Wywołujemy metodę odświeżania, jeżeli została przekazana
+
+        self.finished.emit()  # Emitowanie sygnału zakończenia
         self.close()  # Zamykamy okno
+
 
     # Mouse event overrides for dragging
     def mousePressEvent(self, event):

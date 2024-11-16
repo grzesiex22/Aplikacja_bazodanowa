@@ -68,7 +68,7 @@ def pobierz_filtry_dla_pojazdy():
         )
         # Pobrane wartości zamieniamy na listę
         unique_values = [row.unique_value for row in unique_values_query]
-
+        unique_values.sort()
         return jsonify(unique_values), 200
 
     except Exception as e:

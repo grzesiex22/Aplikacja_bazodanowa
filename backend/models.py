@@ -25,7 +25,61 @@ class TypPojazdu(Enum):
 class BaseModel(db.Model):
     __abstract__ = True  # Określamy klasę jako abstrakcyjną (nie będzie tworzona tabela w bazie)
 
-    # Każda klasa pochodna powinna definiować swoją własną mapę kolumn
+    """
+    Opis słownika COLUMN_NAME_MAP:
+    Jest to mapa konfiguracji kolumn, w której każda kolumna jest reprezentowana przez słownik 
+    zawierający różne właściwości, które mogą być używane do konfigurowania interfejsu użytkownika, walidacji, 
+    edycji danych oraz filtrowania. 
+    
+    Oto poszczególne elementy, które zawiera każdy wpis w słowniku COLUMN_NAME_MAP:
+    
+    1. 'friendly_name' (string):
+       - To przyjazna nazwa wyświetlana w interfejsie użytkownika (np. "ID pojazdu", "Marka").
+       - Możesz zmienić ten tekst, aby lepiej pasował do kontekstu aplikacji.
+       - Wartość ta jest wykorzystywana w widoku, do wyświetlania nazwy kolumny.
+       - Wartość ta jest wykorzystywana do operacji na tabeli.
+
+    
+    2. 'editable' (bool): - nie korzystamy 
+       - Określa, czy dane pole jest edytowalne przez użytkownika.
+       - Jeśli ustawisz na `True`, użytkownik może edytować wartość w tym polu.
+       - Jeśli ustawisz na `False`, pole będzie tylko do odczytu (użytkownik nie może go zmieniać).
+       - Możesz ustawić `True` dla pól, które wymagają edycji (np. "Marka", "Model"), a `False` dla pól, które 
+         są tylko do wyświetlania, jak "ID pojazdu".
+    
+    3. 'input_type' (string):
+       - Określa typ danych, które będą wyświetlane lub wprowadzane w tym polu.
+       - Przykłady typów:
+           - 'readonly' – oznacza, że pole jest tylko do odczytu, użytkownik nie może wprowadzać zmian.
+           - 'number' – użytkownik wprowadza liczbę.
+           - 'list' – pole wyświetla listę rozwijaną lub opcje do wyboru.
+           - 'enum' – lista predefiniowanych opcji, które użytkownik może wybrać z dostępnych wartości (np. typy pojazdów).
+       - Jeśli pole jest przeznaczone tylko do wyświetlania, należy ustawić 'readonly'.
+       - Jeśli użytkownik ma wybierać z listy, ustaw `input_type` na 'list' lub 'enum' w zależności od przypadku.
+    
+    4. 'inputs' (string/list):
+       - Dodatkowe dane potrzebne do wygenerowania opcji w przypadku pola 'list' lub 'enum'.
+       - Jeśli jest to pole typu 'list' lub 'enum', to w tym miejscu należy podać źródło danych:
+           - Może to być endpoint API w przypadku typu 'list', np. `'kierowca/show/alltochoice'`, który ładuje dane z serwera.
+           - Może to być lista statycznych wartości w przypadku 'enum', np. `[TypPojazdu.Ciągnik, TypPojazdu.Naczepa]` dla typu pojazdu.
+       - Dla pól innych niż 'list' lub 'enum', `inputs` może być puste lub nieistniejące.
+    
+    5. 'filter' (bool/string):
+       - Określa, czy ta kolumna będzie mogła być używana do filtrowania danych w interfejsie użytkownika.
+       - Może przyjmować trzy różne wartości:
+           - `False` – oznacza, że filtracja jest wyłączona dla tej kolumny.
+           - `'select'` – oznacza, że kolumna będzie używana do filtrowania poprzez rozwijane menu (lista wyboru).
+           - `'text'` – umożliwia filtrowanie tekstowe, gdzie użytkownik wpisuje frazę do wyszukania.
+       - Możesz użyć `'select'` dla pól, które mają listę wartości, np. "Marka" lub "Model", a `'text'` dla pól,
+         które mają umożliwiać wyszukiwanie tekstowe, np. "Numer rejestracyjny".
+    
+    Przykłady jak edytować poszczególne elementy:
+    - Aby zmienić nazwę wyświetlaną w UI, edytuj 'friendly_name'.
+    - Pola w UI wyswietlane na podstawie klucza obcego należy skonfigurować dodatkowo w API 
+    - Aby zmienić sposób wprowadzania danych, ustaw 'input_type' na odpowiedni typ (np. 'number', 'list', 'readonly').
+    - Jeśli pole ma zawierać opcje z API, ustaw odpowiedni endpoint w 'inputs' dla typu 'list' lub 'enum'.
+    - Aby dodać możliwość filtrowania, ustaw odpowiednią wartość w 'filter' (np. `'select'` dla listy lub `'text'` dla tekstu).
+    """
     COLUMN_NAME_MAP = {}
 
     @classmethod
@@ -70,35 +124,6 @@ class BaseModel(db.Model):
                 return inputs
         return None
 
-    # @classmethod
-    # def get_columns_info(cls):
-    #     """Zwraca informacje o kolumnach danego modelu z uwzględnieniem przyjaznych nazw i dodatkowych pól."""
-    #     columns_info = []
-    #
-    #     # Mapowanie rzeczywistych kolumn
-    #     actual_columns = {col.name: col for col in cls.__table__.columns}
-    #
-    #     for column_name, friendly_name in cls.COLUMN_NAME_MAP.items():
-    #         if column_name in actual_columns:
-    #             # Kolumna istnieje fizycznie, więc pobieramy jej właściwości
-    #             column = actual_columns[column_name]
-    #             column_info = {
-    #                 "name": friendly_name,
-    #                 "type": str(column.type),
-    #                 "primary_key": column.primary_key,
-    #                 "foreign_key": bool(column.foreign_keys)
-    #             }
-    #         else:
-    #             # Kolumna nie istnieje fizycznie; ustawiamy domyślne wartości
-    #             column_info = {
-    #                 "name": friendly_name,
-    #                 "type": None,
-    #                 "primary_key": False,
-    #                 "foreign_key": False
-    #             }
-    #         columns_info.append(column_info)
-    #
-    #     return columns_info
 
     @classmethod
     def get_column_map(cls):
@@ -128,13 +153,13 @@ class Kierowca(BaseModel):
         'idKierowca': {
             'friendly_name': 'ID kierowcy',
             'editable': False,
-            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'readonly',
             'filter': False
         },
         'imie': {
             'friendly_name': 'Imię',
             'editable': True,
-            'input_type': 'text',  # typ wejścia dla PyQt
+            'input_type': 'text',
             'filter': 'select'
         },
         'nazwisko': {
@@ -146,7 +171,7 @@ class Kierowca(BaseModel):
         'nrTel': {
             'friendly_name': 'Nr telefonu',
             'editable': True,
-            'input_type': 'text',  # można dodać walidację np. numeru telefonu
+            'input_type': 'text',
             'filter': 'text'
         }
     }
@@ -222,51 +247,50 @@ class Pojazd(BaseModel):
         'idPojazd': {
             'friendly_name': 'ID pojazdu',
             'editable': False,
-            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
-            'filter': False
+            'input_type': 'readonly',
         },
         'idKierowca': {
             'friendly_name': 'ID kierowca',
             'editable': False,
-            'input_type': 'Dane kierowcy',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'Dane kierowcy',
             'filter': False
         },
         'Kierowca': {
             'friendly_name': 'Dane kierowcy',
             'editable': True,
-            'input_type': 'list',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'list',
             'inputs': 'kierowca/show/alltochoice',
             'filter': 'select'
         },
         'typPojazdu': {
             'friendly_name': 'Typ pojazdu',
             'editable': True,
-            'input_type': 'enum',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'enum',
             'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa],
             'filter': False
         },
         'marka': {
             'friendly_name': 'Marka',
             'editable': True,
-            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'text',
             'filter': 'select'
         },
         'model': {
             'friendly_name': 'Model',
             'editable': True,
-            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'text',
             'filter': 'select'
         },
         'nrRejestracyjny': {
             'friendly_name': 'Numer rejestracyjny',
             'editable': True,
-            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'text',
             'filter': 'text'
         },
         'dodatkoweInf': {
             'friendly_name': 'Dodatkowe informacje',
             'editable': True,
-            'input_type': 'readonly',  # lub np. 'number', jeśli liczba, 'readonly' itp.
+            'input_type': 'text',
             'filter': 'text'
         }
     }

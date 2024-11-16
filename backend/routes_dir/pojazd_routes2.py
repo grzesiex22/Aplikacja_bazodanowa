@@ -93,7 +93,7 @@ def jakie_filtry_dla_pojazdy():
     W przyupadku "Dane kierowcy" zwraca JSON którego elementy to słowniki: {'ID': ... , 'data': ....}
 
     Parametry zapytania:
-        Typ pojazdu (str, opcjonalny): Typ pojazdu, według którego chcemy filtrować wyniki.
+        Typ pojazdu (str, opcjonalny): Typ pojazdu, według którego chcemy filtrować wyniki. (domyślnie: None)
         filtr (str): Przyjazna nazwa filtru określająca, według której kolumny chcemy filtrować.
 
     Returns:
@@ -102,7 +102,7 @@ def jakie_filtry_dla_pojazdy():
             - Code (int) : Kod statusu HTTP, np. 200 dla sukcesu lub 500, jeśli wystąpił błąd serwera.
     """
     # Pobranie parametrów zapytania z URL (opcjonalnie: typ pojazdu i typ filtru)
-    rodzaj_pojazdu = request.args.get('Typ pojazdu')
+    rodzaj_pojazdu = request.args.get('Typ pojazdu', None)  # (opcjonalne)
     typ_filtru = request.args.get('filtr')
 
     print(f"api: pobierz_filtry_dla_pojazdy")
@@ -119,10 +119,7 @@ def jakie_filtry_dla_pojazdy():
     if typ_filtru == 'Dane kierowcy':
         filtr_column_name = 'idKierowca'
 
-    # Wstępne przypisanie zmiennej dla opcjonalnego filtru 'typPojazdu' na enum
-    # filtr_column_name2 = ''
-    # if rodzaj_pojazdu == 'Typ pojazdu':
-    #     filtr_column_name2 = 'typPojazdu'  # Kolumna dla typu pojazdu
+
 
     print(f"Znaleziona nazwa kolumny do filtrowania: {filtr_column_name}")
 
@@ -144,25 +141,47 @@ def jakie_filtry_dla_pojazdy():
                     'data': f"{kierowca.imie} {kierowca.nazwisko}, tel. {kierowca.nrTel}"}
                 unique_values.append(data)
 
-        else:
-            # Pobranie referencji do kolumn, które będą użyte do filtrowania
-            column_to_filter = getattr(Pojazd, filtr_column_name, None)
-            # typPojazduFilter = getattr(Pojazd, filtr_column_name2, None)
+        elif rodzaj_pojazdu:
+            # Sprawdzamy, czy kolumna 'typPojazdu' istnieje w tabeli Pojazd
+            if not hasattr(Pojazd, 'typPojazdu'):
+                return jsonify({'error': "Kolumna 'typPojazdu' nie istnieje w tabeli Pojazd."}), 400  # Błąd, jeśli kolumna 'typPojazdu' nie istnieje
 
+            # Dodatkowy filtr po rodzaju pojazdu, jeśli rodzaj_pojazdu jest określony
+            filtr_column_name2 = 'typPojazdu'
+            typPojazduFilter = getattr(Pojazd, filtr_column_name2, None)
+
+            # Podstawowy filtr po
+            column_to_filter = getattr(Pojazd, filtr_column_name, None)
+            # Jeśli nie znaleziono kolumny dla podstawowoego filtru w modelu Pojazd, zgłaszamy błąd
+            if column_to_filter is None:
+                return jsonify({'error': f"Kolumna '{filtr_column_name}' nie istnieje w modelu Pojazd."}), 400
+
+            unique_values_query = (
+                Pojazd.query
+                    .filter_by(typPojazdu=rodzaj_pojazdu)  # Filtrowanie po rodzaju pojazdu
+                    .with_entities(func.lower(column_to_filter).label('unique_value'))  # Pobranie unikalnych wartości
+                    .distinct()  # Unikalne wartości
+            )
+            # Konwersja wyniku zapytania na listę wartości
+            unique_values = [row.unique_value for row in unique_values_query]
+            # Sortowanie wynikowej listy unikalnych wartości
+            unique_values.sort()
+
+        else:
+            # Bez filtrowania po rodzaju pojazdu, tylko po wybranej kolumnie
+            column_to_filter = getattr(Pojazd, filtr_column_name, None)
             # Jeśli nie znaleziono kolumny w modelu Pojazd, zgłaszamy błąd
             if column_to_filter is None:
                 return jsonify({'error': f"Kolumna '{filtr_column_name}' nie istnieje w modelu Pojazd."}), 400
 
-            # Tworzymy zapytanie do bazy danych w celu uzyskania unikalnych wartości z ignorowaniem wielkości liter
+            # Tworzymy zapytanie do bazy danych, aby uzyskać unikalne wartości w tej kolumnie
             unique_values_query = (
                 Pojazd.query
-                .with_entities(func.lower(column_to_filter).label('unique_value'))  # Ignorowanie wielkości liter
-                .distinct()  # Pobranie unikalnych wartości
+                    .with_entities(func.lower(column_to_filter).label('unique_value'))  # Ignorowanie wielkości liter
+                    .distinct()  # Pobranie unikalnych wartości
             )
-
             # Konwersja wyniku zapytania na listę wartości
             unique_values = [row.unique_value for row in unique_values_query]
-
             # Sortowanie wynikowej listy unikalnych wartości
             unique_values.sort()
 
@@ -174,71 +193,6 @@ def jakie_filtry_dla_pojazdy():
         return jsonify({'error': str(e)}), 500
 
 
-# @pojazd_bp.route('/pojazd/show', methods=['GET'])
-# def pobierz_i_sortuj_pojazdy():
-#     # Pobierz parametry zapytania jako słownik
-#     combined_params = request.args.to_dict()
-#
-#     typ_pojazdu = request.args.get('typPojazdu')
-#     sort_by = combined_params.get('sort_by', 'ID pojazdu')  # Domyślnie sortowanie po `idPojazd`
-#     order = combined_params.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
-#
-#     # Ustal kierunek sortowania
-#     kierunek_sortowania = asc if order == 'asc' else desc
-#
-#     try:
-#         # Budowanie podstawowego zapytania
-#         query = db.session.query(Pojazd)
-#
-#         # Filtrowanie po `typPojazdu`, jeśli podano
-#         if typ_pojazdu:
-#             query = query.filter(Pojazd.typPojazdu == typ_pojazdu)
-#
-#         id_kierowca = combined_params.get('idKierowca')
-#
-#         if id_kierowca:
-#             query = query.filter(Pojazd.idKierowca == id_kierowca)
-#
-#         # Dynamiczne filtrowanie na podstawie przekazanych parametrów
-#         for param, value in combined_params.items():
-#             if param in ['marka', 'model', 'nrRejestracyjny', 'dodatkoweInf']:  # Możesz dodać inne parametry do listy
-#                 query = query.filter(getattr(Pojazd, param).ilike(f"%{value}%"))
-#
-#             # Filtrowanie po `imie` i `nazwisko` jeśli podano
-#             if param == 'imie' or param == 'nazwisko':
-#                 query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
-#                 query = query.filter(getattr(Kierowca, param).ilike(f"%{value}%"))
-#
-#         # Ustalanie kolumny do sortowania
-#         if sort_by == "Dane kierowcy":
-#             # Sortowanie po `imie` i `nazwisko` w tabeli Kierowca
-#             query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
-#             query = query.order_by(
-#                 kierunek_sortowania(Kierowca.imie),
-#                 kierunek_sortowania(Kierowca.nazwisko)
-#             )
-#         else:
-#             # Mapowanie `friendly_name` na rzeczywiste kolumny `Pojazd`
-#             sort_column_name = None
-#             for column_name, column_info in Pojazd.COLUMN_NAME_MAP.items():
-#                 if column_info['friendly_name'] == sort_by:
-#                     sort_column_name = column_name
-#                     break
-#
-#             # Pobieramy kolumnę modelu na podstawie `sort_column_name`, lub domyślnie `idPojazd`
-#             sort_column = getattr(Pojazd, sort_column_name, Pojazd.idPojazd)
-#             query = query.order_by(kierunek_sortowania(sort_column))
-#
-#         # Pobranie wyników
-#         pojazdy = query.all()
-#
-#         # Konwersja wyników do formatu JSON
-#         wynik = [Pojazd.serialize(pojazd) for pojazd in pojazdy]
-#
-#         return jsonify(wynik), 200
-#
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
 
 @pojazd_bp.route('/pojazd/show', methods=['GET'])
 def pobierz_i_sortuj_pojazdy():
@@ -375,7 +329,7 @@ def dodaj_pojazd():
     """
     Endpoint do dodawania nowego pojazdu do bazy danych.
 
-    Zwraca:
+    Returns:
         Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
         int: Kod statusu HTTP, 201 dla sukcesu (dodanie pojazdu), 500 w przypadku błędu.
     """
@@ -406,7 +360,7 @@ def usun_pojazd(id):
     Parametry:
         id (int): ID pojazdu do usunięcia.
 
-    Zwraca:
+    Returns:
         Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
         int: Kod statusu HTTP, 200 w przypadku sukcesu (usunięcie pojazdu), 404 jeśli pojazd nie znaleziony, 500 w przypadku błędu.
     """
@@ -434,7 +388,7 @@ def edytuj_pojazd(id):
     Parametry:
         id (int): ID pojazdu, który ma zostać edytowany.
 
-    Zwraca:
+    Returns:
         Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
         int: Kod statusu HTTP, 200 w przypadku sukcesu (aktualizacja pojazdu), 404 jeśli pojazd nie znaleziony, 500 w przypadku błędu.
     """
@@ -474,7 +428,7 @@ def validate_pojazd():
     """
     Endpoint do walidacji danych pojazdu przed dodaniem lub edytowaniem.
 
-    Zwraca:
+    Returns:
         Response: Odpowiedź w formacie JSON z komunikatem o błędzie, jeśli dane są niepoprawne, lub potwierdzeniem poprawności danych.
         int: Kod statusu HTTP, 200 jeśli dane są poprawne, 400 jeśli dane są błędne.
     """

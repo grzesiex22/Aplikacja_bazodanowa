@@ -1,12 +1,17 @@
+import os
+
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QLineEdit, QMessageBox, QGridLayout, QLabel, QPushButton, QAbstractItemView, \
-    QComboBox
+    QComboBox, QListView
 from urllib.parse import urlparse
 import requests
 from functools import partial
 
+
 class EditFrame(QFrame):
+    finished = pyqtSignal()  # Sygnał do informowania o zakończeniu pracy okna
+
     def __init__(self, class_name, data, api_url, parent=None, header_title="title", refresh_callback=None):
         super().__init__(parent)
 
@@ -14,6 +19,16 @@ class EditFrame(QFrame):
         self.class_name = class_name
         self.api_url = api_url
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
+
+        # styl dla QComboBox
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'EditFrame_QComboBox.qss')
+        with open(file_path, "r") as file:
+            self.combobox_style = file.read()
+
+        # styl dla QLineEdit
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'EditFrame_QLineEdit.qss')
+        with open(file_path, "r") as file:
+            self.lineEdit_style = file.read()
 
         self.fields = {}
         self.columns = self.load_columns()
@@ -32,7 +47,7 @@ class EditFrame(QFrame):
         self.row_height = 50
 
         self.height = self.row_count*self.row_height+120
-        self.width = 500
+        self.width = 550
         self.setGeometry(int(self.app_width/2-self.width/2), int(self.app_height/2-self.height/2), self.width, self.height)
         self.setStyleSheet("""
                             QFrame {
@@ -66,7 +81,7 @@ class EditFrame(QFrame):
                             }""")
 
         self.scrollAreaWidget = QtWidgets.QWidget(self)
-        self.scrollAreaWidget.setGeometry(QtCore.QRect(50, 50, 400, self.row_count*self.row_height))
+        self.scrollAreaWidget.setGeometry(QtCore.QRect(50, 50, 450, self.row_count*self.row_height))
         self.scrollAreaWidget.setStyleSheet("""QLabel {
                                                 background-color: #cfb796;
                                                 padding: 2px;
@@ -214,6 +229,20 @@ class EditFrame(QFrame):
                 combo_box.addItems([typ for typ in inputs])
                 combo_box.setObjectName(f"combo_box_{column_name}")
 
+                """ stylizaca """
+                combo_box.setStyleSheet(self.combobox_style)  # styl
+                combo_box.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
+
+                view = QListView(combo_box)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+                combo_box.setView(view)
+                combo_box.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
+                combo_box.setFixedHeight(30)
+                combo_box.setMaxVisibleItems(8)
+                """ koniec stylizaci """
+
                 # Ustawienie wybranej wartości na podstawie model_data
                 if column_value:  # Jeżeli w model_data jest wartość
                     index = combo_box.findText(str(column_value))  # Znajdujemy indeks opcji
@@ -231,6 +260,21 @@ class EditFrame(QFrame):
                 # Dodajemy dane z API do combo box
                 self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
                 self.fields[column_name] = combo_box
+
+                """ stylizaca """
+                combo_box.setStyleSheet(self.combobox_style)  # styl
+                combo_box.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
+
+                view = QListView(combo_box)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+                combo_box.setView(view)
+                combo_box.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
+                combo_box.setFixedHeight(30)
+                combo_box.setMaxVisibleItems(8)
+                """ koniec stylizaci """
+
                 name_to_connect = tmp['friendly_name'] if tmp['input_type'] == column_name else "None"
 
                 # Ustawienie wybranej wartości na podstawie model_data
@@ -241,15 +285,20 @@ class EditFrame(QFrame):
 
                 self.gridLayout_edit.addWidget(combo_box, row, 1)
                 # Aktualizacja pola ID przy wyborze z ComboBox
-                # combo_box.currentIndexChanged.connect(lambda idx, cb=combo_box: self.update_id_field(cb, column_name))
                 combo_box.currentIndexChanged.connect(partial(self.update_id_field, combo_box, name_to_connect))
-            else:
+            elif input_type == 'text':
                 # Pole edycyjne
                 line_edit = QLineEdit(str(column_value))
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
                 line_edit.setObjectName(f"line_edit_{column_name}")
+                line_edit.setStyleSheet(self.lineEdit_style)
                 self.gridLayout_edit.addWidget(line_edit, row, 1)
                 self.fields[column_name] = line_edit  # Dodaj pole do słownika
+            elif input_type == 'readonly':
+                label = QLabel(str(column_value))
+                label.setFixedHeight(30)
+                self.fields[column_name] = label
+                self.gridLayout_edit.addWidget(label, row, 1)
 
             row += 1  # Zwiększamy numer wiersza
 
@@ -369,8 +418,6 @@ class EditFrame(QFrame):
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
 
-
-
     def delete_driver(self):
 
         # Wywołanie API DELETE do usunięcia
@@ -391,24 +438,26 @@ class EditFrame(QFrame):
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
 
-
     def close_window(self):
         if self.refresh_callback:
             self.refresh_callback()
+
+        self.finished.emit()  # Emitowanie sygnału zakończenia
         self.close()
 
 
-    # Mouse event overrides for dragging
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             self.is_moving = True
             self.mouse_press_pos = event.globalPos() - self.pos()
             event.accept()
 
+
     def mouseMoveEvent(self, event):
         if self.is_moving and event.buttons() & QtCore.Qt.LeftButton:
             self.move(event.globalPos() - self.mouse_press_pos)
             event.accept()
+
 
     def mouseReleaseEvent(self, event):
         self.is_moving = False

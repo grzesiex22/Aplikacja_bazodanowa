@@ -1,0 +1,7 @@
+QLineEdit {
+    background-color: #e6dfcf;  /* Kolor tła */
+    border: 2px solid #cfb796;
+    font-size: 14px;
+    color: #333333;
+    border-radius: 5px;
+}
