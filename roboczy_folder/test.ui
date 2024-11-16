@@ -930,7 +930,7 @@ QPushButton:pressed {
       </property>
       <property name="styleSheet">
        <string notr="true">QWidget {
-	background: #cfb796;
+	background: #927fbf;
 	border-radius: 10px;
 } </string>
       </property>

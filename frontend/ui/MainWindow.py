@@ -1,7 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer, QDateTime, Qt
 from PyQt5.QtWidgets import QMainWindow
+
 from Aplikacja_bazodanowa.frontend.ui.FleetFramev2 import FleetFrame
+# from Aplikacja_bazodanowa.frontend.ui.FleetFrame import FleetFrame
 
 
 class MainWindow(QMainWindow):

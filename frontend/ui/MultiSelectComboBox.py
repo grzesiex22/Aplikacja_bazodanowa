@@ -192,7 +192,7 @@ import sys
 class MultiSelectComboBox(QComboBox):
     def __init__(self, items=None, width=100, height = 20):
         super().__init__()
-
+        self.items = items
         # Ustawienie QSS
         # self.setStyleSheet(combo_qss)
 
@@ -216,18 +216,29 @@ class MultiSelectComboBox(QComboBox):
 
         # Dodajemy elementy z obsługą słowników
         self.items_data = {}  # Słownik przechowujący oryginalne dane elementów
-        if items:
-            for item in items:
-                if isinstance(item, dict):
-                    # Zakładamy, że słownik ma jeden klucz-wartość, np. {'ID1': 'Nazwa1'}
+        self.data_to_id = {}  # Odwrotny słownik, przechowuje mapowanie 'data' -> 'ID'
+
+        if self.items:
+            for item in self.items:
+                if isinstance(item, dict) and 'ID' in item and 'data' in item:
+                    # Obsługa słownika {'ID': ..., 'data': ...}
+                    key = item['ID']
+                    value = item['data']
+                    list_item = QListWidgetItem(value)  # Wyświetlamy tylko 'data'
+                    self.items_data[key] = item  # Przechowujemy cały słownik
+                    self.data_to_id[value] = key  # Przechowujemy odwrotną mapę (data -> ID)
+                    # print(f"Dodano słownik: {key} -> {item}")  # Logowanie danych
+                elif isinstance(item, dict):
                     key, value = next(iter(item.items()))
                     list_item = QListWidgetItem(value)  # Wyświetlamy tylko wartość
-                    list_item.setData(Qt.UserRole, key)  # Przechowujemy klucz jako dane użytkownika
                     self.items_data[key] = value
+                    self.data_to_id[value] = key  # Mapowanie 'data' -> 'ID'
+                    # print(f"Dodano słownik: {key} -> {value}")  # Logowanie danych
                 else:
-                    # Dla elementów, które nie są słownikami, traktujemy je jako zwykły tekst
                     list_item = QListWidgetItem(item)
                     self.items_data[item] = item  # Przechowujemy tekst jako klucz i wartość
+                    self.data_to_id[item] = item  # Mapowanie 'data' -> 'ID'
+                    # print(f"Dodano tekst: {item}")  # Logowanie danych
 
                 list_item.setFlags(list_item.flags() | Qt.ItemIsUserCheckable)
                 list_item.setCheckState(Qt.Unchecked)
@@ -315,31 +326,57 @@ class MultiSelectComboBox(QComboBox):
 
     def selectedItems(self):
         """
-        Zwraca listę zaznaczonych elementów. Jeśli element został wprowadzony jako słownik,
-        zwraca klucz (np. 'ID'). Dla zwykłych tekstów zwraca sam tekst.
+        Zwraca listę wybranych elementów w oryginalnej strukturze (słownik 'ID': 'data').
+
+        Returns:
+            List[dict]: Lista słowników z wybranymi elementami.
         """
         selected_items = []
-        for item in self.list_widget.findItems("", Qt.MatchContains):
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
             if item.checkState() == Qt.Checked:
-                key = item.data(Qt.UserRole)
-                selected_items.append({key: item.text()} if key is not None else item.text())
-        return selected_items
+                data = item.text()  # Pobieramy 'data' (czyli tekst elementu)
+                if data in self.data_to_id:
+                    key = self.data_to_id[data]  # Uzyskujemy 'ID' na podstawie 'data'
+                    original_item = self.items_data[key]  # Pobieramy oryginalny słownik
+                    selected_items.append(original_item)  # Dodajemy oryginalny element
+                else:
+                    print(f"Błąd: Nie znaleziono 'data' w mapie: {data}")
 
+        print(f"Wybrane elementy: {selected_items}")
+        return selected_items
 
     def setSelectedItems(self, selected_items):
         """
-        Ustawia zaznaczone elementy na podstawie podanej listy kluczy lub tekstów.
-        """
+         Ustawia zaznaczone elementy na podstawie podanej listy kluczy (ID) lub tekstów.
+         Obsługuje przypadki, gdy elementy są zarówno pojedynczymi tekstami, jak i słownikami.
+         """
         for i in range(self.list_widget.count()):
             item = self.list_widget.item(i)
-            key = item.data(Qt.UserRole)
-            # Sprawdzamy, czy klucz lub tekst jest w wybranych elementach
-            if (key is not None and key in selected_items) or (item.text() in selected_items):
+            item_text = item.text()
+
+            # Sprawdzamy, czy item_text jest częścią selected_items
+            if item_text in selected_items:
                 item.setCheckState(Qt.Checked)
             else:
-                item.setCheckState(Qt.Unchecked)
-        self.updateLineEdit()
+                # Dla elementów, które są słownikami
+                for selected_item in selected_items:
+                    if isinstance(selected_item, dict):
+                        # Jeśli element jest słownikiem, porównujemy 'data' z selected_item['data']
+                        if 'data' in selected_item and selected_item['data'] == item_text:
+                            item.setCheckState(Qt.Checked)
+                            break  # Zakończ przetwarzanie, bo znaleźliśmy pasujący element
+                    else:
+                        # Jeśli selected_item to zwykły tekst, porównujemy z item_text
+                        if selected_item == item_text:
+                            item.setCheckState(Qt.Checked)
+                            break
 
+                # Jeżeli nie znaleziono dopasowania, ustawiamy stan na odznaczony
+                if item.checkState() != Qt.Checked:
+                    item.setCheckState(Qt.Unchecked)
+
+        self.updateLineEdit()
 
     def clearItems(self):
         for i in range(self.list_widget.count()):
