@@ -37,6 +37,19 @@ def pobierz_wszystkie_typy_serwisow():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Pobieranie listy wszystkich kierowców
+@typserwis_bp.route('/typserwisu/show/alltochoice', methods=['GET'])
+def pobierz_wszystkich_kierowcow_do_okna_wyboru():
+    try:
+        typyserwisow = TypSerwisu.query.all()
+        wynik = []
+        for typserwisu in typyserwisow:
+            data = {'ID': typserwisu.idTypSerwisu, 'data': f"{typserwisu.rodzajSerwisu}"}
+            wynik.append(data)
+        return jsonify(wynik), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Dodawanie nowego typu serwisu
 @typserwis_bp.route('/typserwis', methods=['POST'])
 def dodaj_typserwis():

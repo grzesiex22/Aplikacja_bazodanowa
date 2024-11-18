@@ -19,10 +19,11 @@ def pobierz_czesc(id):
         typ_serwisu_nazwa = typ_serwisu.rodzajSerwisu if typ_serwisu else "Brak typu serwisu"
 
         return jsonify({
-            'idCzesc': czesc.idCzesc,
-            'typSerwisu': typ_serwisu_nazwa,  # Zwracamy nazwę typu serwisu
-            'nazwaElementu': czesc.nazwaElementu,
-            'ilosc': czesc.ilosc
+            'ID części': czesc.idCzesc,
+            'idTypSerwisu': czesc.idTypSerwisu,
+            'Dane Typ serwisu': typ_serwisu_nazwa, # Zwracamy nazwę typu serwisu
+            'Nazwa elementu': czesc.nazwaElementu,
+            'Ilość': czesc.ilosc
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -68,39 +69,72 @@ def pobierz_wszystkie_czesci():
         return jsonify({'error': str(e)}), 500
 
 
-# Dodawanie nowej części
-@czesc_bp.route('/czesc', methods=['POST'])
+# # Dodawanie nowego kierowcy
+# @czesc_bp.route('/czesc/add', methods=['POST'])
+# def dodaj_czesc():
+#     data = request.get_json()
+#
+#     # Deserializacja danych wejściowych
+#     deserialized_data = Czesc.deserialize(data)
+#     # Tworzenie obiektu Kierowca na podstawie deserializowanych danych
+#     nowa_czesc = Czesc(**deserialized_data)
+#
+#     print(nowa_czesc)
+#
+#     try:
+#         db.session.add(nowa_czesc)
+#         db.session.commit()
+#         return jsonify({'message': 'Czesc dodana pomyślnie'}), 201
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({'error': str(e)}), 500
+
+@czesc_bp.route('/czesc/add', methods=['POST'])
 def dodaj_czesc():
     data = request.get_json()
+
     try:
-        # Walidacja danych wejściowych
-        if 'nazwaElementu' not in data or not isinstance(data['nazwaElementu'], str):
-            return jsonify({'message': 'Nazwa elementu musi być ciągiem znaków'}), 400
-        if 'ilosc' not in data or not isinstance(data['ilosc'], int):
-            return jsonify({'message': 'Ilość musi być liczbą całkowitą'}), 400
-        if 'idTypSerwisu' not in data or not isinstance(data['idTypSerwisu'], int):
-            return jsonify({'message': 'IdTypSerwisu musi być liczbą całkowitą'}), 400
-
-        # Sprawdzanie czy idTypSerwisu istnieje w tabeli TypSerwisu
-        typ_serwis = TypSerwisu.query.get(data['idTypSerwisu'])
-        if not typ_serwis:
-            return jsonify({'message': 'Typ serwisu nie istnieje'}), 404
-
+        # Tworzenie obiektu Czesc na podstawie danych
+        id_typ_serwisu = int(data['idTypSerwisu'])
+        # Tworzenie obiektu Czesc na podstawie danych
         nowa_czesc = Czesc(
-            idTypSerwisu=data['idTypSerwisu'],
-            nazwaElementu=data['nazwaElementu'],
-            ilosc=data['ilosc']
+            idTypSerwisu=id_typ_serwisu,
+            nazwaElementu=data['Nazwa elementu'],
+            ilosc=data['Ilość']
         )
+
+        # Dodawanie nowej części do bazy danych
         db.session.add(nowa_czesc)
         db.session.commit()
+
         return jsonify({'message': 'Część dodana pomyślnie'}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@czesc_bp.route('/czesc/validate', methods=['POST'])
+def validate_czesc():
+    data = request.get_json()
+
+    # Walidacja danych wejściowych
+    if 'Nazwa elementu' not in data or not isinstance(data['Nazwa elementu'], str):
+        return jsonify({'message': 'Nazwa elementu musi być ciągiem znaków'}), 400
+
+    if 'Ilość' not in data or not isinstance(data['Ilość'], int):
+        return jsonify({'message': 'Ilość musi być liczbą całkowitą'}), 400
+
+    if 'Dane Typ serwisu' not in data or not isinstance(data['Dane Typ serwisu'], str):
+        return jsonify({'message': 'Dane Typ serwisu musi być ciągiem znaków'}), 400
+
+    # Walidacja idTypSerwisu
+    if 'idTypSerwisu' not in data:
+        return jsonify({'message': 'Wybierz typ serwisu'}), 400
+
+    return jsonify({'message': 'Dane są poprawne'}), 200
+
 
 # Usuwanie części
-@czesc_bp.route('/czesc/<int:id>', methods=['DELETE'])
+@czesc_bp.route('/czesc/delete/<int:id>', methods=['DELETE'])
 def usun_czesc(id):
     try:
         czesc = Czesc.query.get(id)
@@ -114,33 +148,24 @@ def usun_czesc(id):
         return jsonify({'error': str(e)}), 500
 
 
-# Edytowanie danych części
-@czesc_bp.route('/czesc/<int:id>', methods=['PUT'])
+@czesc_bp.route('/czesc/edit/<int:id>', methods=['PUT'])
 def edytuj_czesc(id):
     data = request.get_json()
+
     try:
+        # Pobranie obiektu Czesc z bazy danych
         czesc = Czesc.query.get(id)
         if czesc is None:
             return jsonify({'message': 'Część nie znaleziona'}), 404
 
-        # Walidacja danych wejściowych
-        if 'nazwaElementu' in data and not isinstance(data['nazwaElementu'], str):
-            return jsonify({'message': 'Nazwa elementu musi być ciągiem znaków'}), 400
-        if 'ilosc' in data and not isinstance(data['ilosc'], int):
-            return jsonify({'message': 'Ilość musi być liczbą całkowitą'}), 400
-        if 'idTypSerwisu' in data and not isinstance(data['idTypSerwisu'], int):
-            return jsonify({'message': 'IdTypSerwisu musi być liczbą całkowitą'}), 400
+            id_typ_serwisu = int(data['idTypSerwisu'])
+            czesc.typ_serwisu = typ_serwis  # Przypisanie powiązania do nowego obiektu TypSerwisu
 
-        # Sprawdzanie czy idTypSerwisu istnieje w tabeli TypSerwisu
-        if 'idTypSerwisu' in data:
-            typ_serwis = TypSerwisu.query.get(data['idTypSerwisu'])
-            if not typ_serwis:
-                return jsonify({'message': 'Typ serwisu nie istnieje'}), 404
-            czesc.idTypSerwisu = data['idTypSerwisu']
+        # Aktualizacja pól, jeśli są obecne w danych wejściowych
+        czesc.nazwaElementu = data.get('Nazwa elementu', czesc.nazwaElementu)
+        czesc.ilosc = data.get('Ilość', czesc.ilosc)
 
-        czesc.nazwaElementu = data.get('nazwaElementu', czesc.nazwaElementu)
-        czesc.ilosc = data.get('ilosc', czesc.ilosc)
-
+        # Zapisanie zmian w bazie danych
         db.session.commit()
 
         return jsonify({'message': 'Część zaktualizowana pomyślnie'}), 200
@@ -148,3 +173,4 @@ def edytuj_czesc(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+

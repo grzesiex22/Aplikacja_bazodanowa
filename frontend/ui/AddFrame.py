@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
-    QAbstractItemView, QComboBox, QStyleOptionComboBox, QListView
+    QAbstractItemView, QComboBox, QStyleOptionComboBox, QListView, QSpinBox
 from urllib.parse import urlparse
 import requests
 from functools import partial
@@ -261,12 +261,15 @@ class AddFrame(QFrame):
                 combo_box.setMaxVisibleItems(8)
                 """ koniec stylizaci """
 
-                name_to_connect = tmp['friendly_name'] if tmp['input_type'] == column_name else "None"
+                name_to_connect = tmp['friendly_name']
+
+                print(f"Setting up ComboBox with name_to_connect: {name_to_connect}")
 
                 self.gridLayout_add.addWidget(combo_box, row, 1)
                 # Aktualizacja pola ID przy wyborze z ComboBox
                 # combo_box.currentIndexChanged.connect(lambda idx, cb=combo_box: self.update_id_field(cb, column_name))
                 combo_box.currentIndexChanged.connect(partial(self.update_id_field, combo_box, name_to_connect))
+
             elif input_type == 'text':
                 # Tworzymy pole tekstowe
                 line_edit = QLineEdit()
@@ -281,6 +284,23 @@ class AddFrame(QFrame):
                 label.setFixedHeight(30)
                 self.fields[column_name] = label
                 self.gridLayout_add.addWidget(label, row, 1)
+
+            elif input_type == 'number':
+                # Domyślnie używamy QSpinBox dla liczb całkowitych
+                spin_box = QSpinBox()
+                spin_box.setMinimum(1)  # Ustaw minimalną wartość
+                spin_box.setMaximum(1000000)  # Ustaw maksymalną wartość (dostosuj według potrzeb)
+                spin_box.setFixedHeight(30)
+                spin_box.setObjectName(f"spin_box_{column_name}")
+                spin_box.setStyleSheet("""
+                                    background-color: #90aa92;  /* Żółte tło */
+                                    border: 1px solid #ccc;      /* Szara ramka */
+                                    border-radius: 10px;          /* Zaokrąglone rogi */
+                                    padding: 5px;                /* Wewnętrzna przestrzeń */
+                                    font-size: 14px;             /* Rozmiar czcionki */
+                                """)  # Opcjonalne style
+                self.gridLayout_add.addWidget(spin_box, row, 1)
+                self.fields[column_name] = spin_box
 
             row += 1
 
@@ -308,6 +328,8 @@ class AddFrame(QFrame):
         Aktualizuje pole ID w `model_data` na podstawie wyboru w `QComboBox`.
         """
         print(f"Trying to update FIELD {field_name} to {combo_box.currentData()}")
+
+        print(field_name)
 
         selected_id = combo_box.currentData()
         if field_name != None:
@@ -343,6 +365,13 @@ class AddFrame(QFrame):
                 field_value = field.text().strip()  # Pobieramy aktualnie wybraną wartość
                 print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
                 data[field_name] = field_value  # Dodajemy wartość z QComboBox do słownika
+            elif isinstance(field, QSpinBox):
+                field_value = field.value()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QSpinBox do słownika
+
+        print(f"{self.api_url}/add")
+        print(data)
 
         # WALIDACJA DANYCH ZA POMOCĄ API
         try:

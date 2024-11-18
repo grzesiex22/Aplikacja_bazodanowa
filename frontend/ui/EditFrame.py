@@ -3,7 +3,7 @@ import os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QLineEdit, QMessageBox, QGridLayout, QLabel, QPushButton, QAbstractItemView, \
-    QComboBox, QListView
+    QComboBox, QListView, QSpinBox
 from urllib.parse import urlparse
 import requests
 from functools import partial
@@ -29,6 +29,8 @@ class EditFrame(QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'EditFrame_QLineEdit.qss')
         with open(file_path, "r") as file:
             self.lineEdit_style = file.read()
+
+        #self.gridLayout_add = QGridLayout()
 
         self.fields = {}
         self.columns = self.load_columns()
@@ -275,7 +277,7 @@ class EditFrame(QFrame):
                 combo_box.setMaxVisibleItems(8)
                 """ koniec stylizaci """
 
-                name_to_connect = tmp['friendly_name'] if tmp['input_type'] == column_name else "None"
+                name_to_connect = tmp['friendly_name']
 
                 # Ustawienie wybranej wartości na podstawie model_data
                 if column_value:  # Jeżeli w model_data jest wartość
@@ -299,6 +301,23 @@ class EditFrame(QFrame):
                 label.setFixedHeight(30)
                 self.fields[column_name] = label
                 self.gridLayout_edit.addWidget(label, row, 1)
+
+            elif input_type == 'number':
+                # Domyślnie używamy QSpinBox dla liczb całkowitych
+                spin_box = QSpinBox()
+                spin_box.setMinimum(1)  # Ustaw minimalną wartość
+                spin_box.setMaximum(1000000)  # Ustaw maksymalną wartość (dostosuj według potrzeb)
+                spin_box.setFixedHeight(30)
+                spin_box.setObjectName(f"spin_box_{column_name}")
+                spin_box.setStyleSheet("""
+                    background-color: #cfb796;  /* Żółte tło */
+                    border: 1px solid #ccc;      /* Szara ramka */
+                    border-radius: 10px;          /* Zaokrąglone rogi */
+                    padding: 5px;                /* Wewnętrzna przestrzeń */
+                    font-size: 14px;             /* Rozmiar czcionki */
+                """)
+                self.gridLayout_edit.addWidget(spin_box, row, 1)
+                self.fields[column_name] = spin_box
 
             row += 1  # Zwiększamy numer wiersza
 
@@ -358,6 +377,9 @@ class EditFrame(QFrame):
                     else:
                         field.setCurrentIndex(
                             0)  # Jeśli wartość nie została znaleziona, ustawiamy domyślną wartość (np. pustą)
+                elif isinstance(field, QSpinBox):
+                    field_value = int(column_value)   # Pobieramy aktualnie wybraną wartość
+                    field.setValue(field_value)  # Dodajemy wartość z QSpinBox do słownika
 
                 row += 1  # Zwiększamy numer wiersza
 
@@ -379,6 +401,10 @@ class EditFrame(QFrame):
                 field_value = field.text().strip()  # Pobieramy aktualnie wybraną wartość
                 print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
                 data[field_name] = field_value  # Dodajemy wartość z QComboBox do słownika
+            elif isinstance(field, QSpinBox):
+                field_value = field.value()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QSpinBox do słownika
 
         # WALIDACJA DANYCH ZA POMOCĄ API
         try:

@@ -3,6 +3,7 @@ from PyQt5.QtCore import QTimer, QDateTime, Qt
 from PyQt5.QtWidgets import QMainWindow
 
 from Aplikacja_bazodanowa.frontend.ui.FleetFramev2 import FleetFrame
+from Aplikacja_bazodanowa.frontend.ui.MagazynFrame import WarehouseFrame
 # from Aplikacja_bazodanowa.frontend.ui.FleetFrame import FleetFrame
 
 
@@ -56,6 +57,7 @@ class Ui_MainWindow(object):
 
         # Inicjalizacja ramki floty
         self.flota_window = FleetFrame(MainWindow, self.api_url)
+        self.magazyn_window = WarehouseFrame(MainWindow, self.api_url)
 
         # Ustawienie głównego widgetu
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -120,6 +122,7 @@ class Ui_MainWindow(object):
         self.button_magazyn.setEnabled(True)
         self.button_magazyn.setGeometry(QtCore.QRect(0, 300, 300, 100))
         self.button_magazyn.setObjectName("button_magazyn")
+        self.button_magazyn.clicked.connect(self.magazyn_window.show_magazyn)
 
         # Widget daty i czasu
         self.widget_datetime = QtWidgets.QWidget(self.centralwidget)
