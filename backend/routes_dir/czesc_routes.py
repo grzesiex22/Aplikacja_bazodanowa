@@ -29,14 +29,61 @@ def pobierz_czesc(id):
         return jsonify({'error': str(e)}), 500
 
 
-############# np:     http://127.0.0.1:5000/czesci?nazwaElementu=op
-# Pobieranie listy części, z możliwością wyszukiwania po nazwie i typie serwisu
+# ############# np:     http://127.0.0.1:5000/czesci?nazwaElementu=op
+# # Pobieranie listy części, z możliwością wyszukiwania po nazwie i typie serwisu
+# @czesc_bp.route('/czesci', methods=['GET'])
+# def pobierz_wszystkie_czesci():
+#     try:
+#         # Pobieranie parametrów 'nazwaElementu' i 'idTypSerwisu' z zapytania
+#         nazwa_elementu = request.args.get('nazwaElementu', '').strip()
+#         id_typ_serwisu = request.args.get('idTypSerwisu', None)
+#         exclude_id_typ_serwisu = request.args.get('excludeIdTypSerwisu', None)
+#
+#         # Filtruj części po nazwie, jeśli podano 'nazwaElementu'
+#         query = Czesc.query
+#         if nazwa_elementu:
+#             query = query.filter(Czesc.nazwaElementu.ilike(f'%{nazwa_elementu}%'))
+#
+#         # Filtruj części po typie serwisu, jeśli podano 'idTypSerwisu'
+#         if id_typ_serwisu:
+#             query = query.filter(Czesc.idTypSerwisu == int(id_typ_serwisu))
+#
+#         # Filtruj części, aby wykluczyć określony 'idTypSerwisu', jeśli podano 'excludeIdTypSerwisu'
+#         if exclude_id_typ_serwisu:
+#             query = query.filter(Czesc.idTypSerwisu != int(exclude_id_typ_serwisu))
+#
+#         # Pobierz wyniki zapytania
+#         czesci = query.all()
+#
+#         wynik = []
+#         for czesc in czesci:
+#             # Pobranie typu serwisu na podstawie idTypSerwisu
+#             typ_serwisu = TypSerwisu.query.get(czesc.idTypSerwisu) if czesc.idTypSerwisu else None
+#             typ_serwisu_nazwa = typ_serwisu.rodzajSerwisu if typ_serwisu else "Brak typu serwisu"
+#
+#             wynik.append({
+#                 'idCzesc': czesc.idCzesc,
+#                 'typSerwisu': typ_serwisu_nazwa,  # Wyświetlamy nazwę typu serwisu
+#                 'nazwaElementu': czesc.nazwaElementu,
+#                 'ilosc': czesc.ilosc
+#             })
+#
+#         return jsonify(wynik), 200
+#
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+
+# Pobieranie listy części, z możliwością wyszukiwania, filtrowania, i sortowania
 @czesc_bp.route('/czesci', methods=['GET'])
 def pobierz_wszystkie_czesci():
     try:
-        # Pobieranie parametrów 'nazwaElementu' i 'idTypSerwisu' z zapytania
+        # Pobieranie parametrów z zapytania
         nazwa_elementu = request.args.get('nazwaElementu', '').strip()
         id_typ_serwisu = request.args.get('idTypSerwisu', None)
+        exclude_id_typ_serwisu = request.args.get('excludeIdTypSerwisu', None)
+        sort_by = request.args.get('sort_by', 'nazwaElementu')  # Domyślnie sortowanie po nazwie elementu
+        order = request.args.get('order', 'asc')  # Domyślnie sortowanie rosnące
 
         # Filtruj części po nazwie, jeśli podano 'nazwaElementu'
         query = Czesc.query
@@ -46,6 +93,18 @@ def pobierz_wszystkie_czesci():
         # Filtruj części po typie serwisu, jeśli podano 'idTypSerwisu'
         if id_typ_serwisu:
             query = query.filter(Czesc.idTypSerwisu == int(id_typ_serwisu))
+
+        # Filtruj części, aby wykluczyć określony 'idTypSerwisu', jeśli podano 'excludeIdTypSerwisu'
+        if exclude_id_typ_serwisu:
+            query = query.filter(Czesc.idTypSerwisu != int(exclude_id_typ_serwisu))
+
+        # Dodaj sortowanie
+        if sort_by in ['nazwaElementu', 'ilosc']:
+            # Sortowanie po dozwolonych kolumnach
+            sort_column = getattr(Czesc, sort_by, Czesc.nazwaElementu)
+            if order == 'desc':
+                sort_column = sort_column.desc()
+            query = query.order_by(sort_column)
 
         # Pobierz wyniki zapytania
         czesci = query.all()

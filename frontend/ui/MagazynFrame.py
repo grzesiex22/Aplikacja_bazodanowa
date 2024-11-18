@@ -4,7 +4,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Popra
 from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
-from Aplikacja_bazodanowa.frontend.ui.FilterFleetFrame import FilterFleetFrame
+from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterFleetFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
@@ -32,9 +32,9 @@ class WarehouseFrame(QtWidgets.QFrame):
         # Informacje dla tabeli pojazdy
         self.model_pojazd = QStandardItemModel()
         self.model_pojazd_columns_info, self.primary_key_index_czesc = self.load_column_headers("czesc", self.model_pojazd)
-        self.sort_parameteres_pojazd = {}  # przechowuje aktualne parametry sortowania pojazdu
-        self.filtr_parameteres_pojazd = {}  # przechowuje aktualne parametry sortowania pojazdu
-        self.current_sorted_column_pojazd = None  # potrzebne do zmiany sortowania asc/desc
+        self.sort_parameteres_czesci = {}  # przechowuje aktualne parametry sortowania pojazdu
+        self.filtr_parameteres_czesci = {}  # przechowuje aktualne parametry sortowania pojazdu
+        self.current_sorted_column_czesci = None  # potrzebne do zmiany sortowania asc/desc
 
 
         self.primary_key_index = None  # aktualne pole z kluczem głównym (potrzebne by było wiadomow skąd pobrać ID i aby ukryć kolumne)
@@ -121,7 +121,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.label_flota_header.setGeometry(QtCore.QRect(int(self.width / 2 - 200 / 2), 10, 200, 30))
         self.label_flota_header.setAlignment(Qt.AlignCenter)
         self.label_flota_header.setObjectName("label_flota_header")
-        self.label_flota_header.setText("Flota")
+        self.label_flota_header.setText("Magazyn")
 
         self.button_exit_flota = QtWidgets.QPushButton(self.widget_flota_header)
         self.button_exit_flota.setGeometry(QtCore.QRect(self.width-40-10, 5, 40, 40))
@@ -242,16 +242,23 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.horizontalLayout_buttons.setSpacing(20)  # Ustawia odstęp między przyciskami na 20 pikseli
         self.horizontalLayout_buttons.setObjectName("horizontalLayout")
 
-        self.button_flota_ciagniki = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_flota_ciagniki.setText("Ciągniki siodłowe")
-        self.button_flota_ciagniki.setObjectName("button_flota_ciagniki")
-        self.button_flota_ciagniki.setCheckable(True)
+        self.button_magazyn_czesci = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_magazyn_czesci.setText("Części")
+        self.button_magazyn_czesci.setObjectName("button_magazyn_czesci")
+        self.button_magazyn_czesci.setCheckable(True)
 
-        self.horizontalLayout_buttons.addWidget(self.button_flota_ciagniki)
+        self.button_magazyn_wyposazenie = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_magazyn_wyposazenie.setText("Wyposażenie")
+        self.button_magazyn_wyposazenie.setObjectName("button_magazyn_wyposazenie")
+        self.button_magazyn_wyposazenie.setCheckable(True)
+
+        self.horizontalLayout_buttons.addWidget(self.button_magazyn_czesci)
+        self.horizontalLayout_buttons.addWidget(self.button_magazyn_wyposazenie)
 
         # Dodanie przycisków do grupy
         self.button_group = QButtonGroup(self)
-        self.button_group.addButton(self.button_flota_ciagniki, ScreenType.CZESCI.value)
+        self.button_group.addButton(self.button_magazyn_czesci, ScreenType.CZESCI.value)
+        self.button_group.addButton(self.button_magazyn_wyposazenie, ScreenType.WYPOSAZENIE.value)
 
         # Tworzenie przycisku button_filtruj
         self.button_filtruj = QtWidgets.QPushButton(self.widget_choice_buttons)
@@ -322,7 +329,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_group.buttonClicked[int].connect(self.update_screen_type)
 
         # Ustawienie stylów przycisków i początkowego stanu
-        self.button_flota_ciagniki.setChecked(True)
+        self.button_magazyn_czesci.setChecked(True)
         self.update_screen_type(ScreenType.CZESCI.value)  # Ustawienie początkowej wartości zmiennej
 
     def erase_filters(self):
@@ -353,8 +360,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         if self.filters_set:
             self.load_data_filtered()
         else:
-            self.load_data()
-        # self.highlight_sorted_column(column_index, 'asc')
+            self.load_data(sort_by=column_name,order=order)
 
 
     def update_screen_type(self, screen_value):
@@ -362,21 +368,25 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.screen_type = ScreenType(screen_value)
         print(f"Aktualna wartość zmiennej: {self.screen_type.name}")
 
-        self.is_filtering = False
+        # self.is_filtering = False
 
-        if self.screen_type == ScreenType.WYPOSAZENIE:
-            self.button_filtruj.setVisible(False)
-            self.button_wyczysc_filtry.setVisible(False)
-            self.filters_set = False
-        else:
-            self.button_filtruj.setVisible(True)
-            self.button_wyczysc_filtry.setVisible(True)
+        # if self.screen_type == ScreenType.WYPOSAZENIE:
+        #     self.button_filtruj.setVisible(False)
+        #     self.button_wyczysc_filtry.setVisible(False)
+        #     self.filters_set = False
+        # else:
+        #     self.button_filtruj.setVisible(True)
+        #     self.button_wyczysc_filtry.setVisible(True)
 
         # if self.filters_set and self.screen_type != ScreenType.WYPOSAZENIE:
-        if self.filters_set:
-            self.load_data_filtered()
-        else:
-            self.load_data()
+
+        # if self.filters_set:
+        #     self.load_data_filtered()
+        # else:
+        #     self.load_data()
+
+        self.filters_set = False
+        self.load_data()
 
 
 
@@ -487,7 +497,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         #         print(f"foreign_key: {foreign_key}")
         #         self.tableView_flota.setColumnWidth(foreign_key, 0)
 
-    def load_data(self, nazwa_elementu='', id_typ_serwisu=None):
+    def load_data(self, nazwa_elementu='', id_typ_serwisu=None, sort_by='', order=''):
         """
         Pobiera dane części z API i wyświetla je w tabeli.
         """
@@ -501,29 +511,54 @@ class WarehouseFrame(QtWidgets.QFrame):
         if id_typ_serwisu:
             params['idTypSerwisu'] = id_typ_serwisu
 
-        try:
-            # Wykonanie żądania HTTP GET do API z parametrami
-            response = requests.get(f"{self.api_url}/czesci", params=params)
-            if response.status_code == 200:
-                czesci_data = response.json()  # Pobranie danych w formacie JSON
+        if self.screen_type == ScreenType.CZESCI:
+            try:
+                # Wykonanie żądania HTTP GET do API z parametrami
+                response = requests.get(f"{self.api_url}/czesci?excludeIdTypSerwisu=4", params=params)
+                if response.status_code == 200:
+                    czesci_data = response.json()  # Pobranie danych w formacie JSON
 
-                # Czyszczenie poprzednich danych
-                self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())
+                    # Czyszczenie poprzednich danych
+                    self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())
 
-                # Dodanie danych do modelu
-                for czesc in czesci_data:
-                    self.model_pojazd.appendRow([
-                        QStandardItem(str(czesc['idCzesc'])),
-                        QStandardItem(czesc['typSerwisu']),
-                        QStandardItem(czesc['nazwaElementu']),
-                        QStandardItem(str(czesc['ilosc']))
-                    ])
-            else:
-                QMessageBox.warning(self, "Błąd API",
-                                    f"Nie udało się pobrać danych części. Kod błędu: {response.status_code}")
-        except Exception as e:
-            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+                    # Dodanie danych do modelu
+                    for czesc in czesci_data:
+                        self.model_pojazd.appendRow([
+                            QStandardItem(str(czesc['idCzesc'])),
+                            QStandardItem(czesc['typSerwisu']),
+                            QStandardItem(czesc['nazwaElementu']),
+                            QStandardItem(str(czesc['ilosc']))
+                        ])
+                else:
+                    QMessageBox.warning(self, "Błąd API",
+                                        f"Nie udało się pobrać danych części. Kod błędu: {response.status_code}")
+            except Exception as e:
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+        elif self.screen_type == ScreenType.WYPOSAZENIE:
+            try:
+                # Wykonanie żądania HTTP GET do API z parametrami
+                response = requests.get(f"{self.api_url}/czesci?idTypSerwisu=4", params=params)
+                if response.status_code == 200:
+                    czesci_data = response.json()  # Pobranie danych w formacie JSON
 
+                    # Czyszczenie poprzednich danych
+                    self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())
+
+                    # Dodanie danych do modelu
+                    for czesc in czesci_data:
+                        self.model_pojazd.appendRow([
+                            QStandardItem(str(czesc['idCzesc'])),
+                            QStandardItem(czesc['typSerwisu']),
+                            QStandardItem(czesc['nazwaElementu']),
+                            QStandardItem(str(czesc['ilosc']))
+                        ])
+                else:
+                    QMessageBox.warning(self, "Błąd API",
+                                        f"Nie udało się pobrać danych części. Kod błędu: {response.status_code}")
+            except Exception as e:
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+        else:
+            print("Błąd ekranu wyszedłeś poza magazyn!")
         # Użycie QTimer dla opóźnienia wywołania adjust_column_widths
         QTimer.singleShot(0, self.adjust_column_widths)
 
@@ -544,7 +579,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         return columns_info
 
 
-    #########################################################################################################
+    ########################################################################################################
     ########################################################################################################
     ########################################################################################################
     ########################################################################################################
@@ -557,35 +592,27 @@ class WarehouseFrame(QtWidgets.QFrame):
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
             self.filter_dialog = FilterFleetFrame(
-                class_name="pojazd",
-                api_url=f"{self.api_url}/pojazd",
+                class_name="czesc",
+                api_url=f"{self.api_url}/czesci",
                 parent=self,
-                header_title="Filtrowanie pojazdów",
+                header_title="Filtrowanie części",
+                screen_type=self.screen_type.value,
                 # Przekazujemy istniejące filtry
                 refresh_callback=self.load_data_filtered
             )
             # Pokazujemy istniejący dialog (nowy lub już wcześniej utworzony)
         self.filter_dialog.show()
 
-    def load_data_filtered(self, filtr_parameteres_pojazd=None):
+    def load_data_filtered(self, filtr_parameteres_czesci=None):
         # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
-        if filtr_parameteres_pojazd is not None:
-            self.filtr_parameteres_pojazd = filtr_parameteres_pojazd
+        if filtr_parameteres_czesci is not None:
+            self.filtr_parameteres_czesci = filtr_parameteres_czesci
             self.filters_set = True
 
-        print("Wywołano load_data_filtered z filtrami:", self.filtr_parameteres_pojazd)
-
-        # Ustawienie domyślnych filtrów
-        default_filters = {
-            'Typ Pojazdu': None,
-            'marka': None,
-            'model': None,
-            'nrRejestracyjny': None,
-            'dodatkoweInf': None
-        }
+        print("Wywołano load_data_filtered z filtrami:", self.filtr_parameteres_czesci)
 
         # Łączenie filtrów z domyślnymi, aby zapewnić, że odpowiednie filtry zawsze będą w zapytaniu
-        combined_parameters = {**default_filters, **self.filtr_parameteres_pojazd, **self.sort_parameteres_pojazd}
+        combined_parameters = {**self.filtr_parameteres_czesci, **self.sort_parameteres_czesci}
         print(f"Combined_param: {combined_parameters}")
 
         # Przekonwertowanie kluczy na małe litery
@@ -594,23 +621,57 @@ class WarehouseFrame(QtWidgets.QFrame):
         print(f"Final Combined_param (with lowercase keys): {combined_parameters_lower}")
 
         # Usuń 'Dane kierowcy' z parametrów, aby nie pojawił się w URL
-        if 'dane kierowcy' in combined_parameters_lower:
-            combined_parameters_lower.pop('dane kierowcy')
+        if 'dane typ serwisu' in combined_parameters_lower:
+            combined_parameters_lower.pop('dane typ serwisu')
 
         # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-        if 'numer rejestracyjny' in combined_parameters_lower:
-            combined_parameters_lower['nrRejestracyjny'] = combined_parameters_lower.pop('numer rejestracyjny')
+        if 'idtypserwisu' in combined_parameters_lower:
+            combined_parameters_lower['idTypSerwisu'] = combined_parameters_lower.pop('idtypserwisu')
 
         # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-        if 'dodatkowe informacje' in combined_parameters_lower:
-            combined_parameters_lower['dodatkoweInf'] = combined_parameters_lower.pop('dodatkowe informacje')
+        if 'nazwa elementu' in combined_parameters_lower:
+            combined_parameters_lower['nazwaElementu'] = combined_parameters_lower.pop('nazwa elementu')
 
-        if 'id kierowca' in combined_parameters_lower:
-            combined_parameters_lower['idKierowca'] = combined_parameters_lower.pop('id kierowca')
+        # # Budowanie URL z parametrami w wymaganym formacie
+        # query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
+        # print(query_string)
+        # full_url = f"{self.api_url}/czesci?{query_string}"
+        # print(f"Final URL: {full_url}")
+
 
         if self.screen_type == ScreenType.CZESCI:
             # Budowanie URL z parametrami w wymaganym formacie
             query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-            full_url = f"{self.api_url}/pojazd/show?typPojazdu=Ciągnik&{query_string}"
+            full_url = f"{self.api_url}/czesci?excludeIdTypSerwisu=4&{query_string}"
             print(f"Final URL: {full_url}")
+        elif self.screen_type == ScreenType.WYPOSAZENIE:
+            # Budowanie URL z parametrami w wymaganym formacie
+            query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
+            full_url = f"{self.api_url}/czesci?idTypSerwisu=4&{query_string}"
+            print(f"Final URL: {full_url}")
+        try:
+            # Wykonanie żądania HTTP GET do API z parametrami
+            response = requests.get(full_url)
+            if response.status_code == 200:
+                czesci_data = response.json()  # Pobranie danych w formacie JSON
+
+                # Czyszczenie poprzednich danych
+                self.model_pojazd.removeRows(0, self.model_pojazd.rowCount())
+
+                # Dodanie danych do modelu
+                for czesc in czesci_data:
+                    self.model_pojazd.appendRow([
+                        QStandardItem(str(czesc['idCzesc'])),
+                        QStandardItem(czesc['typSerwisu']),
+                        QStandardItem(czesc['nazwaElementu']),
+                        QStandardItem(str(czesc['ilosc']))
+                    ])
+            else:
+                QMessageBox.warning(self, "Błąd API",
+                                    f"Nie udało się pobrać danych części. Kod błędu: {response.status_code}")
+        except Exception as e:
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+
+            # Użycie QTimer dla opóźnienia wywołania adjust_column_widths
+        QTimer.singleShot(0, self.adjust_column_widths)
 

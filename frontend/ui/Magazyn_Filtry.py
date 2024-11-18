@@ -1,23 +1,29 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
-    QAbstractItemView, QComboBox
+    QAbstractItemView, QComboBox, QSpinBox
 from urllib.parse import urlparse
 import requests
 from functools import partial
 
 
 class FilterFleetFrame(QFrame):
-    def __init__(self, class_name, api_url, parent=None, header_title="title", refresh_callback=None):
+    def __init__(self, class_name, api_url, parent=None, header_title="title", screen_type=1, refresh_callback=None):
         super().__init__(parent)
 
         self.api_url = api_url  # URL dla POST danych
         self.class_name = class_name
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
+        self.screen_type = screen_type
 
         # Dane potrzebne do zrobienia formularza
         self.fields = {}
         self.columns = self.load_columns()
+        self.columns = [col for col in self.columns if col.get('friendly_name') != 'Ilość']
+        print(self.screen_type)
+        if self.screen_type == 2:
+            self.columns = [col for col in self.columns if col.get('friendly_name') != 'Dane Typ serwisu' and col.get('friendly_name') != 'idTypSerwisu']
+        print(self.columns)
 
         # Do przesuwania oknem
         self.is_moving = False
@@ -41,43 +47,43 @@ class FilterFleetFrame(QFrame):
         self.setGeometry(int(self.app_width / 2 - self.width / 2), int(self.app_height / 2 - self.height / 2),
                          self.width, self.height)
         self.setStyleSheet("""
-                            QFrame {
-                                background-color: #bacbbc;
-                                border: 2px solid #90aa92 ; 
-                            }
-                            QPushButton {
-                                color: #5d5d5d;
-                                background-color: #b9bece; /* Ustawia przezroczyste tło */
-                                border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
-                                border-radius: 10px; /* Zaokrąglone rogi ramki */
-                                padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
-                                font-size: 14px;  /* Rozmiar czcionki */
-                                font-family: Arial, sans-serif;  /* Czcionka */
-                            }
-                            QPushButton:hover {
-                                background-color: #a2a6b4; /* Ustawia kolor tła po najechaniu */
-                            }
-                            QPushButton:pressed {
-                                background-color: #8a8e9a;  /* Kolor tła po kliknięciu */
-                            }
-                            QPushButton:disabled {
-                                background-color: #bdc3c7;  /* Kolor tła dla nieaktywnych przycisków */
-                                color: #7f8c8d;  /* Kolor tekstu dla nieaktywnych przycisków */
-                                border: 2px solid #95a5a6;  /* Obramowanie dla nieaktywnych przycisków */
-                            }
-                            QLabel {
-                                color: #5d5d5d;  /* Kolor tekstu dla etykiet (przykład: pomarańczowy) */
-                                background-color: transparent;  /* Przezroczyste tło dla etykiet */
-                                border: none;  /* Brak ramki dla etykiet */
-                            }""")
+                                    QFrame {
+                                        background-color: #c4bbf0;
+                                        border: 2px solid #ac97e2 ; 
+                                    }
+                                    QPushButton {
+                                        color: #333333;
+                                        background-color: #b9bece; /* Ustawia przezroczyste tło */
+                                        border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
+                                        border-radius: 10px; /* Zaokrąglone rogi ramki */
+                                        padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
+                                        font-size: 14px;  /* Rozmiar czcionki */
+                                        font-family: Arial, sans-serif;  /* Czcionka */
+                                    }
+                                    QPushButton:hover {
+                                        background-color: #a2a6b4; /* Ustawia kolor tła po najechaniu */
+                                    }
+                                    QPushButton:pressed {
+                                        background-color: #8a8e9a;  /* Kolor tła po kliknięciu */
+                                    }
+                                    QPushButton:disabled {
+                                        background-color: #bdc3c7;  /* Kolor tła dla nieaktywnych przycisków */
+                                        color: #7f8c8d;  /* Kolor tekstu dla nieaktywnych przycisków */
+                                        border: 2px solid #95a5a6;  /* Obramowanie dla nieaktywnych przycisków */
+                                    }
+                                    QLabel {
+                                        color: #333333;  /* Kolor tekstu dla etykiet (przykład: pomarańczowy) */
+                                        background-color: transparent;  /* Przezroczyste tło dla etykiet */
+                                        border: none;  /* Brak ramki dla etykiet */
+                                    }""")
 
         # główny widget na formularz
         self.addAreaWidget = QtWidgets.QWidget(self)
         self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, 400, self.row_count * self.row_height))
         self.addAreaWidget.setStyleSheet("""QLabel {
-                                                background-color: #90aa92;
+                                                background-color: #ac97e2;
                                                 padding: 2px;
-                                                border: 0px solid #cfb796 ;  /* Brak ramki dla etykiet */
+                                                border: none ;  /* Brak ramki dla etykiet */
                                                 border-radius: 5px;
                                                 font-size: 14px;
                                             }""")
@@ -98,7 +104,7 @@ class FilterFleetFrame(QFrame):
         self.widget_header.setObjectName("widget_header_frame_edit")
         self.widget_header.setStyleSheet("""
                                             QWidget {
-                                                background: #90aa92;
+                                                background: #ac97e2;
                                                 border-radius: 10px;
 
                                             }""")
@@ -219,12 +225,50 @@ class FilterFleetFrame(QFrame):
                 self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
                 self.fields[column_name] = combo_box
 
-                name_to_connect = tmp['friendly_name'] if tmp['input_type'] == column_name else "None"
+                # Stylizacja QComboBox
+                # combo_box.setStyleSheet("""
+                #                 QComboBox {
+                #                     background-color: #c4bbf0;
+                #                     padding: 2px;
+                #                     border-radius: 5px;
+                #                     font-size: 14px;
+                #                 }
+                #
+                #             """)
+
+                combo_box.setStyleSheet("""
+                                QComboBox {
+                                    border: 2px solid #ac97e2;
+                                    border-radius: 5px;
+                                    padding: 2px;
+                                    background-color: #c4bbf0;
+                                    color: #333333;
+                                }
+                                """)
+
+                name_to_connect = tmp['friendly_name'] #if tmp['input_type'] == column_name else "None"
 
                 self.gridLayout_add.addWidget(combo_box, row, 1)
                 # Aktualizacja pola ID przy wyborze z ComboBox
                 # combo_box.currentIndexChanged.connect(lambda idx, cb=combo_box: self.update_id_field(cb, column_name))
                 combo_box.currentIndexChanged.connect(partial(self.update_id_field, combo_box, name_to_connect))
+            elif input_type == 'number':
+                # # Domyślnie używamy QSpinBox dla liczb całkowitych
+                # spin_box = QSpinBox()
+                # spin_box.setMinimum(1)  # Ustaw minimalną wartość
+                # spin_box.setMaximum(1000000)  # Ustaw maksymalną wartość (dostosuj według potrzeb)
+                # spin_box.setFixedHeight(30)
+                # spin_box.setObjectName(f"spin_box_{column_name}")
+                # spin_box.setStyleSheet("""
+                #     background-color: #cfb796;  /* Żółte tło */
+                #     border: 1px solid #ccc;      /* Szara ramka */
+                #     border-radius: 10px;          /* Zaokrąglone rogi */
+                #     padding: 5px;                /* Wewnętrzna przestrzeń */
+                #     font-size: 14px;             /* Rozmiar czcionki */
+                # """)
+                # self.gridLayout_edit.addWidget(spin_box, row, 1)
+                # self.fields[column_name] = spin_box
+                continue
             else:
                 # Tworzymy pole tekstowe
                 line_edit = QLineEdit()
@@ -232,6 +276,16 @@ class FilterFleetFrame(QFrame):
                 line_edit.setObjectName(f"line_edit_{column_name}")
                 self.gridLayout_add.addWidget(line_edit, row, 1)
                 self.fields[column_name] = line_edit
+
+                line_edit.setStyleSheet("""
+                                QLineEdit {
+                                    border: 2px solid #ac97e2;
+                                    border-radius: 5px;
+                                    padding: 2px;
+                                    background-color: #c4bbf0;
+                                    color: #333333;
+                                }
+                            """)
 
             row += 1
 
@@ -294,6 +348,11 @@ class FilterFleetFrame(QFrame):
                 if field_value:
                     self.filtr_parameteres_pojazd[field_name] = field_value
                     print(f"Pole {field_name} ma wybraną wartość: {field_value}")
+
+            # elif isinstance(field, QSpinBox):
+            #     field_value = field.value()  # Pobieramy aktualnie wybraną wartość
+            #     print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+            #     self.filtr_parameteres_pojazd[field_name] = field_value  # Dodajemy wartość z QSpinBox do słownika
 
         # Potwierdzenie, że filtr został zapisany
         print("Zapisane filtry:", self.filtr_parameteres_pojazd)

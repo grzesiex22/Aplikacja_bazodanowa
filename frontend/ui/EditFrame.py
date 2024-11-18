@@ -30,8 +30,6 @@ class EditFrame(QFrame):
         with open(file_path, "r") as file:
             self.lineEdit_style = file.read()
 
-        #self.gridLayout_add = QGridLayout()
-
         self.fields = {}
         self.columns = self.load_columns()
         self.driver_id = None
@@ -316,6 +314,12 @@ class EditFrame(QFrame):
                     padding: 5px;                /* Wewnętrzna przestrzeń */
                     font-size: 14px;             /* Rozmiar czcionki */
                 """)
+
+                if column_value is not None:  # Sprawdzenie, czy w model_data jest wartość
+                    try:
+                        spin_box.setValue(int(column_value))
+                    except ValueError:
+                        print(f"Błąd konwersji wartości '{column_value}' na liczbę całkowitą dla pola '{column_name}'")
                 self.gridLayout_edit.addWidget(spin_box, row, 1)
                 self.fields[column_name] = spin_box
 
@@ -358,6 +362,7 @@ class EditFrame(QFrame):
         for column in self.columns:
             column_name = column['friendly_name']
             column_value = self.model_data[column_name]  # Pobierz oryginalną wartość
+            print(column_value)
 
             if column.get('primary_key'):
                 continue  # Pomijamy klucz główny
@@ -378,6 +383,7 @@ class EditFrame(QFrame):
                         field.setCurrentIndex(
                             0)  # Jeśli wartość nie została znaleziona, ustawiamy domyślną wartość (np. pustą)
                 elif isinstance(field, QSpinBox):
+                    print("wartosc do QSpinBox", column_value)
                     field_value = int(column_value)   # Pobieramy aktualnie wybraną wartość
                     field.setValue(field_value)  # Dodajemy wartość z QSpinBox do słownika
 
