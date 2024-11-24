@@ -2,8 +2,10 @@ import os
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QFrame, QLineEdit, QMessageBox, QGridLayout, QLabel, QPushButton, QAbstractItemView, \
     QComboBox, QListView, QSpinBox
+from Aplikacja_bazodanowa.frontend.ui.DateLineEdit import DateLineEdit
 from urllib.parse import urlparse
 import requests
 from functools import partial
@@ -30,6 +32,9 @@ class EditFrame(QFrame):
         with open(file_path, "r") as file:
             self.lineEdit_style = file.read()
 
+        # Ustawienie QIntValidator (tylko liczby całkowite)
+        self.validator = QIntValidator(0, 999999, self)  # Zakres od 0 do 999999
+
         self.fields = {}
         self.columns = self.load_columns()
         self.driver_id = None
@@ -39,7 +44,6 @@ class EditFrame(QFrame):
         available_rect = self.parent().screen().availableGeometry()
         self.app_width = available_rect.width()
         self.app_height = available_rect.height()
-
 
         self.is_moving = False  # For tracking if the frame is being moved
         self.mouse_press_pos = None  # To store the initial position of the mouse press
@@ -163,7 +167,7 @@ class EditFrame(QFrame):
                                             background-color: #b04652;  /* Kolor tła po kliknięciu */
                                         }""")
         self.button_delete.setObjectName("button_delete")
-        self.button_delete.clicked.connect(self.delete_driver)
+        self.button_delete.clicked.connect(self.delete_item)
 
         self.button_save = QtWidgets.QPushButton(self)
         self.button_save.setGeometry(QtCore.QRect(int(self.width/2)+60+20, self.button_clear.pos().y(), 120, 40))
@@ -284,11 +288,14 @@ class EditFrame(QFrame):
                         combo_box.setCurrentIndex(index)  # Ustawiamy odpowiednią opcję
 
                 self.gridLayout_edit.addWidget(combo_box, row, 1)
+
                 # Aktualizacja pola ID przy wyborze z ComboBox
                 combo_box.currentIndexChanged.connect(partial(self.update_id_field, combo_box, name_to_connect))
+
             elif input_type == 'text':
                 # Pole edycyjne
                 line_edit = QLineEdit(str(column_value))
+                line_edit.setFixedHeight(30)
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
                 line_edit.setObjectName(f"line_edit_{column_name}")
                 line_edit.setStyleSheet(self.lineEdit_style)
@@ -300,7 +307,7 @@ class EditFrame(QFrame):
                 self.fields[column_name] = label
                 self.gridLayout_edit.addWidget(label, row, 1)
 
-            elif input_type == 'number':
+            elif input_type == 'quantity':
                 # Domyślnie używamy QSpinBox dla liczb całkowitych
                 spin_box = QSpinBox()
                 spin_box.setMinimum(1)  # Ustaw minimalną wartość
@@ -323,6 +330,25 @@ class EditFrame(QFrame):
                 self.gridLayout_edit.addWidget(spin_box, row, 1)
                 self.fields[column_name] = spin_box
 
+            elif input_type == 'number':
+                # Tworzymy pole tekstowe
+                line_edit = QLineEdit(str(column_value))
+                line_edit.setValidator(self.validator)
+                line_edit.setPlaceholderText(f"Wprowadź {column_name}")
+                line_edit.setFixedHeight(30)
+                line_edit.setObjectName(f"line_edit_{column_name}")
+                line_edit.setStyleSheet(self.lineEdit_style)
+                self.gridLayout_edit.addWidget(line_edit, row, 1)
+                self.fields[column_name] = line_edit
+            elif input_type == 'data':
+                # Tworzymy pole tekstowe dla daty
+                date_edit = DateLineEdit(str(column_value))
+                date_edit.setFixedHeight(30)
+                date_edit.setObjectName(f"line_edit_{column_name}")
+                date_edit.setStyleSheet(self.lineEdit_style)
+                self.gridLayout_edit.addWidget(date_edit, row, 1)
+                self.fields[column_name] = date_edit
+
             row += 1  # Zwiększamy numer wiersza
 
 
@@ -337,7 +363,7 @@ class EditFrame(QFrame):
                 for item in data:
                     display_text = item['data']
                     combo_box.addItem(display_text, item['ID'])  # Ustawiamy `ID` jako ukryte dane
-
+                combo_box.setMaxVisibleItems(8)
             else:
                 print(f"API error: {response.status_code}")
 
@@ -353,7 +379,6 @@ class EditFrame(QFrame):
         selected_id = combo_box.currentData()
         if field_name != None:
             self.fields[field_name].setText(str(selected_id))   # Aktualizuje `idKierowca` lub inne powiązane pole ID
-
 
     def restore_initial_values(self):
         row = 0
@@ -450,7 +475,7 @@ class EditFrame(QFrame):
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
 
-    def delete_driver(self):
+    def delete_item(self):
 
         # Wywołanie API DELETE do usunięcia
         try:

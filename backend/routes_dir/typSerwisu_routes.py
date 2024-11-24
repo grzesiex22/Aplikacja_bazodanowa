@@ -110,3 +110,18 @@ def edytuj_typserwis(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+
+@typserwis_bp.route('/typserwis/show/alltochoice', methods=['GET'])
+def pobierz_wszystkie_pojazdy_do_okna_wyboru():
+    try:
+        typySerwisu = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
+        wynik = []
+        for typSerwisu in typySerwisu:
+            if typSerwisu.rodzajSerwisu != 'Wyposażenie':
+                data = {'ID': typSerwisu.idTypSerwisu, 'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
+                wynik.append(data)
+        return jsonify(wynik), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

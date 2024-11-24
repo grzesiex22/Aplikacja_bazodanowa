@@ -1,9 +1,11 @@
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt, pyqtSignal, QRegExp
+from PyQt5.QtGui import QFont, QIntValidator, QRegExpValidator
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
     QAbstractItemView, QComboBox, QStyleOptionComboBox, QListView, QSpinBox
+from Aplikacja_bazodanowa.frontend.ui.DateLineEdit import DateLineEdit
+
 from urllib.parse import urlparse
 import requests
 from functools import partial
@@ -28,6 +30,9 @@ class AddFrame(QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'AddFrame_QLineEdit.qss')
         with open(file_path, "r") as file:
             self.lineEdit_style = file.read()
+
+        # Ustawienie QIntValidator (tylko liczby całkowite)
+        self.validator = QIntValidator(0, 999999, self)  # Zakres od 0 do 999999
 
         # Dane potrzebne do zrobienia formularza
         self.fields = {}
@@ -285,7 +290,7 @@ class AddFrame(QFrame):
                 self.fields[column_name] = label
                 self.gridLayout_add.addWidget(label, row, 1)
 
-            elif input_type == 'number':
+            elif input_type == 'quantity':
                 # Domyślnie używamy QSpinBox dla liczb całkowitych
                 spin_box = QSpinBox()
                 spin_box.setMinimum(1)  # Ustaw minimalną wartość
@@ -301,6 +306,24 @@ class AddFrame(QFrame):
                                 """)  # Opcjonalne style
                 self.gridLayout_add.addWidget(spin_box, row, 1)
                 self.fields[column_name] = spin_box
+            elif input_type == 'number':
+                # Tworzymy pole tekstowe
+                line_edit = QLineEdit()
+                line_edit.setValidator(self.validator)
+                line_edit.setPlaceholderText(f"Wprowadź {column_name}")
+                line_edit.setFixedHeight(30)
+                line_edit.setObjectName(f"line_edit_{column_name}")
+                line_edit.setStyleSheet(self.lineEdit_style)
+                self.gridLayout_add.addWidget(line_edit, row, 1)
+                self.fields[column_name] = line_edit
+            elif input_type == 'data':
+                # Tworzymy pole tekstowe dla daty
+                date_edit = DateLineEdit()
+                date_edit.setFixedHeight(30)
+                date_edit.setObjectName(f"line_edit_{column_name}")
+                date_edit.setStyleSheet(self.lineEdit_style)
+                self.gridLayout_add.addWidget(date_edit, row, 1)
+                self.fields[column_name] = date_edit
 
             row += 1
 
@@ -316,7 +339,7 @@ class AddFrame(QFrame):
                 for item in data:
                     display_text = item['data']
                     combo_box.addItem(display_text, item['ID'])  # Ustawiamy `ID` jako ukryte dane
-
+                combo_box.setMaxVisibleItems(8)
             else:
                 print(f"API error: {response.status_code}")
 

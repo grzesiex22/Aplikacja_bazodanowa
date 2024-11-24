@@ -2,10 +2,13 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QTableView, QHeaderView, QAbstractItemView, QLineEdit, QButtonGroup, QVBoxLayout, QHBoxLayout, QMessageBox
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Poprawny import
 from PyQt5.QtCore import Qt, QTimer
+from sqlalchemy import inspect
+
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
-from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterFleetFrame
+from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterMagazineFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
+
 import os
 from enum import Enum, auto
 import requests
@@ -33,8 +36,11 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.model_pojazd = QStandardItemModel()
         self.model_pojazd_columns_info, self.primary_key_index_czesc = self.load_column_headers("czesc", self.model_pojazd)
         self.sort_parameteres_czesci = {}  # przechowuje aktualne parametry sortowania pojazdu
+        self.sort_parameteres_wyposazenie = {}  # przechowuje aktualne parametry sortowania pojazdu
         self.filtr_parameteres_czesci = {}  # przechowuje aktualne parametry sortowania pojazdu
         self.current_sorted_column_czesci = None  # potrzebne do zmiany sortowania asc/desc
+        self.current_sorted_column_wyposazenie = None  # potrzebne do zmiany sortowania asc/desc
+
 
 
         self.primary_key_index = None  # aktualne pole z kluczem głównym (potrzebne by było wiadomow skąd pobrać ID i aby ukryć kolumne)
@@ -342,25 +348,25 @@ class WarehouseFrame(QtWidgets.QFrame):
         if self.screen_type == ScreenType.WYPOSAZENIE:
             if self.current_sorted_column_kierowca == column_index:
                 # Przełączamy pomiędzy 'asc' a 'desc'
-                order = 'desc' if self.sort_parameteres_kierowca['order'] == 'asc' else 'asc'
+                order = 'desc' if self.sort_parameteres_wyposazenie['order'] == 'asc' else 'asc'
             else:
                 order = 'asc'
-            self.current_sorted_column_kierowca = column_index
-            self.sort_parameteres_kierowca = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
+            self.current_sorted_column_wyposazenie = column_index
+            self.sort_parameteres_wyposazenie = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
 
-        else:
+        elif self.screen_type == ScreenType.CZESCI:
             if self.current_sorted_column_pojazd == column_index:
                 # Przełączamy pomiędzy 'asc' a 'desc'
-                order = 'desc' if self.sort_parameteres_pojazd['order'] == 'asc' else 'asc'
+                order = 'desc' if self.sort_parameteres_czesci['order'] == 'asc' else 'asc'
             else:
                 order = 'asc'
-            self.current_sorted_column_pojazd = column_index
-            self.sort_parameteres_pojazd = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
+            self.current_sorted_column_czesci = column_index
+            self.sort_parameteres_czesci = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
 
         if self.filters_set:
             self.load_data_filtered()
         else:
-            self.load_data(sort_by=column_name,order=order)
+            self.load_data(sort_by=column_name, order=order)
 
 
     def update_screen_type(self, screen_value):
@@ -591,7 +597,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         """
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
-            self.filter_dialog = FilterFleetFrame(
+            self.filter_dialog = FilterMagazineFrame(
                 class_name="czesc",
                 api_url=f"{self.api_url}/czesci",
                 parent=self,

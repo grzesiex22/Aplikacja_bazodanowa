@@ -7,7 +7,7 @@ import requests
 from functools import partial
 
 
-class FilterFleetFrame(QFrame):
+class FilterMagazineFrame(QFrame):
     def __init__(self, class_name, api_url, parent=None, header_title="title", screen_type=1, refresh_callback=None):
         super().__init__(parent)
 

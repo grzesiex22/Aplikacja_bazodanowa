@@ -334,6 +334,20 @@ def pobierz_i_sortuj_pojazdy():
         return jsonify({'error': str(e)}), 500
 
 
+# Pobieranie listy wszystkich kierowców
+@pojazd_bp.route('/pojazd/show/alltochoice', methods=['GET'])
+def pobierz_wszystkie_pojazdy_do_okna_wyboru():
+    try:
+        pojazdy = Pojazd.query.order_by(Pojazd.marka.asc(), Pojazd.model.asc()).all()
+        wynik = []
+        for pojazd in pojazdy:
+            data = {'ID': pojazd.idPojazd, 'data': f"{pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"}
+            wynik.append(data)
+        return jsonify(wynik), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # Dodawanie nowego pojazdu
 @pojazd_bp.route('/pojazd/add', methods=['POST'])
 def dodaj_pojazd():
@@ -373,7 +387,7 @@ def usun_pojazd(id):
 
     Returns:
         Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP, 200 w przypadku sukcesu (usunięcie pojazdu), 404 jeśli pojazd nie znaleziony, 500 w przypadku błędu.
+        int: Kod statusu HTTP, 200 w przypadku sukcesu (usunięcie pojazdu), 404, jeśli pojazd nie znaleziony, 500 w przypadku błędu.
     """
     try:
         # Pobranie pojazdu na podstawie ID
@@ -401,7 +415,7 @@ def edytuj_pojazd(id):
 
     Returns:
         Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP, 200 w przypadku sukcesu (aktualizacja pojazdu), 404 jeśli pojazd nie znaleziony, 500 w przypadku błędu.
+        int: Kod statusu HTTP, 200 w przypadku sukcesu (aktualizacja pojazdu), 404, jeśli pojazd nie znaleziony, 500 w przypadku błędu.
     """
     data = request.get_json()  # Pobieramy dane wejściowe w formacie JSON
 
@@ -441,7 +455,7 @@ def validate_pojazd():
 
     Returns:
         Response: Odpowiedź w formacie JSON z komunikatem o błędzie, jeśli dane są niepoprawne, lub potwierdzeniem poprawności danych.
-        int: Kod statusu HTTP, 200 jeśli dane są poprawne, 400 jeśli dane są błędne.
+        int: Kod statusu HTTP 200, jeśli dane są poprawne, 400, jeśli dane są błędne.
     """
     data = request.get_json()  # Pobieramy dane wejściowe w formacie JSON
     print(f"Data in validation api: {data}")

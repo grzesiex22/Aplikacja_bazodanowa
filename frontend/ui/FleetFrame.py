@@ -4,7 +4,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Popra
 from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
-from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterFleetFrame
+from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterMagazineFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
@@ -666,7 +666,7 @@ class FleetFrame(QtWidgets.QFrame):
 
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
-            self.filter_dialog = FilterFleetFrame(
+            self.filter_dialog = FilterMagazineFrame(
                 class_name="pojazd",
                 api_url=f"{self.api_url}/pojazd",
                 parent=self,

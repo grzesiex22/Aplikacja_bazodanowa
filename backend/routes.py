@@ -5,7 +5,7 @@ from Aplikacja_bazodanowa.backend.routes_dir.pojazd_routes2 import pojazd_bp
 from routes_dir.kierowca_routes import kierowca_bp
 from routes_dir.typSerwisu_routes import typserwis_bp
 from routes_dir.czesc_routes import czesc_bp
-from routes_dir.serwis_routes import serwis_bp
+from routes_dir.serwis_routes2 import serwis_bp
 from routes_dir.app_routes import app_bp
 
 bp = Blueprint('api', __name__)

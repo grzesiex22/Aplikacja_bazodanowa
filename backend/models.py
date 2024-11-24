@@ -1,3 +1,5 @@
+from datetime import datetime, date
+
 from Aplikacja_bazodanowa.backend.database import db
 import re
 import json
@@ -320,7 +322,7 @@ class Pojazd(BaseModel):
                 else:
                     serialized_data[properties['friendly_name']] = value
 
-        print(f"Serialized data pojazd: {serialized_data}")
+        # print(f"Serialized data pojazd: {serialized_data}")
         return serialized_data
 
 
@@ -447,6 +449,7 @@ class TypSerwisu(BaseModel):
             friendly_name = properties['friendly_name']
             value = getattr(typ_serwisu, column_name)
             serialized_data[friendly_name] = value
+
         return serialized_data
 
     @staticmethod
@@ -488,6 +491,7 @@ class TypSerwisu(BaseModel):
 
         return None  # Brak błędów, walidacja przeszła pomyślnie
 
+
 class Serwis(BaseModel):
     __tablename__ = 'Serwis'
     idSerwis = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -501,14 +505,524 @@ class Serwis(BaseModel):
     infoDodatkowe = db.Column(db.String(200), nullable=True)
 
     COLUMN_NAME_MAP = {
-        'data': 'Data serwisu',
-        'cenaCzesciNetto': 'Cena części netto',
-        'robocizna': 'Koszt robocizny',
-        'kosztCalkowityNetto': 'Koszt całkowity netto',
-        'przebieg': 'Przebieg',
-        'infoDodatkowe': 'Dodatkowe informacje'
+        'idSerwis': {
+            'friendly_name': 'ID serwisu',
+            'editable': False,
+            'input_type': 'readonly',
+        },
+        'idPojazd': {
+            'friendly_name': 'ID pojazdu',
+            'editable': False,
+            'input_type': 'Dane pojazdu',
+            'filter': False
+        },
+        'Pojazd': {
+            'friendly_name': 'Dane pojazdu',
+            'editable': True,
+            'input_type': 'list',
+            'inputs': 'pojazd/show/alltochoice',
+            'filter': 'select'
+        },
+        'idTypSerwisu': {
+            'friendly_name': 'ID typu serwisu',
+            'editable': False,
+            'input_type': 'Typ serwisu',
+            'filter': False
+        },
+        'TypSerwisu': {
+            'friendly_name': 'Typ serwisu',
+            'editable': True,
+            'input_type': 'list',
+            'inputs': 'typserwis/show/alltochoice',
+            'filter': 'select'
+        },
+        'data': {
+            'friendly_name': 'Data serwisu',
+            'editable': True,
+            'input_type': 'data',
+            'filter': 'select'
+        },
+        'cenaCzesciNetto': {
+            'friendly_name': 'Cena części netto',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'select'
+        },
+        'robocizna': {
+            'friendly_name': 'Koszt robocizny',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'text'
+        },
+        'kosztCalkowityNetto': {
+            'friendly_name': 'Koszt całkowity netto',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'text'
+        },
+        'przebieg': {
+            'friendly_name': 'Przebieg',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'text'
+        },
+        'infoDodatkowe': {
+            'friendly_name': 'Dodatkowe informacje',
+            'editable': True,
+            'input_type': 'text',
+            'filter': 'select'
+        }
     }
 
+    @staticmethod
+    def serialize(serwis):
+        """
+        Serializacja obiektu Serwis z zamianą nazw kolumn na przyjazne.
+        """
+        serialized_data = {}
+        for column_name, properties in Serwis.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            if friendly_name == 'Dane pojazdu':
+                pojazd = Pojazd.query.get(serwis.idPojazd) if serwis.idPojazd else None
+                serialized_data['Dane pojazdu'] = f"{pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"
+            elif friendly_name == 'Typ serwisu':
+                typSerwisu = TypSerwisu.query.get(serwis.idTypSerwisu) if serwis.idTypSerwisu else None
+                serialized_data['Typ serwisu'] = f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"
+            else:
+                value = getattr(serwis, column_name)
+                if isinstance(value, date):  # Sprawdzenie, czy wartość jest obiektem daty
+                    value = value.strftime('%d-%m-%Y')  # Formatuj datę na 'dd-mm-yyyy'
+                elif value is None:
+                    value = ""  # Jeśli wartość jest pusta, ustaw pusty string
+                serialized_data[friendly_name] = value
+
+        print(f"Serialized data Serwis: {serialized_data}")
+        return serialized_data
+
+    @staticmethod
+    def deserialize(data):
+        """
+        Deserializacja danych z przyjaznymi nazwami na nazwy kolumn w bazie danych.
+        """
+        deserialized_data = {}
+        print(f"Before deserialization: {data}")
+
+        # zmienne do obliczenia kosztu całkowitego jeśli jest taka potrzeba
+        koszt_czesci_netto = None
+        robocizna = None
+
+        for column_name, properties in Serwis.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            if friendly_name == "Dane pojazdu":
+                continue  # Pomijamy "Dane pojazdu", bo nie jest fizyczną kolumną w tabeli
+            elif friendly_name == "Typ serwisu":
+                continue  # Pomijamy "Typ serwisu", bo nie jest fizyczną kolumną w tabeli
+
+            elif friendly_name in data:
+                value = data[friendly_name] if data[friendly_name] else None
+
+                # Sprawdzenie, czy wartość to data w formacie 'dd-mm-yyyy'
+                if friendly_name == "Data serwisu" and value:
+                    try:
+                        parsed_date = datetime.strptime(value, '%d-%m-%Y')
+                        value = parsed_date.strftime('%Y-%m-%d')  # Zamiana na 'yyyy-mm-dd'
+                    except ValueError:
+                        raise ValueError(f"Nieprawidłowy format daty: {value}. Oczekiwano 'dd-mm-yyyy'.")
+
+                # Przechowujemy koszty części i robocizny do późniejszego użycia
+                if friendly_name == "Koszt części netto" and value:
+                    try:
+                        koszt_czesci_netto = int(value)
+                    except ValueError:
+                        raise ValueError(f"Koszt części netto ({value}) musi być liczbą całkowitą.")
+
+                if friendly_name == "Koszt robocizny" and value:
+                    try:
+                        robocizna = int(value)
+                    except ValueError:
+                        raise ValueError(f"Koszt robocizny ({value}) musi być liczbą całkowitą.")
+
+                deserialized_data[column_name] = value
+
+        # Automatyczne ustawienie kosztu całkowitego netto
+        if koszt_czesci_netto is not None and robocizna is not None:
+            deserialized_data['kosztCalkowityNetto'] = koszt_czesci_netto + robocizna
+
+        print(f"After deserialization: {deserialized_data}")
+        return deserialized_data
+
+    @staticmethod
+    def validate_data(data):
+        """
+        Walidacja danych wejściowych dla Kierowcy.
+        """
+        print(f"Data in validation method: {data}")
+
+        # Sprawdzanie, czy wszystkie wymagane pola są obecne i nie puste
+        required_fields = ['Dane pojazdu', 'Typ serwisu', 'Data serwisu']
+        missing_fields = [field for field in required_fields if
+                          field not in data or not data.get(field, '').strip()]
+
+        if missing_fields:
+            missing_fields_str = ", ".join(missing_fields)
+            return {'message': f"Brak wymaganych pól: {missing_fields_str}"}, 400
+
+        # Walidacja daty serwisu
+        if 'Data serwisu' in data:
+            data_serwisu = data['Data serwisu']
+            try:
+                # Sprawdzenie formatu daty - dd-mm-yyyy
+                parsed_date = datetime.strptime(data_serwisu, '%d-%m-%Y')
+
+                # Sprawdzenie, czy data nie jest w przyszłości
+                today = datetime.now().date()
+                if parsed_date.date() > today:
+                    return {'message': f"Data serwisu ({data_serwisu}) nie może być w przyszłości."}, 400
+
+            except ValueError:
+                return {'message': f"Nieprawidłowy format daty: {data_serwisu}. Oczekiwany format: dd-mm-yyyy"}, 400
+
+        # Walidacja koszt całkowity netto
+        koszt_calkowity = None
+
+        if 'Koszt całkowity netto' in data and data['Koszt całkowity netto']:
+            try:
+                koszt_calkowity = int(data['Koszt całkowity netto'])
+                if koszt_calkowity < 0:
+                    return {'message': "Koszt całkowity netto nie może być ujemny."}, 400
+            except ValueError:
+                return {'message': "Koszt całkowity netto musi być liczbą."}, 400
+
+        # Walidacja kosztów części netto i robocizny
+        koszt_czesci_netto = None
+        robocizna = None
+
+        if 'Cena części netto' in data and data['Cena części netto']:
+            try:
+                koszt_czesci_netto = int(data['Cena części netto'])
+                if koszt_czesci_netto < 0:
+                    return {'message': "Cena części netto nie może być ujemny."}, 400
+            except ValueError:
+                return {'message': "Cena części netto musi być liczbą."}, 400
+
+        if 'Koszt robocizny' in data and data['Koszt robocizny']:
+            try:
+                robocizna = int(data['Koszt robocizny'])
+                if robocizna < 0:
+                    return {'message': "Koszt robocizny nie może być ujemny."}, 400
+            except ValueError:
+                return {'message': "Koszt robocizny musi być liczbą."}, 400
+
+        # Sprawdzenie, czy podano przynajmniej jedno z pól: koszt całkowity netto, koszty części netto lub robocizny
+        if koszt_calkowity is None and (koszt_czesci_netto is None and robocizna is None):
+            return {
+                'message': "Musisz podać przynajmniej jedną wartość: Koszt całkowity netto, Koszt części netto lub Koszt robocizny. "
+                           "Jeśli podasz Koszt części netto i/lub Koszt robocizny, Koszt całkowity netto zostanie obliczony automatycznie."
+            }, 400
+
+        # Sprawdzenie zależności między kosztami
+        if koszt_czesci_netto is not None and robocizna is not None and koszt_calkowity is not None:
+            suma_czesci_i_robocizny = koszt_czesci_netto + robocizna
+            if suma_czesci_i_robocizny != koszt_calkowity:
+                return {
+                    'message': f"Suma kosztu części netto ({koszt_czesci_netto}) i robocizny ({robocizna}) "
+                               f"musi być równa kosztowi całkowitemu netto ({koszt_calkowity}). "
+                               f"Zostaw pole Koszt całkowity netto puste, a zostanie uzupełnione automatycznie"
+                }, 400
+        elif koszt_czesci_netto is not None and koszt_calkowity is not None:
+            if koszt_czesci_netto > koszt_calkowity:
+                return {
+                    'message': f"Koszt części netto ({koszt_czesci_netto}) nie może być większy niż koszt całkowity netto ({koszt_calkowity})."
+                }, 400
+
+        elif robocizna is not None and koszt_calkowity is not None:
+            if robocizna > koszt_calkowity:
+                return {
+                    'message': f"Koszt robocizny ({robocizna}) nie może być większy niż koszt całkowity netto ({koszt_calkowity})."
+                }, 400
+
+        return None  # Brak błędów, walidacja przeszła pomyślnie
+
+
+class SerwisWidok(BaseModel):
+    __tablename__ = 'SerwisWidok'
+
+    idSerwis = db.Column(db.Integer, primary_key=True)
+
+    rodzajSerwisu = db.Column(db.String(100), nullable=False)
+
+    idPojazd = db.Column(db.Integer, nullable=False)
+    typPojazdu = db.Column(db.Enum('Ciągnik', 'Naczepa'), nullable=False)
+    marka = db.Column(db.String(20), nullable=False)
+    model = db.Column(db.String(45), nullable=False)
+    nrRejestracyjny = db.Column(db.String(8), nullable=False)
+
+    data = db.Column(db.Date, nullable=False)
+    cenaCzesciNetto = db.Column(db.Integer, nullable=True)
+    robocizna = db.Column(db.Integer, nullable=True)
+    kosztCalkowityNetto = db.Column(db.Integer, nullable=False)
+    przebieg = db.Column(db.Integer, nullable=True)
+    infoDodatkowe = db.Column(db.String(200), nullable=True)
+
+
+    # Mapa nazw kolumn dla frontendu
+    COLUMN_NAME_MAP = {
+        'idSerwis': {
+            'friendly_name': 'ID serwisu',
+            'editable': False,
+            'input_type': 'readonly',
+        },
+        'rodzajSerwisu': {
+            'friendly_name': 'Typ serwisu',
+            'editable': False,
+            'input_type': 'readonly',
+            'filter': 'select'
+        },
+        'idPojazd': {
+            'friendly_name': 'ID pojazdu',
+            'editable': False,
+            'input_type': 'Dane pojazdu',
+            'filter': False
+        },
+        'typPojazdu': {
+            'friendly_name': 'Typ pojazdu',
+            'editable': True,
+            'input_type': 'enum',
+            'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa],
+            'filter': 'select'
+        },
+        'marka': {
+            'friendly_name': 'Marka',
+            'editable': True,
+            'input_type': 'text',
+            'filter': 'select'
+        },
+        'model': {
+            'friendly_name': 'Model',
+            'editable': True,
+            'input_type': 'text',
+            'filter': 'select'
+        },
+        'nrRejestracyjny': {
+            'friendly_name': 'Numer rejestracyjny',
+            'editable': True,
+            'input_type': 'text',
+            'filter': 'text'
+        },
+        'data': {
+            'friendly_name': 'Data serwisu',
+            'editable': True,
+            'input_type': 'data',
+            'filter': 'text'
+        },
+        'cenaCzesciNetto': {
+            'friendly_name': 'Cena części netto',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'number'
+        },
+        'robocizna': {
+            'friendly_name': 'Koszt robocizny',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'number'
+        },
+        'kosztCalkowityNetto': {
+            'friendly_name': 'Koszt całkowity netto',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'number'
+        },
+        'przebieg': {
+            'friendly_name': 'Przebieg',
+            'editable': True,
+            'input_type': 'number',
+            'filter': 'number'
+        },
+        'infoDodatkowe': {
+            'friendly_name': 'Dodatkowe informacje',
+            'editable': True,
+            'input_type': 'text',
+            'filter': 'text'
+        }
+    }
+
+
+    @staticmethod
+    def serialize(serwis):
+        """
+        Serializacja obiektu Serwis z zamianą nazw kolumn na przyjazne.
+        """
+        serialized_data = {}
+        for column_name, properties in SerwisWidok.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            value = getattr(serwis, column_name)
+            if isinstance(value, date):  # Sprawdzenie, czy wartość jest obiektem daty
+                value = value.strftime('%d-%m-%Y')  # Formatuj datę na 'dd-mm-yyyy'
+            elif value is None:
+                value = ""  # Jeśli wartość jest pusta, ustaw pusty string
+            serialized_data[friendly_name] = value
+
+        print(f"Serialized data SerwisWidok: {serialized_data}")
+        return serialized_data
+
+    @staticmethod
+    def deserialize(data):
+        """
+        Deserializacja danych z przyjaznymi nazwami na nazwy kolumn w bazie danych.
+        """
+        deserialized_data = {}
+        for column_name, properties in SerwisWidok.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            if friendly_name in data:
+                deserialized_data[column_name] = data[friendly_name]
+        return deserialized_data
+
+
+
+
+class Czesc(BaseModel):
+    __tablename__ = 'Część'
+
+    idCzesc = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    idTypSerwisu = db.Column(db.Integer, db.ForeignKey('TypSerwisu.idTypSerwisu'), nullable=False)
+    nazwaElementu = db.Column(db.String(100), nullable=False)
+    ilosc = db.Column(db.Integer, nullable=False)
+
+    # Relacje
+    typ_serwisu = db.relationship('TypSerwisu', backref='czesci', lazy=True)
+
+    # Mapa kolumn z przyjaznymi nazwami
+    COLUMN_NAME_MAP = {
+        'idCzesc': {
+            'friendly_name': 'ID części',
+            'editable': False,
+            'input_type': 'text',
+        },
+        'idTypSerwisu': {
+            'friendly_name': 'idTypSerwisu',
+            'editable': False,
+            'input_type': 'Dane Typ Serwisu',
+        },
+        'TypSerwisu': {
+            'friendly_name': 'Dane Typ serwisu',
+            'editable': True,
+            'input_type': 'list',
+            'inputs': 'typserwisu/show/alltochoice',
+        },
+        'nazwaElementu': {
+            'friendly_name': 'Nazwa elementu',
+            'editable': True,
+            'input_type': 'text',
+        },
+        'ilosc': {
+            'friendly_name': 'Ilość',
+            'editable': True,
+            'input_type': 'quantity',
+        }
+    }
+
+    @staticmethod
+    def serialize(czesc):
+        """
+        Serializacja obiektu Czesc z zamianą nazw kolumn na przyjazne.
+        """
+        serialized_data = {}
+        for column_name, properties in Czesc.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            value = getattr(czesc, column_name)
+
+            # Jeśli chodzi o relację, dodajemy również szczegóły z powiązanego obiektu
+            if column_name == 'idTypSerwisu':
+                if czesc.typ_serwisu:
+                    serialized_data[properties['friendly_name']] = czesc.typ_serwisu.rodzajSerwisu
+                else:
+                    serialized_data[properties['friendly_name']] = None
+            else:
+                serialized_data[friendly_name] = value
+
+        return serialized_data
+
+    @staticmethod
+    def deserialize(data):
+        """
+        Deserializacja danych z przyjaznymi nazwami na nazwy kolumn w bazie danych (te nieprzyjazne).
+        """
+        deserialized_data = {}
+
+        # Mapowanie przyjaznych nazw na kolumny
+        for column_name, properties in Czesc.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            if friendly_name in data:
+                deserialized_data[column_name] = data[friendly_name]
+
+        # Dla pola 'Dane Typ serwisu', znajdź odpowiedni `idTypSerwisu`
+        if 'Dane Typ serwisu' in data:
+            typ_serwisu_name = data['Dane Typ serwisu']
+            print(f"Deserializacja: Szukam Typ serwisu dla '{typ_serwisu_name}'")
+
+            # Zapytanie do bazy danych w celu uzyskania `idTypSerwisu`
+            try:
+                typ_serwisu = TypSerwisu.query.filter_by(rodzajSerwisu=typ_serwisu_name).first()
+                if typ_serwisu:
+                    deserialized_data['idTypSerwisu'] = typ_serwisu.idTypSerwisu
+                    print(f"Znaleziono idTypSerwisu: {typ_serwisu.idTypSerwisu} dla '{typ_serwisu_name}'")
+                else:
+                    print(f"Typ serwisu o nazwie '{typ_serwisu_name}' nie istnieje w bazie danych")
+                    deserialized_data['idTypSerwisu'] = None
+            except Exception as e:
+                print(f"Błąd podczas wyszukiwania Typ serwisu: {e}")
+                deserialized_data['idTypSerwisu'] = None
+
+        return deserialized_data
+
+    @staticmethod
+    def validate_data(data):
+        """
+        Walidacja danych wejściowych dla Części.
+        """
+        print(f"Data in validation method: {data}")
+
+        # Sprawdzanie, czy wszystkie wymagane pola są obecne i nie puste
+        required_fields = ['Nazwa elementu', 'Ilość', 'Dane Typ serwisu']
+        missing_fields = [field for field in required_fields if
+                          field not in data or not data.get(field, '').strip()]
+
+        if missing_fields:
+            missing_fields_str = ", ".join(missing_fields)
+            return {'message': f"Brak wymaganych pól: {missing_fields_str}"}, 400
+
+        # Walidacja 'Nazwa elementu' - musi być ciągiem znaków
+        if 'Nazwa elementu' in data and not isinstance(data['Nazwa elementu'], str):
+            return {'message': 'Nazwa elementu musi być ciągiem znaków'}, 400
+
+        # Walidacja 'Ilość' - musi być liczbą całkowitą
+        if 'Ilość' in data:
+            try:
+                quantity = int(data['Ilość'])
+                if quantity < 0:
+                    return {'message': 'Ilość musi być liczbą całkowitą większą lub równą 0'}, 400
+            except ValueError:
+                return {'message': 'Ilość musi być liczbą całkowitą'}, 400
+
+        # Walidacja 'idTypSerwisu' - musi być liczbą całkowitą, jeśli jest podane
+        if 'idTypSerwisu' in data:
+            try:
+                id_typ_serwisu = int(data['idTypSerwisu'])
+                if id_typ_serwisu <= 0:
+                    return {'message': 'idTypSerwisu musi być liczbą całkowitą większą od 0'}, 400
+            except ValueError:
+                return {'message': 'idTypSerwisu musi być liczbą całkowitą'}, 400
+
+        # Walidacja 'Dane Typ serwisu' - sprawdzanie, czy ten typ istnieje w bazie danych
+        if 'Dane Typ serwisu' in data:
+            typ_serwisu_name = data['Dane Typ serwisu']
+            # Sprawdzenie, czy typ serwisu o podanej nazwie istnieje w bazie danych
+            typ_serwisu = TypSerwisu.query.filter_by(rodzajSerwisu=typ_serwisu_name).first()
+            if not typ_serwisu:
+                return {'message': f"Typ serwisu '{typ_serwisu_name}' nie istnieje w bazie danych"}, 400
+
+        return None  # Brak błędów, walidacja przeszła pomyślnie
 
 # class Czesc(BaseModel):
 #     __tablename__ = 'Część'
@@ -649,146 +1163,3 @@ class Serwis(BaseModel):
 #                 return {'message': 'Ilość musi być liczbą całkowitą'}, 400
 #
 #         return None  # Brak błędów, walidacja przeszła pomyślnie
-
-class Czesc(BaseModel):
-    __tablename__ = 'Część'
-
-    idCzesc = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    idTypSerwisu = db.Column(db.Integer, db.ForeignKey('TypSerwisu.idTypSerwisu'), nullable=False)
-    nazwaElementu = db.Column(db.String(100), nullable=False)
-    ilosc = db.Column(db.Integer, nullable=False)
-
-    # Relacje
-    typ_serwisu = db.relationship('TypSerwisu', backref='czesci', lazy=True)
-
-    # Mapa kolumn z przyjaznymi nazwami
-    COLUMN_NAME_MAP = {
-        'idCzesc': {
-            'friendly_name': 'ID części',
-            'editable': False,
-            'input_type': 'text',
-        },
-        'idTypSerwisu': {
-            'friendly_name': 'idTypSerwisu',
-            'editable': False,
-            'input_type': 'Dane Typ Serwisu',
-        },
-        'TypSerwisu': {
-            'friendly_name': 'Dane Typ serwisu',
-            'editable': True,
-            'input_type': 'list',
-            'inputs': 'typserwisu/show/alltochoice',
-        },
-        'nazwaElementu': {
-            'friendly_name': 'Nazwa elementu',
-            'editable': True,
-            'input_type': 'text',
-        },
-        'ilosc': {
-            'friendly_name': 'Ilość',
-            'editable': True,
-            'input_type': 'number',
-        }
-    }
-
-    @staticmethod
-    def serialize(czesc):
-        """
-        Serializacja obiektu Czesc z zamianą nazw kolumn na przyjazne.
-        """
-        serialized_data = {}
-        for column_name, properties in Czesc.COLUMN_NAME_MAP.items():
-            friendly_name = properties['friendly_name']
-            value = getattr(czesc, column_name)
-
-            # Jeśli chodzi o relację, dodajemy również szczegóły z powiązanego obiektu
-            if column_name == 'idTypSerwisu':
-                if czesc.typ_serwisu:
-                    serialized_data[properties['friendly_name']] = czesc.typ_serwisu.rodzajSerwisu
-                else:
-                    serialized_data[properties['friendly_name']] = None
-            else:
-                serialized_data[friendly_name] = value
-
-        return serialized_data
-
-    @staticmethod
-    def deserialize(data):
-        """
-        Deserializacja danych z przyjaznymi nazwami na nazwy kolumn w bazie danych (te nieprzyjazne).
-        """
-        deserialized_data = {}
-
-        # Mapowanie przyjaznych nazw na kolumny
-        for column_name, properties in Czesc.COLUMN_NAME_MAP.items():
-            friendly_name = properties['friendly_name']
-            if friendly_name in data:
-                deserialized_data[column_name] = data[friendly_name]
-
-        # Dla pola 'Dane Typ serwisu', znajdź odpowiedni `idTypSerwisu`
-        if 'Dane Typ serwisu' in data:
-            typ_serwisu_name = data['Dane Typ serwisu']
-            print(f"Deserializacja: Szukam Typ serwisu dla '{typ_serwisu_name}'")
-
-            # Zapytanie do bazy danych w celu uzyskania `idTypSerwisu`
-            try:
-                typ_serwisu = TypSerwisu.query.filter_by(rodzajSerwisu=typ_serwisu_name).first()
-                if typ_serwisu:
-                    deserialized_data['idTypSerwisu'] = typ_serwisu.idTypSerwisu
-                    print(f"Znaleziono idTypSerwisu: {typ_serwisu.idTypSerwisu} dla '{typ_serwisu_name}'")
-                else:
-                    print(f"Typ serwisu o nazwie '{typ_serwisu_name}' nie istnieje w bazie danych")
-                    deserialized_data['idTypSerwisu'] = None
-            except Exception as e:
-                print(f"Błąd podczas wyszukiwania Typ serwisu: {e}")
-                deserialized_data['idTypSerwisu'] = None
-
-        return deserialized_data
-
-    @staticmethod
-    def validate_data(data):
-        """
-        Walidacja danych wejściowych dla Części.
-        """
-        print(f"Data in validation method: {data}")
-
-        # Sprawdzanie, czy wszystkie wymagane pola są obecne i nie puste
-        required_fields = ['Nazwa elementu', 'Ilość', 'Dane Typ serwisu']
-        missing_fields = [field for field in required_fields if
-                          field not in data or not data.get(field, '').strip()]
-
-        if missing_fields:
-            missing_fields_str = ", ".join(missing_fields)
-            return {'message': f"Brak wymaganych pól: {missing_fields_str}"}, 400
-
-        # Walidacja 'Nazwa elementu' - musi być ciągiem znaków
-        if 'Nazwa elementu' in data and not isinstance(data['Nazwa elementu'], str):
-            return {'message': 'Nazwa elementu musi być ciągiem znaków'}, 400
-
-        # Walidacja 'Ilość' - musi być liczbą całkowitą
-        if 'Ilość' in data:
-            try:
-                quantity = int(data['Ilość'])
-                if quantity < 0:
-                    return {'message': 'Ilość musi być liczbą całkowitą większą lub równą 0'}, 400
-            except ValueError:
-                return {'message': 'Ilość musi być liczbą całkowitą'}, 400
-
-        # Walidacja 'idTypSerwisu' - musi być liczbą całkowitą, jeśli jest podane
-        if 'idTypSerwisu' in data:
-            try:
-                id_typ_serwisu = int(data['idTypSerwisu'])
-                if id_typ_serwisu <= 0:
-                    return {'message': 'idTypSerwisu musi być liczbą całkowitą większą od 0'}, 400
-            except ValueError:
-                return {'message': 'idTypSerwisu musi być liczbą całkowitą'}, 400
-
-        # Walidacja 'Dane Typ serwisu' - sprawdzanie, czy ten typ istnieje w bazie danych
-        if 'Dane Typ serwisu' in data:
-            typ_serwisu_name = data['Dane Typ serwisu']
-            # Sprawdzenie, czy typ serwisu o podanej nazwie istnieje w bazie danych
-            typ_serwisu = TypSerwisu.query.filter_by(rodzajSerwisu=typ_serwisu_name).first()
-            if not typ_serwisu:
-                return {'message': f"Typ serwisu '{typ_serwisu_name}' nie istnieje w bazie danych"}, 400
-
-        return None  # Brak błędów, walidacja przeszła pomyślnie

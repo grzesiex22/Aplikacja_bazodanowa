@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 from Aplikacja_bazodanowa.frontend.ui.FleetFramev2 import FleetFrame
 from Aplikacja_bazodanowa.frontend.ui.MagazynFrame import WarehouseFrame
+from Aplikacja_bazodanowa.frontend.ui.SerwisFrame import SerwisFrame
 # from Aplikacja_bazodanowa.frontend.ui.FleetFrame import FleetFrame
 
 
@@ -16,6 +17,8 @@ class MainWindow(QMainWindow):
         # Ustawienie flag okna
 
         self.setWindowFlags(Qt.FramelessWindowHint)
+
+
 class Ui_MainWindow(object):
     def __init__(self, main_window, api_url):
         self.main_window = main_window  # Przechowaj referencję do głównego okna
@@ -58,6 +61,7 @@ class Ui_MainWindow(object):
         # Inicjalizacja ramki floty
         self.flota_window = FleetFrame(MainWindow, self.api_url)
         self.magazyn_window = WarehouseFrame(MainWindow, self.api_url)
+        self.serwis_window = SerwisFrame(MainWindow, self.api_url)
 
         # Ustawienie głównego widgetu
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -117,6 +121,8 @@ class Ui_MainWindow(object):
         self.button_serwis.setEnabled(True)
         self.button_serwis.setGeometry(QtCore.QRect(0, 150, 300, 100))
         self.button_serwis.setObjectName("button_serwis")
+        self.button_serwis.clicked.connect(self.serwis_window.show_serwis)
+
 
         self.button_magazyn = QtWidgets.QPushButton(self.widget_buttons)
         self.button_magazyn.setEnabled(True)
