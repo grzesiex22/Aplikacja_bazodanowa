@@ -426,16 +426,16 @@ class SerwisFrame(QtWidgets.QFrame):
 
         self.tableView_serwis.setModel(self.model_serwis)
 
-        # params = {
-        #     "filter_by": json.dumps(self.filtr_parameteres_ciagnik),  # Przekształcamy filtr na JSON
-        #     "sort_by": self.sort_parameteres_serwis['sort_by'],  # Dodajemy wartość sortowania
-        #     "order": self.sort_parameteres_serwis['order'],  # Dodajemy wartość kierunku sortowania
-        # }
-        # print(f"Słownik dla load_data CIĄGNIK: {params}")
+        params = {
+            "filter_by": json.dumps(self.filtr_parameteres_serwis),  # Przekształcamy filtr na JSON
+            "sort_by": self.sort_parameteres_serwis['sort_by'],  # Dodajemy wartość sortowania
+            "order": self.sort_parameteres_serwis['order'],  # Dodajemy wartość kierunku sortowania
+        }
+        print(f"Słownik dla load_data CIĄGNIK: {params}")
 
         try:
             # Wykonanie żądania HTTP GET do API
-            response = requests.get(f"{self.api_url}/serwiswidok/show/all")
+            response = requests.get(f"{self.api_url}/serwiswidok/show", params=params)
             if response.status_code == 200:
                 serwis_data = response.json()  # Pobranie danych w formacie JSON
 

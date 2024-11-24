@@ -338,10 +338,10 @@ def pobierz_i_sortuj_pojazdy():
 @pojazd_bp.route('/pojazd/show/alltochoice', methods=['GET'])
 def pobierz_wszystkie_pojazdy_do_okna_wyboru():
     try:
-        pojazdy = Pojazd.query.order_by(Pojazd.marka.asc(), Pojazd.model.asc()).all()
+        pojazdy = Pojazd.query.order_by(Pojazd.typPojazdu.asc(), Pojazd.marka.asc(), Pojazd.model.asc()).all()
         wynik = []
         for pojazd in pojazdy:
-            data = {'ID': pojazd.idPojazd, 'data': f"{pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"}
+            data = {'ID': pojazd.idPojazd, 'data': f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"}
             wynik.append(data)
         return jsonify(wynik), 200
     except Exception as e:

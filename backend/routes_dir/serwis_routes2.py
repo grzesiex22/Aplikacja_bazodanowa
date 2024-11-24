@@ -1,12 +1,14 @@
+import json
 import traceback
 
 from flask import Blueprint, request, jsonify
-from sqlalchemy import func
+from sqlalchemy import func, asc, desc
 
 from Aplikacja_bazodanowa.backend.database import db
 from Aplikacja_bazodanowa.backend.models import Serwis, SerwisWidok, Pojazd, TypSerwisu
 from datetime import datetime
 import re
+
 
 # Blueprint dla serwisów
 serwis_bp = Blueprint('serwis', __name__)
@@ -337,7 +339,7 @@ def jakie_filtry_dla_serwisu():  # nie działa chyba
             for pojazd in pojazdy_query:
                 data = {
                     'ID': pojazd.idPojazd,
-                    'data': f"{pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"}
+                    'data': f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"}
                 unique_values.append(data)
 
         # Obsługa przypadku, gdy filtrujemy po rodzaju serwisu
@@ -380,6 +382,143 @@ def jakie_filtry_dla_serwisu():  # nie działa chyba
 
     except Exception as e:
         # Obsługa błędu - zwracamy szczegóły błędu w formie JSON i kod statusu 500
+        return jsonify({'error': str(e)}), 500
+
+
+
+@serwis_bp.route('/serwiswidok/show', methods=['GET'])
+def pobierz_i_sortuj_widok_pojazdów():
+    """
+    Endpoint do pobierania i sortowania serwisów z możliwością filtrowania według różnych kryteriów.
+    Specjalnie obsługuje 'Dane kierowcy' - potrzebuje liste map {'ID': idkierowca, 'data': dane} i filtruje po wybranych ID
+
+    Parametry zapytania:
+        filter_by (str): Filtr do zastosowania w zapytaniu, przekazany jako słownik JSON (domyślnie '{}').
+        sort_by (str): Nazwa kolumny, po której pojazdy mają zostać posortowane (domyślnie 'ID pojazdu').
+        order (str): Kierunek sortowania - 'asc' dla rosnącego, 'desc' dla malejącego (domyślnie 'asc').
+
+    Returns:
+        Response: Lista pojazdów w formacie JSON, posortowana i przefiltrowana zgodnie z parametrami zapytania.
+        int: Kod statusu HTTP, 200 w przypadku sukcesu, 500 w przypadku błędu.
+    """
+
+    # Pobieranie parametrów zapytania z URL jako słownik
+    combined_params = request.args.to_dict()  # Pobieramy parametry zapytania HTTP jako słownik
+
+    # Pobieramy poszczególne parametry zapytania
+    filter_by = request.args.get('filter_by', '{}')  # Filtrowanie - domyślnie '{}' jeśli brak
+    sort_by = request.args.get('sort_by', 'ID serwisu')  # Sortowanie domyślnie po 'ID pojazdu'
+    order = request.args.get('order', 'asc')  # Domyślny kierunek sortowania to 'asc'
+
+    # Logowanie parametrów zapytania dla celów debugowania
+    print(f"api: pobierz i sortuj serwisy")
+    print(f"Filter by: {filter_by}")
+    print(f"Sort by: {sort_by}")
+    print(f"Order: {order}")
+
+    # Ustalanie kierunku sortowania na podstawie wartości 'order'
+    kierunek_sortowania = asc if order == 'asc' else desc  # Ustalanie kierunku sortowania
+
+    try:
+        # Budowanie podstawowego zapytania do bazy danych
+        query = db.session.query(SerwisWidok)
+
+        # Sprawdzamy, czy istnieje filtr 'filter_by', jeśli tak to dodajemy do zapytania
+        if filter_by != '{}':  # Jeśli filtr jest różny od pustego słownika
+            print(f"Received filter_by: {filter_by}")
+
+            # Przetwarzamy filtr w formacie JSON na słownik
+            try:
+                filters = json.loads(filter_by)  # Konwersja filtra JSON na słownik
+                print(f"Parsed filters: {filters}")
+
+                # Iteracja po filtrach i ich wartościach
+                for friendly_name, values in filters.items():
+                    print(f"Processing filter: {friendly_name} with values: {values}")
+
+                    # Mapowanie 'friendly_name' na odpowiadającą kolumnę w tabeli Pojazd
+                    column_name = None
+
+                    # # Obsługuje specjalny przypadek dla 'Dane kierowcy'
+                    # if friendly_name == 'Dane kierowcy':
+                    #     print("Handling 'Dane kierowcy' filter")
+                    #
+                    #     # Lista IDs kierowców, którzy są zaznaczeni w filtrze (pomijamy None)
+                    #     kierowcy_ids = [kierowca['ID'] for kierowca in values if kierowca['ID'] is not None]
+                    #     print(f"Kierowcy IDs (excluding None): {kierowcy_ids}")
+                    #
+                    #     # Jeśli filtr zawiera "Brak kierowcy" (ID: None), uwzględniamy pojazdy bez przypisanego kierowcy
+                    #     if any(kierowca['ID'] is None for kierowca in values):
+                    #         print("Including vehicles without a driver (idKierowca IS NULL)")
+                    #         query = query.filter((Pojazd.idKierowca.is_(None)) | Pojazd.idKierowca.in_(kierowcy_ids))
+                    #     else:
+                    #         # Filtrujemy tylko po przypisanych kierowcach
+                    #         query = query.filter(Pojazd.idKierowca.in_(kierowcy_ids))
+                    #
+                    #     print("Filter applied for 'Dane kierowcy' by IDs.")
+                    # else:
+
+                    # Mapowanie na inne kolumny w tabeli Pojazd
+                    print(f"Searching for column corresponding to {friendly_name}")
+                    for column, column_info in SerwisWidok.COLUMN_NAME_MAP.items():
+                        if column_info['friendly_name'] == friendly_name:
+                            column_name = column
+                            print(f"Found column: {column_name}")
+                            break
+
+                    # Jeśli znaleziono odpowiadającą kolumnę, dodajemy filtr
+                    if column_name:
+                        column_to_filter = getattr(SerwisWidok, column_name)
+                        print(f"Applying filter for column {column_name}")
+
+                        # Jeśli 'values' to lista, filtrujemy na podstawie tej listy
+                        if isinstance(values, list):  # Lista wartości
+                            query = query.filter(column_to_filter.in_(values))
+                            print(f"Filter applied for list of values: {values}")
+                        # Jeśli 'values' to ciąg znaków o długości co najmniej 3, stosujemy filtr 'LIKE'
+                        elif isinstance(values, str) and len(values) >= 3:  # Minimalna długość dla LIKE
+                            query = query.filter(column_to_filter.ilike(f"%{values}%"))
+                            print(f"Partial match filter applied for: {values}")
+                    else:
+                        print(f"No column found for friendly_name: {friendly_name}")
+
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON for filter_by: {str(e)}")
+            except Exception as e:
+                print(f"Unexpected error while processing filters: {str(e)}")
+
+        # Ustalanie kolumny do sortowania
+        # if sort_by == "Dane kierowcy":
+        #     # Sortowanie po imieniu i nazwisku kierowcy
+        #     query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
+        #     query = query.order_by(
+        #         kierunek_sortowania(Kierowca.imie),
+        #         kierunek_sortowania(Kierowca.nazwisko)
+        #     )
+        # else:
+
+        # Mapowanie 'friendly_name' na kolumny do sortowania w tabeli Pojazd
+        sort_column_name = None
+        for column_name, column_info in SerwisWidok.COLUMN_NAME_MAP.items():
+            if column_info['friendly_name'] == sort_by:
+                sort_column_name = column_name
+                break
+
+        # Jeśli znaleziono odpowiednią kolumnę, wykonujemy sortowanie po niej
+        # W przeciwnym razie domyślnie sortujemy po 'idSerwis'
+        sort_column = getattr(SerwisWidok, sort_column_name, SerwisWidok.idSerwis)
+        query = query.order_by(kierunek_sortowania(sort_column))
+
+        # Pobranie wyników zapytania z bazy danych
+        serwisy = query.all()
+
+        # Konwersja wyników na format JSON
+        wynik = [SerwisWidok.serialize(serwis) for serwis in serwisy]
+
+        return jsonify(wynik), 200  # Zwracamy wynik w formacie JSON z kodem 200 (sukces)
+
+    except Exception as e:
+        # Jeśli wystąpił błąd, zwracamy szczegóły błędu w formacie JSON oraz kod 500 (błąd serwera)
         return jsonify({'error': str(e)}), 500
 
 

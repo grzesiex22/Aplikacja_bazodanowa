@@ -398,17 +398,6 @@ class Pojazd(BaseModel):
 
         return None  # Brak błędów, walidacja przeszła pomyślnie
 
-# class TypSerwisu(BaseModel):
-#     __tablename__ = 'TypSerwisu'
-#     idTypSerwisu = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     rodzajSerwisu = db.Column(db.String(100), nullable=False)
-#     typPojazdu = db.Column(db.Enum('Ciągnik', 'Naczepa'), nullable=False)
-#
-#
-#     COLUMN_NAME_MAP = {
-#         'rodzajSerwisu': 'Rodzaj serwisu',
-#         'typPojazdu': 'Typ pojazdu'
-#     }
 
 
 class TypSerwisu(BaseModel):
@@ -416,6 +405,8 @@ class TypSerwisu(BaseModel):
     idTypSerwisu = db.Column(db.Integer, primary_key=True, autoincrement=True)
     rodzajSerwisu = db.Column(db.String(100), nullable=False)
     typPojazdu = db.Column(db.Enum('Ciągnik', 'Naczepa'), nullable=False)
+    """ MOŻESZ TO SPRÓBOWAĆ """
+    # typPojazdu = db.Column(db.Enum(TypPojazdu), nullable=False)
 
     # Mapa kolumn z przyjaznymi nazwami
     COLUMN_NAME_MAP = {
@@ -438,6 +429,15 @@ class TypSerwisu(BaseModel):
             'filter': 'select'
         }
     }
+
+    """ MOŻESZ TO SPRÓBOWAĆ """
+    # 'typPojazdu': {
+    #     'friendly_name': 'Typ pojazdu',
+    #     'editable': False,
+    #     'input_type': 'enum',
+    #     'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa],
+    #     'filter': False
+    # },
 
     @staticmethod
     def serialize(typ_serwisu):
@@ -584,7 +584,7 @@ class Serwis(BaseModel):
             friendly_name = properties['friendly_name']
             if friendly_name == 'Dane pojazdu':
                 pojazd = Pojazd.query.get(serwis.idPojazd) if serwis.idPojazd else None
-                serialized_data['Dane pojazdu'] = f"{pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"
+                serialized_data['Dane pojazdu'] = f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"
             elif friendly_name == 'Typ serwisu':
                 typSerwisu = TypSerwisu.query.get(serwis.idTypSerwisu) if serwis.idTypSerwisu else None
                 serialized_data['Typ serwisu'] = f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"
@@ -654,7 +654,7 @@ class Serwis(BaseModel):
     @staticmethod
     def validate_data(data):
         """
-        Walidacja danych wejściowych dla Kierowcy.
+        Walidacja danych wejściowych dla Serwisu.
         """
         print(f"Data in validation method: {data}")
 
@@ -666,6 +666,22 @@ class Serwis(BaseModel):
         if missing_fields:
             missing_fields_str = ", ".join(missing_fields)
             return {'message': f"Brak wymaganych pól: {missing_fields_str}"}, 400
+
+        # walidacja poprawności powiązania danych pojazdu i typu serwisu
+        id_pojazdu = data['ID pojazdu']
+        id_typu_serwisu = data['ID typu serwisu']
+
+        pojazd = Pojazd.query.get(id_pojazdu) if id_pojazdu else None
+        typ_pojazdu = pojazd.typPojazdu.value  # muszę przekonwertować na value bo typ serwisu
+        typ_serwisu = TypSerwisu.query.get(id_typu_serwisu) if id_typu_serwisu else None
+        typ_pojazdu_serwisu = typ_serwisu.typPojazdu
+        print(f"pojazd - typ pojazdu:{typ_pojazdu}")
+        print(f"typ seriwsu - typ pojazdu:{typ_pojazdu_serwisu}")
+
+
+        if typ_pojazdu != typ_pojazdu_serwisu:
+            return {'message': f"Wybrany typ serwisu ({data['Typ serwisu']}) nie może być przypisany "
+                               f"do wybranego pojazdu ({data['Dane pojazdu']})."}, 400
 
         # Walidacja daty serwisu
         if 'Data serwisu' in data:
@@ -819,25 +835,25 @@ class SerwisWidok(BaseModel):
             'friendly_name': 'Cena części netto',
             'editable': True,
             'input_type': 'number',
-            'filter': 'number'
+            'filter': False
         },
         'robocizna': {
             'friendly_name': 'Koszt robocizny',
             'editable': True,
             'input_type': 'number',
-            'filter': 'number'
+            'filter': False
         },
         'kosztCalkowityNetto': {
             'friendly_name': 'Koszt całkowity netto',
             'editable': True,
             'input_type': 'number',
-            'filter': 'number'
+            'filter': False
         },
         'przebieg': {
             'friendly_name': 'Przebieg',
             'editable': True,
             'input_type': 'number',
-            'filter': 'number'
+            'filter': False
         },
         'infoDodatkowe': {
             'friendly_name': 'Dodatkowe informacje',
