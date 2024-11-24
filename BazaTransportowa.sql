@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `TransportManagerDB`.`TypSerwisu` (
   `typPojazdu` ENUM('Ciągnik', 'Naczepa') NOT NULL,
   PRIMARY KEY (`idTypSerwisu`),
   UNIQUE INDEX `idTypSerwisu_UNIQUE` (`idTypSerwisu` ASC) VISIBLE,
-  UNIQUE INDEX `typSerwisu_UNIQUE` (`rodzajSerwisu` ASC) VISIBLE)
+  UNIQUE INDEX `rodzaj_typ_UNIQUE` (`rodzajSerwisu`, `typPojazdu`) VISIBLE)
 ENGINE = InnoDB;
 
 

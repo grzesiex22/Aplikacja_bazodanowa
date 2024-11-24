@@ -526,9 +526,9 @@ class SerwisFrame(QtWidgets.QFrame):
         self.overlay.show()
 
         # Przekazujemy referencję do funkcji filtrujFlote jako callback
-        self.filter_dialog = FilterFrame(columns_info=self.model_serwis_columns_info,
+        self.filter_dialog = FilterFrame(columns_info=self.model_serwiswidok_columns_info,
                                          filters=self.filtr_parameteres_serwis,
-                                         api_url=f"{self.api_url}/serwis",
+                                         api_url=f"{self.api_url}/serwiswidok",
                                          parent=self, header_title="Filtrowanie serwisów",
                                          refresh_callback=self.load_data())
 

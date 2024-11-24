@@ -42,7 +42,7 @@ class BaseModel(db.Model):
        - Wartość ta jest wykorzystywana do operacji na tabeli.
 
     
-    2. 'editable' (bool): - nie korzystamy 
+    2. 'editable' (bool): - korzystamy 
        - Określa, czy dane pole jest edytowalne przez użytkownika.
        - Jeśli ustawisz na `True`, użytkownik może edytować wartość w tym polu.
        - Jeśli ustawisz na `False`, pole będzie tylko do odczytu (użytkownik nie może go zmieniać).
@@ -266,7 +266,7 @@ class Pojazd(BaseModel):
         },
         'typPojazdu': {
             'friendly_name': 'Typ pojazdu',
-            'editable': True,
+            'editable': False,
             'input_type': 'enum',
             'inputs': [TypPojazdu.Ciągnik, TypPojazdu.Naczepa],
             'filter': False
@@ -427,13 +427,13 @@ class TypSerwisu(BaseModel):
         },
         'rodzajSerwisu': {
             'friendly_name': 'Rodzaj serwisu',
-            'editable': True,
+            'editable': False,
             'input_type': 'text',
             'filter': 'text'
         },
         'typPojazdu': {
             'friendly_name': 'Typ pojazdu',
-            'editable': True,
+            'editable': False,
             'input_type': 'select',
             'filter': 'select'
         }

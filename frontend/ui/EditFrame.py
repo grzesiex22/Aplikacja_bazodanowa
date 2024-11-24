@@ -208,6 +208,7 @@ class EditFrame(QFrame):
             column_value = self.model_data[column_name]
             input_type = column.get('input_type')
             inputs = column.get('inputs')
+            editable = column.get('editable')
 
             if column['primary_key'] == True:
                 self.driver_id = column_value  # Przypisanie klucza głównego
@@ -219,7 +220,7 @@ class EditFrame(QFrame):
             self.gridLayout_edit.addWidget(label, row, 0)
 
             # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
-            if column['foreign_key'] == True:
+            if editable == False:
                 tmp = column
                 label = QLabel(str(column_value))
                 label.setFixedHeight(30)

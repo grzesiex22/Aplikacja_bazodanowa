@@ -189,8 +189,96 @@ def edytuj_serwis(id):
         return jsonify({'error': 'Wystąpił problem z aktualizacją danych. Spróbuj ponownie później.'}), 500  # Komunikat o błędzie
 
 
+@serwis_bp.route('/serwiswidok/filtry', methods=['GET'])
+def jakie_filtry_dla_widoku_serwisu():
+    """
+    Endpoint do pobierania dostępnych filtrów dla serwisów z możliwością filtrowania według rodzaju serwisu
+    oraz według innych kryteriów, takich jak dane kierowcy.
+
+    W przyupadku "Dane kierowcy" zwraca JSON którego elementy to słowniki: {'ID': ... , 'data': ....}
+
+    Parametry zapytania:
+        Typ serwisu (str, opcjonalny): Typ serwisu, według którego chcemy filtrować wyniki. (domyślnie: None)
+        filtr (str): Przyjazna nazwa filtru określająca, według której kolumny chcemy filtrować.
+
+    Returns:
+        Tuple[Response, int]: Krotka zawierająca:
+            - Response (JSON) : zawiera listę zserializowanych danych serwisów, jeśli znaleziono serwisy.
+            - Code (int) : Kod statusu HTTP, np. 200 dla sukcesu lub 500, jeśli wystąpił błąd serwera.
+    """
+    # Pobranie parametrów zapytania z URL (typ filtru - kolumna)
+    typ_filtru = request.args.get('filtr')
+
+    print(f"api: pobierz_filtry_dla_serwisy")
+    print(f"Pobrany typ filtru {typ_filtru}")
+
+    # Mapowanie `friendly_name` z parametru `filtr` na właściwą kolumnę w modelu Serwis
+    filtr_column_name = None
+    for column_name, column_info in SerwisWidok.COLUMN_NAME_MAP.items():
+        if column_info['friendly_name'] == typ_filtru:
+            filtr_column_name = column_name
+            break  # Zatrzymanie pętli po znalezieniu kolumny
+
+    # # Specjalny przypadek dla filtrowania po danych kierowcy
+    # if typ_filtru == 'Dane pojazdu':
+    #     filtr_column_name = 'idPojazd'
+    # elif typ_filtru == 'Typ serwisu':
+    #     filtr_column_name = 'idTypSerwisu'
+
+
+
+    print(f"Znaleziona nazwa kolumny do filtrowania: {filtr_column_name}")
+
+    # Sprawdzenie, czy znaleziono kolumnę do filtrowania; jeśli nie, zgłaszamy błąd
+    if filtr_column_name is None:
+        return jsonify(f"Nie znaleziono kolumny: '{typ_filtru}' w tabeli {Serwis.__name__}"), 400
+
+    try:
+        # Obsługa przypadku, gdy filtrujemy po rodzaju serwisu
+        if filtr_column_name == 'idTypSerwisu':
+            # Pobranie listy wszystkich kierowców powiązanych z serwisami, posortowanych alfabetycznie
+            typserwisu_query = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
+
+            # Formatowanie wyników dla każdego kierowcy do listy
+            unique_values = []
+            data = {
+                'ID': None,
+                'data': f"Brak rodzaju serwisu"}
+            unique_values.append(data)
+
+            for typserwisu in typserwisu_query:
+                data = {
+                    'ID': typserwisu.idTypSerwisu,
+                    'data': f"{typserwisu.typPojazdu}, {typserwisu.rodzajSerwisu}"}
+                unique_values.append(data)
+
+        else:
+            column_to_filter = getattr(SerwisWidok, filtr_column_name, None)
+            # Jeśli nie znaleziono kolumny w modelu Serwis, zgłaszamy błąd
+            if column_to_filter is None:
+                return jsonify({'error': f"Kolumna '{filtr_column_name}' nie istnieje w modelu Serwis."}), 400
+
+            # Tworzymy zapytanie do bazy danych, aby uzyskać unikalne wartości w tej kolumnie
+            unique_values_query = (
+                SerwisWidok.query
+                    .with_entities(func.lower(column_to_filter).label('unique_value'))  # Ignorowanie wielkości liter
+                    .distinct()  # Pobranie unikalnych wartości
+            )
+            # Konwersja wyniku zapytania na listę wartości
+            unique_values = [row.unique_value for row in unique_values_query]
+            # Sortowanie wynikowej listy unikalnych wartości
+            unique_values.sort()
+
+        # Zwracamy listę unikalnych wartości filtru lub danych kierowców jako odpowiedź JSON
+        return jsonify(unique_values), 200
+
+    except Exception as e:
+        # Obsługa błędu - zwracamy szczegóły błędu w formie JSON i kod statusu 500
+        return jsonify({'error': str(e)}), 500
+
+
 @serwis_bp.route('/serwis/filtry', methods=['GET'])
-def jakie_filtry_dla_serwisu():
+def jakie_filtry_dla_serwisu():  # nie działa chyba
     """
     Endpoint do pobierania dostępnych filtrów dla serwisów z możliwością filtrowania według rodzaju serwisu
     oraz według innych kryteriów, takich jak dane kierowcy.
@@ -293,7 +381,6 @@ def jakie_filtry_dla_serwisu():
     except Exception as e:
         # Obsługa błędu - zwracamy szczegóły błędu w formie JSON i kod statusu 500
         return jsonify({'error': str(e)}), 500
-
 
 
 @serwis_bp.route('/serwis/validate', methods=['POST'])
