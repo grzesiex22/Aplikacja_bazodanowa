@@ -829,7 +829,7 @@ class SerwisWidok(BaseModel):
             'friendly_name': 'Data serwisu',
             'editable': True,
             'input_type': 'data',
-            'filter': 'text'
+            'filter': 'data'
         },
         'cenaCzesciNetto': {
             'friendly_name': 'Cena części netto',

@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessage
 from urllib.parse import urlparse
 import requests
 from functools import partial
+
+from Aplikacja_bazodanowa.frontend.ui.DateRangeBox import DateRangeBox
 from Aplikacja_bazodanowa.frontend.ui.MultiSelectComboBox import MultiSelectComboBox
 
 
@@ -110,10 +112,10 @@ class FilterFrame(QFrame):
         self.filtrAreaWidget.setObjectName("scrollAreaWidgetContents")
 
         # układ formularza
-        self.gridLayout_add = QtWidgets.QGridLayout(self.filtrAreaWidget)
-        self.gridLayout_add.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout_add.setSpacing(10)  # Ustaw stały odstęp między elementami
-        self.gridLayout_add.setObjectName("gridLayout_edit")
+        self.gridLayout_filter = QtWidgets.QGridLayout(self.filtrAreaWidget)
+        self.gridLayout_filter.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_filter.setSpacing(10)  # Ustaw stały odstęp między elementami
+        self.gridLayout_filter.setObjectName("gridLayout_filter")
 
         # Formularz
         self.setup_fields(self.columns)
@@ -218,7 +220,7 @@ class FilterFrame(QFrame):
             # Tworzymy etykietę
             label = QLabel(column_name)
             label.setFixedHeight(30)
-            self.gridLayout_add.addWidget(label, row, 0)
+            self.gridLayout_filter.addWidget(label, row, 0)
 
             if filter_type == 'text':
                 # Tworzymy pole tekstowe
@@ -233,8 +235,20 @@ class FilterFrame(QFrame):
                     current_filter = self.filters[column_name]
                     line_edit.setText(str(current_filter))
 
-                self.gridLayout_add.addWidget(line_edit, row, 1)
+                self.gridLayout_filter.addWidget(line_edit, row, 1)
                 self.fields[column_name] = line_edit
+            elif filter_type == 'data':
+                label.setFixedHeight(60)
+                date_range_box = DateRangeBox()
+
+                # ustawia tekst na podstawie wczytanych filtrów, jeśli istnieją
+                if column_name in self.filters:
+                    current_filter = self.filters[column_name]
+                    date_range_box.setDateRange(current_filter)
+
+                self.gridLayout_filter.addWidget(date_range_box, row, 1)
+                self.fields[column_name] = date_range_box
+
             elif filter_type == 'select':
                 # tu połączenie po api i pobranie danych do filtrów
                 try:
@@ -267,7 +281,7 @@ class FilterFrame(QFrame):
                             line_edit.setSelectedItems(current_filter)
 
                         line_edit.setFixedHeight(30)
-                        self.gridLayout_add.addWidget(line_edit, row, 1)
+                        self.gridLayout_filter.addWidget(line_edit, row, 1)
                         self.fields[column_name] = line_edit
                     else:
                         print(f"Błąd API: {response.status_code}")
@@ -285,6 +299,8 @@ class FilterFrame(QFrame):
             if isinstance(field, MultiSelectComboBox):
                 # Ustawiamy QComboBox na domyślny (pierwszy element na liście lub pusty)
                 field.clearItems()  # Resetujemy zaznaczone elementy
+            elif isinstance(field, DateRangeBox):
+                field.clearItems()
             else:
                 field.clear()  # Dla innych pól (QLineEdit) czyścimy wartość
 
@@ -305,6 +321,12 @@ class FilterFrame(QFrame):
 
             elif isinstance(field, MultiSelectComboBox):
                 field_value = field.selectedItems()  # Zbieramy wybrane elementy
+                if field_value:
+                    self.filtr_parameteres[field_name] = field_value
+                    print(f"Pole {field_name} ma wybrane wartości: {field_value}")
+
+            elif isinstance(field, DateRangeBox):
+                field_value = field.getDateRange()  # Zbieramy wybrane elementy
                 if field_value:
                     self.filtr_parameteres[field_name] = field_value
                     print(f"Pole {field_name} ma wybrane wartości: {field_value}")

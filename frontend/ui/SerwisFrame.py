@@ -431,7 +431,7 @@ class SerwisFrame(QtWidgets.QFrame):
             "sort_by": self.sort_parameteres_serwis['sort_by'],  # Dodajemy wartość sortowania
             "order": self.sort_parameteres_serwis['order'],  # Dodajemy wartość kierunku sortowania
         }
-        print(f"Słownik dla load_data CIĄGNIK: {params}")
+        print(f"Słownik dla load_data SERWIS: {params}")
 
         try:
             # Wykonanie żądania HTTP GET do API

@@ -221,13 +221,6 @@ def jakie_filtry_dla_widoku_serwisu():
             filtr_column_name = column_name
             break  # Zatrzymanie pętli po znalezieniu kolumny
 
-    # # Specjalny przypadek dla filtrowania po danych kierowcy
-    # if typ_filtru == 'Dane pojazdu':
-    #     filtr_column_name = 'idPojazd'
-    # elif typ_filtru == 'Typ serwisu':
-    #     filtr_column_name = 'idTypSerwisu'
-
-
 
     print(f"Znaleziona nazwa kolumny do filtrowania: {filtr_column_name}")
 
@@ -279,135 +272,25 @@ def jakie_filtry_dla_widoku_serwisu():
         return jsonify({'error': str(e)}), 500
 
 
-@serwis_bp.route('/serwis/filtry', methods=['GET'])
-def jakie_filtry_dla_serwisu():  # nie działa chyba
-    """
-    Endpoint do pobierania dostępnych filtrów dla serwisów z możliwością filtrowania według rodzaju serwisu
-    oraz według innych kryteriów, takich jak dane kierowcy.
-
-    W przyupadku "Dane kierowcy" zwraca JSON którego elementy to słowniki: {'ID': ... , 'data': ....}
-
-    Parametry zapytania:
-        Typ serwisu (str, opcjonalny): Typ serwisu, według którego chcemy filtrować wyniki. (domyślnie: None)
-        filtr (str): Przyjazna nazwa filtru określająca, według której kolumny chcemy filtrować.
-
-    Returns:
-        Tuple[Response, int]: Krotka zawierająca:
-            - Response (JSON) : zawiera listę zserializowanych danych serwisów, jeśli znaleziono serwisy.
-            - Code (int) : Kod statusu HTTP, np. 200 dla sukcesu lub 500, jeśli wystąpił błąd serwera.
-    """
-    # Pobranie parametrów zapytania z URL (typ filtru - kolumna)
-    typ_filtru = request.args.get('filtr')
-
-    print(f"api: pobierz_filtry_dla_serwisy")
-    print(f"Pobrany typ filtru {typ_filtru}")
-
-    # Mapowanie `friendly_name` z parametru `filtr` na właściwą kolumnę w modelu Serwis
-    filtr_column_name = None
-    for column_name, column_info in Serwis.COLUMN_NAME_MAP.items():
-        if column_info['friendly_name'] == typ_filtru:
-            filtr_column_name = column_name
-            break  # Zatrzymanie pętli po znalezieniu kolumny
-
-    # Specjalny przypadek dla filtrowania po danych kierowcy
-    if typ_filtru == 'Dane pojazdu':
-        filtr_column_name = 'idPojazd'
-    elif typ_filtru == 'Typ serwisu':
-        filtr_column_name = 'idTypSerwisu'
-
-
-
-    print(f"Znaleziona nazwa kolumny do filtrowania: {filtr_column_name}")
-
-    # Sprawdzenie, czy znaleziono kolumnę do filtrowania; jeśli nie, zgłaszamy błąd
-    if filtr_column_name is None:
-        return jsonify(f"Nie znaleziono kolumny: '{typ_filtru}' w tabeli {Serwis.__name__}"), 400
-
-    try:
-        # Obsługa przypadku, gdy filtrujemy po danych pojazdu
-        if filtr_column_name == 'idPojazd':
-            # Pobranie listy wszystkich kierowców powiązanych z serwisami, posortowanych alfabetycznie
-            pojazdy_query = Pojazd.query.order_by(Pojazd.marka.asc(), Pojazd.model.asc()).all()
-
-            # Formatowanie wyników dla każdego kierowcy do listy
-            unique_values = []
-            data = {
-                'ID': None,
-                'data': f"Brak pojazdu"}
-            unique_values.append(data)
-
-            for pojazd in pojazdy_query:
-                data = {
-                    'ID': pojazd.idPojazd,
-                    'data': f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"}
-                unique_values.append(data)
-
-        # Obsługa przypadku, gdy filtrujemy po rodzaju serwisu
-        if filtr_column_name == 'idTypSerwisu':
-            # Pobranie listy wszystkich kierowców powiązanych z serwisami, posortowanych alfabetycznie
-            typserwisu_query = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
-
-            # Formatowanie wyników dla każdego kierowcy do listy
-            unique_values = []
-            data = {
-                'ID': None,
-                'data': f"Brak rodzaju serwisu"}
-            unique_values.append(data)
-
-            for typserwisu in typserwisu_query:
-                data = {
-                    'ID': typserwisu.idPojazd,
-                    'data': f"{typserwisu.typPojazdu}, {typserwisu.rodzajSerwisu}"}
-                unique_values.append(data)
-
-        else:
-            column_to_filter = getattr(Serwis, filtr_column_name, None)
-            # Jeśli nie znaleziono kolumny w modelu Serwis, zgłaszamy błąd
-            if column_to_filter is None:
-                return jsonify({'error': f"Kolumna '{filtr_column_name}' nie istnieje w modelu Serwis."}), 400
-
-            # Tworzymy zapytanie do bazy danych, aby uzyskać unikalne wartości w tej kolumnie
-            unique_values_query = (
-                Serwis.query
-                    .with_entities(func.lower(column_to_filter).label('unique_value'))  # Ignorowanie wielkości liter
-                    .distinct()  # Pobranie unikalnych wartości
-            )
-            # Konwersja wyniku zapytania na listę wartości
-            unique_values = [row.unique_value for row in unique_values_query]
-            # Sortowanie wynikowej listy unikalnych wartości
-            unique_values.sort()
-
-        # Zwracamy listę unikalnych wartości filtru lub danych kierowców jako odpowiedź JSON
-        return jsonify(unique_values), 200
-
-    except Exception as e:
-        # Obsługa błędu - zwracamy szczegóły błędu w formie JSON i kod statusu 500
-        return jsonify({'error': str(e)}), 500
-
-
 
 @serwis_bp.route('/serwiswidok/show', methods=['GET'])
-def pobierz_i_sortuj_widok_pojazdów():
+def pobierz_i_sortuj_widok_serwisów():
     """
     Endpoint do pobierania i sortowania serwisów z możliwością filtrowania według różnych kryteriów.
-    Specjalnie obsługuje 'Dane kierowcy' - potrzebuje liste map {'ID': idkierowca, 'data': dane} i filtruje po wybranych ID
 
     Parametry zapytania:
         filter_by (str): Filtr do zastosowania w zapytaniu, przekazany jako słownik JSON (domyślnie '{}').
-        sort_by (str): Nazwa kolumny, po której pojazdy mają zostać posortowane (domyślnie 'ID pojazdu').
+        sort_by (str): Nazwa kolumny, po której serwisy mają zostać posortowane (domyślnie 'ID serwisu').
         order (str): Kierunek sortowania - 'asc' dla rosnącego, 'desc' dla malejącego (domyślnie 'asc').
 
     Returns:
-        Response: Lista pojazdów w formacie JSON, posortowana i przefiltrowana zgodnie z parametrami zapytania.
+        Response: Lista serwisów w formacie JSON, posortowana i przefiltrowana zgodnie z parametrami zapytania.
         int: Kod statusu HTTP, 200 w przypadku sukcesu, 500 w przypadku błędu.
     """
 
-    # Pobieranie parametrów zapytania z URL jako słownik
-    combined_params = request.args.to_dict()  # Pobieramy parametry zapytania HTTP jako słownik
-
     # Pobieramy poszczególne parametry zapytania
     filter_by = request.args.get('filter_by', '{}')  # Filtrowanie - domyślnie '{}' jeśli brak
-    sort_by = request.args.get('sort_by', 'ID serwisu')  # Sortowanie domyślnie po 'ID pojazdu'
+    sort_by = request.args.get('sort_by', 'ID serwisu')  # Sortowanie domyślnie po 'ID serwisu'
     order = request.args.get('order', 'asc')  # Domyślny kierunek sortowania to 'asc'
 
     # Logowanie parametrów zapytania dla celów debugowania
@@ -436,29 +319,10 @@ def pobierz_i_sortuj_widok_pojazdów():
                 for friendly_name, values in filters.items():
                     print(f"Processing filter: {friendly_name} with values: {values}")
 
-                    # Mapowanie 'friendly_name' na odpowiadającą kolumnę w tabeli Pojazd
+                    # Mapowanie 'friendly_name' na odpowiadającą kolumnę w tabeli SerwisWidok
                     column_name = None
 
-                    # # Obsługuje specjalny przypadek dla 'Dane kierowcy'
-                    # if friendly_name == 'Dane kierowcy':
-                    #     print("Handling 'Dane kierowcy' filter")
-                    #
-                    #     # Lista IDs kierowców, którzy są zaznaczeni w filtrze (pomijamy None)
-                    #     kierowcy_ids = [kierowca['ID'] for kierowca in values if kierowca['ID'] is not None]
-                    #     print(f"Kierowcy IDs (excluding None): {kierowcy_ids}")
-                    #
-                    #     # Jeśli filtr zawiera "Brak kierowcy" (ID: None), uwzględniamy pojazdy bez przypisanego kierowcy
-                    #     if any(kierowca['ID'] is None for kierowca in values):
-                    #         print("Including vehicles without a driver (idKierowca IS NULL)")
-                    #         query = query.filter((Pojazd.idKierowca.is_(None)) | Pojazd.idKierowca.in_(kierowcy_ids))
-                    #     else:
-                    #         # Filtrujemy tylko po przypisanych kierowcach
-                    #         query = query.filter(Pojazd.idKierowca.in_(kierowcy_ids))
-                    #
-                    #     print("Filter applied for 'Dane kierowcy' by IDs.")
-                    # else:
-
-                    # Mapowanie na inne kolumny w tabeli Pojazd
+                    # Mapowanie na inne kolumny w tabeli SerwisWidok
                     print(f"Searching for column corresponding to {friendly_name}")
                     for column, column_info in SerwisWidok.COLUMN_NAME_MAP.items():
                         if column_info['friendly_name'] == friendly_name:
@@ -471,14 +335,41 @@ def pobierz_i_sortuj_widok_pojazdów():
                         column_to_filter = getattr(SerwisWidok, column_name)
                         print(f"Applying filter for column {column_name}")
 
+                        if friendly_name == 'Data serwisu':
+                            date_from = values['Od']
+                            date_to = values['Do']
+
+                            if date_to != '':
+                                # print(f"date_to: |{date_to}|")
+                                try:
+                                    parsed_date = datetime.strptime(date_to, '%d-%m-%Y')
+                                    date_to = parsed_date.strftime('%Y-%m-%d')  # Zamiana na 'yyyy-mm-dd'
+                                except ValueError:
+                                    raise ValueError(
+                                        f"Nieprawidłowy format daty: {date_to}. Oczekiwano 'dd-mm-yyyy'.")
+
+                                query = query.filter(column_to_filter <= date_to)
+                            if date_from != '':
+                                # print(f"date_from: |{date_from}|")
+                                try:
+                                    parsed_date = datetime.strptime(date_from, '%d-%m-%Y')
+                                    date_from = parsed_date.strftime('%Y-%m-%d')  # Zamiana na 'yyyy-mm-dd'
+                                except ValueError:
+                                    raise ValueError(f"Nieprawidłowy format daty: {date_from}. Oczekiwano 'dd-mm-yyyy'.")
+
+                                query = query.filter(column_to_filter >= date_from)
+                            print(f"Date range match filter applied for: {values}")
+
                         # Jeśli 'values' to lista, filtrujemy na podstawie tej listy
-                        if isinstance(values, list):  # Lista wartości
+                        elif isinstance(values, list):  # Lista wartości
                             query = query.filter(column_to_filter.in_(values))
                             print(f"Filter applied for list of values: {values}")
+
                         # Jeśli 'values' to ciąg znaków o długości co najmniej 3, stosujemy filtr 'LIKE'
                         elif isinstance(values, str) and len(values) >= 3:  # Minimalna długość dla LIKE
                             query = query.filter(column_to_filter.ilike(f"%{values}%"))
                             print(f"Partial match filter applied for: {values}")
+
                     else:
                         print(f"No column found for friendly_name: {friendly_name}")
 
@@ -487,17 +378,7 @@ def pobierz_i_sortuj_widok_pojazdów():
             except Exception as e:
                 print(f"Unexpected error while processing filters: {str(e)}")
 
-        # Ustalanie kolumny do sortowania
-        # if sort_by == "Dane kierowcy":
-        #     # Sortowanie po imieniu i nazwisku kierowcy
-        #     query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
-        #     query = query.order_by(
-        #         kierunek_sortowania(Kierowca.imie),
-        #         kierunek_sortowania(Kierowca.nazwisko)
-        #     )
-        # else:
-
-        # Mapowanie 'friendly_name' na kolumny do sortowania w tabeli Pojazd
+        # Mapowanie 'friendly_name' na kolumny do sortowania w tabeli SerwisWidok
         sort_column_name = None
         for column_name, column_info in SerwisWidok.COLUMN_NAME_MAP.items():
             if column_info['friendly_name'] == sort_by:
@@ -544,3 +425,106 @@ def validate_serwis():
     return jsonify({'message': 'Dane są poprawne'}), 200  # Jeśli dane są poprawne, zwróć komunikat i kod 200
 
 
+
+# @serwis_bp.route('/serwis/filtry', methods=['GET'])
+# def jakie_filtry_dla_serwisu():  # nie działa chyba
+#     """
+#     Endpoint do pobierania dostępnych filtrów dla serwisów z możliwością filtrowania według rodzaju serwisu
+#     oraz według innych kryteriów, takich jak dane kierowcy.
+#
+#     W przyupadku "Dane kierowcy" zwraca JSON którego elementy to słowniki: {'ID': ... , 'data': ....}
+#
+#     Parametry zapytania:
+#         Typ serwisu (str, opcjonalny): Typ serwisu, według którego chcemy filtrować wyniki. (domyślnie: None)
+#         filtr (str): Przyjazna nazwa filtru określająca, według której kolumny chcemy filtrować.
+#
+#     Returns:
+#         Tuple[Response, int]: Krotka zawierająca:
+#             - Response (JSON) : zawiera listę zserializowanych danych serwisów, jeśli znaleziono serwisy.
+#             - Code (int) : Kod statusu HTTP, np. 200 dla sukcesu lub 500, jeśli wystąpił błąd serwera.
+#     """
+#     # Pobranie parametrów zapytania z URL (typ filtru - kolumna)
+#     typ_filtru = request.args.get('filtr')
+#
+#     print(f"api: pobierz_filtry_dla_serwisy")
+#     print(f"Pobrany typ filtru {typ_filtru}")
+#
+#     # Mapowanie `friendly_name` z parametru `filtr` na właściwą kolumnę w modelu Serwis
+#     filtr_column_name = None
+#     for column_name, column_info in Serwis.COLUMN_NAME_MAP.items():
+#         if column_info['friendly_name'] == typ_filtru:
+#             filtr_column_name = column_name
+#             break  # Zatrzymanie pętli po znalezieniu kolumny
+#
+#     # Specjalny przypadek dla filtrowania po danych kierowcy
+#     if typ_filtru == 'Dane pojazdu':
+#         filtr_column_name = 'idPojazd'
+#     elif typ_filtru == 'Typ serwisu':
+#         filtr_column_name = 'idTypSerwisu'
+#
+#     print(f"Znaleziona nazwa kolumny do filtrowania: {filtr_column_name}")
+#
+#     # Sprawdzenie, czy znaleziono kolumnę do filtrowania; jeśli nie, zgłaszamy błąd
+#     if filtr_column_name is None:
+#         return jsonify(f"Nie znaleziono kolumny: '{typ_filtru}' w tabeli {Serwis.__name__}"), 400
+#
+#     try:
+#         # Obsługa przypadku, gdy filtrujemy po danych pojazdu
+#         if filtr_column_name == 'idPojazd':
+#             # Pobranie listy wszystkich kierowców powiązanych z serwisami, posortowanych alfabetycznie
+#             pojazdy_query = Pojazd.query.order_by(Pojazd.marka.asc(), Pojazd.model.asc()).all()
+#
+#             # Formatowanie wyników dla każdego kierowcy do listy
+#             unique_values = []
+#             data = {
+#                 'ID': None,
+#                 'data': f"Brak pojazdu"}
+#             unique_values.append(data)
+#
+#             for pojazd in pojazdy_query:
+#                 data = {
+#                     'ID': pojazd.idPojazd,
+#                     'data': f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"}
+#                 unique_values.append(data)
+#
+#         # Obsługa przypadku, gdy filtrujemy po rodzaju serwisu
+#         if filtr_column_name == 'idTypSerwisu':
+#             # Pobranie listy wszystkich kierowców powiązanych z serwisami, posortowanych alfabetycznie
+#             typserwisu_query = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
+#
+#             # Formatowanie wyników dla każdego kierowcy do listy
+#             unique_values = []
+#             data = {
+#                 'ID': None,
+#                 'data': f"Brak rodzaju serwisu"}
+#             unique_values.append(data)
+#
+#             for typserwisu in typserwisu_query:
+#                 data = {
+#                     'ID': typserwisu.idPojazd,
+#                     'data': f"{typserwisu.typPojazdu}, {typserwisu.rodzajSerwisu}"}
+#                 unique_values.append(data)
+#
+#         else:
+#             column_to_filter = getattr(Serwis, filtr_column_name, None)
+#             # Jeśli nie znaleziono kolumny w modelu Serwis, zgłaszamy błąd
+#             if column_to_filter is None:
+#                 return jsonify({'error': f"Kolumna '{filtr_column_name}' nie istnieje w modelu Serwis."}), 400
+#
+#             # Tworzymy zapytanie do bazy danych, aby uzyskać unikalne wartości w tej kolumnie
+#             unique_values_query = (
+#                 Serwis.query
+#                     .with_entities(func.lower(column_to_filter).label('unique_value'))  # Ignorowanie wielkości liter
+#                     .distinct()  # Pobranie unikalnych wartości
+#             )
+#             # Konwersja wyniku zapytania na listę wartości
+#             unique_values = [row.unique_value for row in unique_values_query]
+#             # Sortowanie wynikowej listy unikalnych wartości
+#             unique_values.sort()
+#
+#         # Zwracamy listę unikalnych wartości filtru lub danych kierowców jako odpowiedź JSON
+#         return jsonify(unique_values), 200
+#
+#     except Exception as e:
+#         # Obsługa błędu - zwracamy szczegóły błędu w formie JSON i kod statusu 500
+#         return jsonify({'error': str(e)}), 500
