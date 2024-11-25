@@ -56,6 +56,8 @@ class SerwisFrame(QtWidgets.QFrame):
         self.hide()  # schowanie się
 
     def setup_frame(self):
+        # Pełna ścieżka do folderu z ikonami
+        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
 
         # Ramka serwisów
         self.setEnabled(False)
@@ -126,6 +128,10 @@ class SerwisFrame(QtWidgets.QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QScrollArea.qss')
         with open(file_path, "r") as file:
             stylesheet = file.read()
+
+         # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        stylesheet = stylesheet.replace('url(icons/', f'url({icon_path}/')
+
         self.scroll_area.setStyleSheet(stylesheet)
         self.scroll_area.viewport().update()
 
@@ -137,6 +143,9 @@ class SerwisFrame(QtWidgets.QFrame):
         with open(file_path, "r") as file:
             stylesheet = file.read()
         self.tableView_serwis.setStyleSheet(stylesheet)
+
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        stylesheet = stylesheet.replace('url(icons/', f'url({icon_path}/')
 
         self.tableView_serwis.setObjectName("tableView_serwis")
         self.tableView_serwis.setModel(self.model_serwis)

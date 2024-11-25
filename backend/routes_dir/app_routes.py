@@ -5,6 +5,11 @@ from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd, Czesc, SerwisW
 app_bp = Blueprint('app', __name__)
 
 
+@app_bp.route("/", methods=['GET'])
+def index():
+    return "Flask server is running!"
+
+
 @app_bp.route('/api/columns/<table_name>', methods=['GET'])
 def get_columns(table_name):
     # Pobierz model na podstawie nazwy tabeli

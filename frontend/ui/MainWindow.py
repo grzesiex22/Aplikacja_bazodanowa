@@ -1,3 +1,5 @@
+import os
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer, QDateTime, Qt
 from PyQt5.QtWidgets import QMainWindow
@@ -5,7 +7,6 @@ from PyQt5.QtWidgets import QMainWindow
 from Aplikacja_bazodanowa.frontend.ui.FleetFramev2 import FleetFrame
 from Aplikacja_bazodanowa.frontend.ui.MagazynFrame import WarehouseFrame
 from Aplikacja_bazodanowa.frontend.ui.SerwisFrame import SerwisFrame
-# from Aplikacja_bazodanowa.frontend.ui.FleetFrame import FleetFrame
 
 
 class MainWindow(QMainWindow):
@@ -190,8 +191,13 @@ class Ui_MainWindow(object):
                                        "    background-color: #a73639; /* Ustawia kolor tła po najechaniu */"
                                        "}")
         self.button_exit.setText("")
+
+
+
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("icons/cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        # Pobieramy pełną ścieżkę do folderu, gdzie znajduje się folder 'icons'
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'icons', 'cross_white.png')
+        icon1.addPixmap(QtGui.QPixmap(file_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_exit.setIcon(icon1)
         self.button_exit.setIconSize(QtCore.QSize(25, 25))
         self.button_exit.setObjectName("button_exit")
@@ -214,7 +220,9 @@ class Ui_MainWindow(object):
                                            "}")
         self.button_minimize.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("icons/minus_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        # Pobieramy pełną ścieżkę do folderu, gdzie znajduje się folder 'icons'
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'icons', 'minus_white.png')
+        icon2.addPixmap(QtGui.QPixmap(file_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_minimize.setIcon(icon2)
         self.button_minimize.setIconSize(QtCore.QSize(25, 25))
         self.button_minimize.setObjectName("button_minimize")

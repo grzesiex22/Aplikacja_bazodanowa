@@ -282,19 +282,16 @@ class WarehouseFrame(QtWidgets.QFrame):
         # Ustawienie stylu dla przycisku button_filtruj
         self.button_filtruj.setStyleSheet("""
                     QPushButton {
-                        color: #5d5d5d;
-                        background-color: #D8B7DD; /* Złoty kolor */
+                        background-color: #c4bbf0; /* kolor */
                         border: 2px solid #5d5d5d;
                         border-radius: 15px;
                         padding: 5px;
-                        font-size: 20px;
-                        font-family: Arial, sans-serif;
                     }
                     QPushButton:hover {
-                        background-color: #E1C6EB;
+                        background-color: #ac97e2;
                     }
                     QPushButton:pressed {
-                        background-color: #C8A1D1;
+                        background-color: #927fbf;
                     }
                 """)
 
@@ -314,20 +311,17 @@ class WarehouseFrame(QtWidgets.QFrame):
 
         # Ustawienie stylu dla przycisku button_wyczysc_filtry
         self.button_wyczysc_filtry.setStyleSheet("""
-                        QPushButton {
-                        color: #5d5d5d;
-                        background-color: #D8B7DD; /* Złoty kolor */
+                    QPushButton {
+                        background-color: #c4bbf0; /* kolor */
                         border: 2px solid #5d5d5d;
                         border-radius: 15px;
                         padding: 5px;
-                        font-size: 20px;
-                        font-family: Arial, sans-serif;
                     }
                     QPushButton:hover {
-                        background-color: #E1C6EB;
+                        background-color: #ac97e2;
                     }
                     QPushButton:pressed {
-                        background-color: #C8A1D1;
+                        background-color: #927fbf;
                     }
                 """)
 

@@ -41,6 +41,8 @@ class FilterFrame(QFrame):
         with open(file_path, "r") as file:
             self.lineEdit_style = file.read()
 
+
+
         # Dane potrzebne do zrobienia formularza
         self.fields = {}
         self.stable_fields = {}
@@ -240,7 +242,7 @@ class FilterFrame(QFrame):
             elif filter_type == 'data':
                 label.setFixedHeight(60)
                 date_range_box = DateRangeBox()
-
+                date_range_box.setStyleSheet(self.lineEdit_style)
                 # ustawia tekst na podstawie wczytanych filtrów, jeśli istnieją
                 if column_name in self.filters:
                     current_filter = self.filters[column_name]
