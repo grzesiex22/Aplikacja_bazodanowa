@@ -28,7 +28,7 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    image: url("icons/angle-down.png");  /* Możesz podać swoją ikonę */
+    image: url(icons/angle-down.png);  /* Możesz podać swoją ikonę */
     subcontrol-origin: margin;
     subcontrol-position: center;
     width: 20px;  /* Możesz zmienić rozmiar */
@@ -99,13 +99,13 @@ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
 }
 
 QScrollBar::up-arrow:vertical {
-    image: url("icons/angle-up.png");
+    image: url(icons/angle-up.png);
     subcontrol-origin: padding;
     subcontrol-position: center;
 
 }
 QScrollBar::down-arrow:vertical {
-    image: url("icons/angle-down.png");
+    image: url(icons/angle-down.png);
     subcontrol-origin: padding;
     subcontrol-position: center;
 

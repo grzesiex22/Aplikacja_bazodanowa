@@ -22,6 +22,9 @@ class WarehouseFrame(QtWidgets.QFrame):
     def __init__(self, parent=None, api_url=None):
         super(WarehouseFrame, self).__init__(parent)
 
+        # Pełna ścieżka do folderu z ikonami
+        self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
+
         # Inicjalizacja
         self.screen_type = ScreenType.CZESCI
         self.api_url = api_url
@@ -53,7 +56,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.height = available_rect.height()
         self.setFixedSize(self.width, self.height)
 
-        self.setup_fleet()  # Ustawienie ramki floty
+        self.setup_frame()  # Ustawienie ramki floty
 
         self.hide()  # schowanie się
 
@@ -83,7 +86,7 @@ class WarehouseFrame(QtWidgets.QFrame):
             print(f"Błąd podczas wczytywania nagłówków kolumn: {e}")
             return [], None
 
-    def setup_fleet(self):
+    def setup_frame(self):
 
         # Ramka floty
         self.setEnabled(False)
@@ -132,7 +135,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_exit_flota = QtWidgets.QPushButton(self.widget_flota_header)
         self.button_exit_flota.setGeometry(QtCore.QRect(self.width-40-10, 5, 40, 40))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/undo_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/undo_white.png"), QIcon.Normal, QIcon.Off)
         self.button_exit_flota.setIcon(icon)
         self.button_exit_flota.setIconSize(QtCore.QSize(30, 30))
         self.button_exit_flota.setObjectName("button_exit_flota")
@@ -271,7 +274,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_filtruj.setFixedWidth(70)
         self.button_filtruj.setObjectName("button_filtruj")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/filter_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_filtruj.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
         self.button_filtruj.setIcon(icon)
         self.button_filtruj.setIconSize(QtCore.QSize(30, 30))
@@ -301,7 +304,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_wyczysc_filtry.setFixedWidth(70)
         self.button_wyczysc_filtry.setObjectName("button_wyczysc_filtry")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/clear_filter_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/clear_filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_wyczysc_filtry.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
         self.button_wyczysc_filtry.setIcon(icon)
         self.button_wyczysc_filtry.setIconSize(QtCore.QSize(30, 30))

@@ -16,6 +16,8 @@ class EditFrame(QFrame):
 
     def __init__(self, class_name, data, api_url, parent=None, header_title="title", refresh_callback=None):
         super().__init__(parent)
+        # Pełna ścieżka do folderu z ikonami
+        self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
 
         self.model_data = data
         self.class_name = class_name
@@ -26,11 +28,15 @@ class EditFrame(QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'EditFrame_QComboBox.qss')
         with open(file_path, "r") as file:
             self.combobox_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.combobox_style = self.combobox_style.replace('url(icons/', f'url({self.icon_path}/')
 
         # styl dla QLineEdit
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'EditFrame_QLineEdit.qss')
         with open(file_path, "r") as file:
             self.lineEdit_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.lineEdit_style = self.lineEdit_style.replace('url(icons/', f'url({self.icon_path}/')
 
         # Ustawienie QIntValidator (tylko liczby całkowite)
         self.validator = QIntValidator(0, 999999, self)  # Zakres od 0 do 999999
@@ -140,7 +146,7 @@ class EditFrame(QFrame):
                                         }""")
         self.button_exit.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("icons/cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(f"{self.icon_path}/cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_exit.setIcon(icon1)
         self.button_exit.setIconSize(QtCore.QSize(15, 15))
         self.button_exit.setObjectName("button_exit_frame_edit")

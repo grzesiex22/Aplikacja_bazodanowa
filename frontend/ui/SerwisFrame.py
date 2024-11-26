@@ -7,7 +7,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Popra
 from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
-from Aplikacja_bazodanowa.frontend.ui.FilterFramev2 import FilterFrame
+from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
@@ -26,6 +26,9 @@ class OverlayWidget(QtWidgets.QFrame):
 class SerwisFrame(QtWidgets.QFrame):
     def __init__(self, parent=None, api_url=None):
         super(SerwisFrame, self).__init__(parent)
+
+        # Pełna ścieżka do folderu z ikonami
+        self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
 
         # Inicjalizacja
         self.api_url = api_url
@@ -56,8 +59,6 @@ class SerwisFrame(QtWidgets.QFrame):
         self.hide()  # schowanie się
 
     def setup_frame(self):
-        # Pełna ścieżka do folderu z ikonami
-        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
 
         # Ramka serwisów
         self.setEnabled(False)
@@ -106,7 +107,7 @@ class SerwisFrame(QtWidgets.QFrame):
         self.button_exit_frame = QtWidgets.QPushButton(self.widget_frame_header)
         self.button_exit_frame.setGeometry(QtCore.QRect(self.width - 40 - 10, 5, 40, 40))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/undo_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/undo_white.png"), QIcon.Normal, QIcon.Off)
         self.button_exit_frame.setIcon(icon)
         self.button_exit_frame.setIconSize(QtCore.QSize(30, 30))
         self.button_exit_frame.setObjectName("button_exit_serwis")
@@ -128,10 +129,8 @@ class SerwisFrame(QtWidgets.QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QScrollArea.qss')
         with open(file_path, "r") as file:
             stylesheet = file.read()
-
-         # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
-        stylesheet = stylesheet.replace('url(icons/', f'url({icon_path}/')
-
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        stylesheet = stylesheet.replace('url(icons/', f'url({self.icon_path}/')
         self.scroll_area.setStyleSheet(stylesheet)
         self.scroll_area.viewport().update()
 
@@ -142,10 +141,9 @@ class SerwisFrame(QtWidgets.QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QTableView.qss')
         with open(file_path, "r") as file:
             stylesheet = file.read()
-        self.tableView_serwis.setStyleSheet(stylesheet)
-
         # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
-        stylesheet = stylesheet.replace('url(icons/', f'url({icon_path}/')
+        stylesheet = stylesheet.replace('url(icons/', f'url({self.icon_path}/')
+        self.tableView_serwis.setStyleSheet(stylesheet)
 
         self.tableView_serwis.setObjectName("tableView_serwis")
         self.tableView_serwis.setModel(self.model_serwis)
@@ -153,7 +151,6 @@ class SerwisFrame(QtWidgets.QFrame):
         self.tableView_serwis.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableView_serwis.setAlternatingRowColors(True)
         # self.tableView_flota.resizeColumnsToContents()
-
         # self.tableView_flota.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         # self.tableView_flota.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
@@ -239,7 +236,7 @@ class SerwisFrame(QtWidgets.QFrame):
         self.button_filtruj.setFixedWidth(70)
         self.button_filtruj.setObjectName("button_filtruj")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/filter_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_filtruj.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
         self.button_filtruj.setIcon(icon)
         self.button_filtruj.setIconSize(QtCore.QSize(30, 30))
@@ -269,7 +266,7 @@ class SerwisFrame(QtWidgets.QFrame):
         self.button_wyczysc_filtry.setFixedWidth(70)
         self.button_wyczysc_filtry.setObjectName("button_wyczysc_filtry")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/clear_filter_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/clear_filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_wyczysc_filtry.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
         self.button_wyczysc_filtry.setIcon(icon)
         self.button_wyczysc_filtry.setIconSize(QtCore.QSize(30, 30))

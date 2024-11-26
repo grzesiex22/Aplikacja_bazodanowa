@@ -17,6 +17,9 @@ class AddFrame(QFrame):
     def __init__(self, class_name, api_url, parent=None, header_title="title", refresh_callback=None):
         super().__init__(parent)
 
+        # Pełna ścieżka do folderu z ikonami
+        self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
+
         self.api_url = api_url  # URL dla POST danych
         self.class_name = class_name
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
@@ -25,11 +28,15 @@ class AddFrame(QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'AddFrame_QComboBox.qss')
         with open(file_path, "r") as file:
             self.combobox_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.combobox_style = self.combobox_style.replace('url(icons/', f'url({self.icon_path}/')
 
         # styl dla QLineEdit
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'AddFrame_QLineEdit.qss')
         with open(file_path, "r") as file:
             self.lineEdit_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.lineEdit_style = self.lineEdit_style.replace('url(icons/', f'url({self.icon_path}/')
 
         # Ustawienie QIntValidator (tylko liczby całkowite)
         self.validator = QIntValidator(0, 999999, self)  # Zakres od 0 do 999999
@@ -57,6 +64,7 @@ class AddFrame(QFrame):
         self.setup_ui(header_title)
 
     def setup_ui(self, title):
+
         self.setGeometry(int(self.app_width / 2 - self.width / 2), int(self.app_height / 2 - self.height / 2), self.width, self.height)
         self.setStyleSheet("""
                             QFrame {
@@ -150,7 +158,7 @@ class AddFrame(QFrame):
                                         }""")
         self.button_exit.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("icons/cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(f"{self.icon_path}/cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_exit.setIcon(icon1)
         self.button_exit.setIconSize(QtCore.QSize(15, 15))
         self.button_exit.setObjectName("button_exit_frame_edit")

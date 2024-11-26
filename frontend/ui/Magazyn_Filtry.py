@@ -1,3 +1,5 @@
+import os
+
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
@@ -10,6 +12,10 @@ from functools import partial
 class FilterMagazineFrame(QFrame):
     def __init__(self, class_name, api_url, parent=None, header_title="title", screen_type=1, refresh_callback=None):
         super().__init__(parent)
+
+        # Pełna ścieżka do folderu z ikonami
+        self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
+
 
         self.api_url = api_url  # URL dla POST danych
         self.class_name = class_name
@@ -138,7 +144,7 @@ class FilterMagazineFrame(QFrame):
                                         }""")
         self.button_exit.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("icons/cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(f"{self.icon_path}/cross_white.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_exit.setIcon(icon1)
         self.button_exit.setIconSize(QtCore.QSize(15, 15))
         self.button_exit.setObjectName("button_exit_frame_edit")

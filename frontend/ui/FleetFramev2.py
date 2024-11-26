@@ -7,7 +7,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Popra
 from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
-from Aplikacja_bazodanowa.frontend.ui.FilterFramev2 import FilterFrame
+from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
@@ -31,6 +31,9 @@ class OverlayWidget(QtWidgets.QFrame):
 class FleetFrame(QtWidgets.QFrame):
     def __init__(self, parent=None, api_url=None):
         super(FleetFrame, self).__init__(parent)
+
+        # Pełna ścieżka do folderu z ikonami
+        self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
 
         # Inicjalizacja
         self.screen_type = ScreenType.CIAGNIKI
@@ -117,7 +120,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_exit_flota = QtWidgets.QPushButton(self.widget_flota_header)
         self.button_exit_flota.setGeometry(QtCore.QRect(self.width-40-10, 5, 40, 40))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/undo_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/undo_white.png"), QIcon.Normal, QIcon.Off)
         self.button_exit_flota.setIcon(icon)
         self.button_exit_flota.setIconSize(QtCore.QSize(30, 30))
         self.button_exit_flota.setObjectName("button_exit_flota")
@@ -135,10 +138,13 @@ class FleetFrame(QtWidgets.QFrame):
         self.scroll_area.setGeometry(QtCore.QRect(
             table_fleet_side_margin, table_fleet_top_margin, table_fleet_width, table_fleet_height))
         self.scroll_area.setWidgetResizable(False)  # Rozciąganie zawartości
+
         # Wczytanie stylu z pliku
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QScrollArea.qss')
         with open(file_path, "r") as file:
             stylesheet = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        stylesheet = stylesheet.replace('url(icons/', f'url({self.icon_path}/')
         self.scroll_area.setStyleSheet(stylesheet)
         self.scroll_area.viewport().update()
 
@@ -149,6 +155,8 @@ class FleetFrame(QtWidgets.QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QTableView.qss')
         with open(file_path, "r") as file:
             stylesheet = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        stylesheet = stylesheet.replace('url(icons/', f'url({self.icon_path}/')
         self.tableView_flota.setStyleSheet(stylesheet)
 
         self.tableView_flota.setObjectName("tableView_flota")
@@ -268,7 +276,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_filtruj.setFixedWidth(70)
         self.button_filtruj.setObjectName("button_filtruj")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/filter_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_filtruj.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
         self.button_filtruj.setIcon(icon)
         self.button_filtruj.setIconSize(QtCore.QSize(30, 30))
@@ -298,7 +306,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.button_wyczysc_filtry.setFixedWidth(70)
         self.button_wyczysc_filtry.setObjectName("button_wyczysc_filtry")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/clear_filter_white.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/clear_filter_white.png"), QIcon.Normal, QIcon.Off)
         self.button_wyczysc_filtry.setCheckable(False)  # Opcjonalnie, jeśli ma być przyciskiem przełączającym
         self.button_wyczysc_filtry.setIcon(icon)
         self.button_wyczysc_filtry.setIconSize(QtCore.QSize(30, 30))
