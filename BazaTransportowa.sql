@@ -125,6 +125,35 @@ CREATE TABLE IF NOT EXISTS `TransportManagerDB`.`Część` (
 ENGINE = InnoDB;
 
 
+--     -- -----------------------------------------------------
+-- -- Table `TransportManagerDB`.`Część`
+-- -- -----------------------------------------------------
+-- DROP TABLE IF EXISTS `TransportManagerDB`.`Część` ;
+--
+-- CREATE TABLE IF NOT EXISTS `TransportManagerDB`.`Część` (
+--   `idCzesc` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+--   `idTypSerwisu` INT UNSIGNED NOT NULL,
+--   `idPojazd` INT UNSIGNED NULL, -- Dodanie kolumny do przypisania pojazdu
+--   `nazwaElementu` VARCHAR(100) NOT NULL,
+--   `ilosc` INT NOT NULL,
+--   PRIMARY KEY (`idCzesc`),
+--   UNIQUE INDEX `idMagazyn_UNIQUE` (`idCzesc` ASC) VISIBLE,
+--   INDEX `idTypSerwisu_idx` (`idTypSerwisu` ASC) VISIBLE,
+--   INDEX `idPojazd_idx` (`idPojazd` ASC), -- Indeks dla nowej kolumny
+--   CONSTRAINT `idTypSerwisu_czesc_fk`
+--     FOREIGN KEY (`idTypSerwisu`)
+--     REFERENCES `TransportManagerDB`.`TypSerwisu` (`idTypSerwisu`)
+--     ON DELETE NO ACTION
+--     ON UPDATE NO ACTION,
+--   CONSTRAINT `idPojazd_czesc_fk` -- Klucz obcy dla `idPojazd`
+--     FOREIGN KEY (`idPojazd`)
+--     REFERENCES `TransportManagerDB`.`Pojazd` (`idPojazd`)
+--     ON DELETE SET NULL -- Ustawienie na NULL w przypadku usunięcia pojazdu
+--     ON UPDATE CASCADE
+-- )
+-- ENGINE = InnoDB;
+
+
 -- -----------------------------------------------------
 -- Table `TransportManagerDB`.`WyposażeniePojazdu`
 -- -----------------------------------------------------

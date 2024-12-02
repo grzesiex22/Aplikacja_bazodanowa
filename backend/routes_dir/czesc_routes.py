@@ -127,7 +127,6 @@ def pobierz_wszystkie_czesci():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 # # Dodawanie nowego kierowcy
 # @czesc_bp.route('/czesc/add', methods=['POST'])
 # def dodaj_czesc():

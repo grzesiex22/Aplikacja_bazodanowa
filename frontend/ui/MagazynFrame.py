@@ -38,7 +38,8 @@ class WarehouseFrame(QtWidgets.QFrame):
         # Informacje dla tabeli pojazdy
         self.model_pojazd = QStandardItemModel()
         self.model_pojazd_columns_info, self.primary_key_index_czesc = self.load_column_headers("czesc", self.model_pojazd)
-        self.sort_parameteres_czesci = {}  # przechowuje aktualne parametry sortowania pojazdu
+        self.sort_parameteres_czesci_order = 'asc'  # przechowuje aktualne parametry sortowania pojazdu
+        self.sort_parameteres_czesci_sort_by = ''
         self.sort_parameteres_wyposazenie = {}  # przechowuje aktualne parametry sortowania pojazdu
         self.filtr_parameteres_czesci = {}  # przechowuje aktualne parametry sortowania pojazdu
         self.current_sorted_column_czesci = None  # potrzebne do zmiany sortowania asc/desc
@@ -341,55 +342,54 @@ class WarehouseFrame(QtWidgets.QFrame):
 
     def sort_by_column(self, column_index):
         column_name = self.tableView_flota.model().headerData(column_index, Qt.Horizontal)
+        print(f"Sorting by {column_name}...")
 
-        if self.screen_type == ScreenType.WYPOSAZENIE:
-            if self.current_sorted_column_kierowca == column_index:
-                # Przełączamy pomiędzy 'asc' a 'desc'
-                order = 'desc' if self.sort_parameteres_wyposazenie['order'] == 'asc' else 'asc'
+        if column_name == 'ID Typ Serwisu':
+            return
+
+        # Jeśli ta sama kolumna była wcześniej posortowana
+        if self.current_sorted_column_czesci == column_index:
+            # Przełącz pomiędzy 'asc' i 'desc' tylko wtedy, gdy kolumna była wcześniej posortowana
+            if self.sort_parameteres_czesci_order == 'asc':
+                order = 'desc'
             else:
                 order = 'asc'
-            self.current_sorted_column_wyposazenie = column_index
-            self.sort_parameteres_wyposazenie = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
-
-        elif self.screen_type == ScreenType.CZESCI:
-            if self.current_sorted_column_pojazd == column_index:
-                # Przełączamy pomiędzy 'asc' a 'desc'
-                order = 'desc' if self.sort_parameteres_czesci['order'] == 'asc' else 'asc'
+        else:
+            if self.sort_parameteres_czesci_order == 'asc':
+                order = 'desc'
             else:
                 order = 'asc'
-            self.current_sorted_column_czesci = column_index
-            self.sort_parameteres_czesci = {'sort_by': column_name, 'order': order}  # 'asc' lub 'desc'
 
+        # Aktualizowanie stanu sortowania i kolumny
+        self.current_sorted_column_czesci = column_index
+        self.sort_parameteres_czesci_order = order
+        self.sort_parameteres_czesci_sort_by = column_name
+
+        # Dopasowanie nazw kolumn do tych używanych w API
+        if column_name == 'Nazwa Elementu':
+            column_name = 'nazwaElementu'
+        if column_name == 'Ilość':
+            column_name = 'ilosc'
+
+        print(self.sort_parameteres_czesci_order, self.sort_parameteres_czesci_sort_by)
+
+        # Załaduj dane po sortowaniu
         if self.filters_set:
-            self.load_data_filtered()
+            self.load_data_filtered(sort_by=column_name, order=order)
         else:
             self.load_data(sort_by=column_name, order=order)
-
 
     def update_screen_type(self, screen_value):
         # Zmiana wartości zmiennej na podstawie ID przycisku
         self.screen_type = ScreenType(screen_value)
         print(f"Aktualna wartość zmiennej: {self.screen_type.name}")
 
-        # self.is_filtering = False
-
-        # if self.screen_type == ScreenType.WYPOSAZENIE:
-        #     self.button_filtruj.setVisible(False)
-        #     self.button_wyczysc_filtry.setVisible(False)
-        #     self.filters_set = False
-        # else:
-        #     self.button_filtruj.setVisible(True)
-        #     self.button_wyczysc_filtry.setVisible(True)
-
-        # if self.filters_set and self.screen_type != ScreenType.WYPOSAZENIE:
+        self.erase_filters()
 
         # if self.filters_set:
         #     self.load_data_filtered()
         # else:
         #     self.load_data()
-
-        self.filters_set = False
-        self.load_data()
 
 
 
@@ -513,6 +513,10 @@ class WarehouseFrame(QtWidgets.QFrame):
             params['nazwaElementu'] = nazwa_elementu
         if id_typ_serwisu:
             params['idTypSerwisu'] = id_typ_serwisu
+        if sort_by:
+            params['sort_by'] = sort_by
+        if order:
+            params['order'] = order
 
         if self.screen_type == ScreenType.CZESCI:
             try:
@@ -606,7 +610,7 @@ class WarehouseFrame(QtWidgets.QFrame):
             # Pokazujemy istniejący dialog (nowy lub już wcześniej utworzony)
         self.filter_dialog.show()
 
-    def load_data_filtered(self, filtr_parameteres_czesci=None):
+    def load_data_filtered(self, filtr_parameteres_czesci=None, sort_by='', order=''):
         # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
         if filtr_parameteres_czesci is not None:
             self.filtr_parameteres_czesci = filtr_parameteres_czesci
@@ -614,14 +618,26 @@ class WarehouseFrame(QtWidgets.QFrame):
 
         print("Wywołano load_data_filtered z filtrami:", self.filtr_parameteres_czesci)
 
-        # Łączenie filtrów z domyślnymi, aby zapewnić, że odpowiednie filtry zawsze będą w zapytaniu
-        combined_parameters = {**self.filtr_parameteres_czesci, **self.sort_parameteres_czesci}
+        sort_parameters = {
+            'sort_by': self.sort_parameteres_czesci_sort_by,
+            'order': self.sort_parameteres_czesci_order
+        }
+
+        # Łączenie filtrów z sortowaniem
+        combined_parameters = {**self.filtr_parameteres_czesci, **sort_parameters}
         print(f"Combined_param: {combined_parameters}")
 
         # Przekonwertowanie kluczy na małe litery
         combined_parameters_lower = {key.lower(): value for key, value in combined_parameters.items() if
                                      value is not None}
         print(f"Final Combined_param (with lowercase keys): {combined_parameters_lower}")
+
+        # Dodanie sort_by i order do combined_parameters jeśli są przekazane
+        if sort_by:
+            combined_parameters['sort_by'] = sort_by
+        if order:
+            combined_parameters['order'] = order
+
 
         # Usuń 'Dane kierowcy' z parametrów, aby nie pojawił się w URL
         if 'dane typ serwisu' in combined_parameters_lower:
@@ -640,7 +656,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         # print(query_string)
         # full_url = f"{self.api_url}/czesci?{query_string}"
         # print(f"Final URL: {full_url}")
-
 
         if self.screen_type == ScreenType.CZESCI:
             # Budowanie URL z parametrami w wymaganym formacie
@@ -677,4 +692,3 @@ class WarehouseFrame(QtWidgets.QFrame):
 
             # Użycie QTimer dla opóźnienia wywołania adjust_column_widths
         QTimer.singleShot(0, self.adjust_column_widths)
-

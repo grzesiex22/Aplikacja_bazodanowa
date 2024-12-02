@@ -224,6 +224,8 @@ class FilterMagazineFrame(QFrame):
             # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
             #elif input_type == 'list' and isinstance(inputs, str):
             elif input_type == 'list' and isinstance(inputs, str):
+                if self.screen_type == 2:
+                    continue
                 combo_box = QComboBox()
                 combo_box.addItem("", "")  # Pusty element na początku
                 domian_url = urlparse(self.api_url).netloc  # sparsowanie domeny
@@ -305,7 +307,8 @@ class FilterMagazineFrame(QFrame):
                 data = response.json()
                 for item in data:
                     display_text = item['data']
-                    combo_box.addItem(display_text, item['ID'])  # Ustawiamy `ID` jako ukryte dane
+                    if display_text != 'Wyposażenie':
+                        combo_box.addItem(display_text, item['ID'])
 
             else:
                 print(f"API error: {response.status_code}")
