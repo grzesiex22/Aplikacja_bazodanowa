@@ -440,9 +440,14 @@ class WarehouseFrame(QtWidgets.QFrame):
 
 
     def add_new_line(self):
-        self.add_frame = AddFrame(class_name="czesc", api_url=f"{self.api_url}/czesc",
+        if self.filters_set:
+            self.add_frame = AddFrame(class_name="czesc", api_url=f"{self.api_url}/czesc",
+                                      parent=self, header_title="Dodawanie części", refresh_callback=self.load_data_filtered)
+        else:
+            self.add_frame = AddFrame(class_name="czesc", api_url=f"{self.api_url}/czesc",
                                   parent=self, header_title="Dodawanie części", refresh_callback=self.load_data)
         self.add_frame.show()
+
 
 
     def on_table_double_click(self, index):
@@ -457,7 +462,14 @@ class WarehouseFrame(QtWidgets.QFrame):
             if response.status_code == 200:
                 czesc_data = response.json()
                 # Przekazanie danych do okna edycji
-                self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
+                if self.filters_set:
+                    self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
+                                                api_url=f"{self.api_url}/czesc",
+                                                parent=self, header_title="Edycja pojazdu",
+                                                # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
+                                                refresh_callback=self.load_data_filtered)
+                else:
+                    self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
                                             api_url=f"{self.api_url}/czesc",
                                             parent=self, header_title="Edycja pojazdu",
                                             # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
