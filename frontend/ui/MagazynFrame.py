@@ -4,9 +4,17 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QFont  # Popra
 from PyQt5.QtCore import Qt, QTimer
 from sqlalchemy import inspect
 
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib import fonts
+from PyQt5.QtGui import QStandardItem
+
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
 from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterMagazineFrame
+from Aplikacja_bazodanowa.frontend.ui.Raport_Frame import SimpleGenerateRaport
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 
 import os
@@ -262,8 +270,32 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_magazyn_wyposazenie.setObjectName("button_magazyn_wyposazenie")
         self.button_magazyn_wyposazenie.setCheckable(True)
 
+        self.button_magazyn_raport = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_magazyn_raport.setText("Generuj raport")
+        self.button_magazyn_raport.setObjectName("button_magazyn_raport")
+        self.button_magazyn_raport.setCheckable(False)
+
+        # Ustawienie stylu dla przycisku button_filtruj
+        self.button_magazyn_raport.setStyleSheet("""
+                            QPushButton {
+                                background-color: #c4bbf0; /* kolor */
+                                border: 2px solid #5d5d5d;
+                                border-radius: 15px;
+                                padding: 5px;
+                            }
+                            QPushButton:hover {
+                                background-color: #ac97e2;
+                            }
+                            QPushButton:pressed {
+                                background-color: #927fbf;
+                            }
+                        """)
+
+        self.button_magazyn_raport.clicked.connect(self.show_raport_frame)
+
         self.horizontalLayout_buttons.addWidget(self.button_magazyn_czesci)
         self.horizontalLayout_buttons.addWidget(self.button_magazyn_wyposazenie)
+        self.horizontalLayout_buttons.addWidget(self.button_magazyn_raport)
 
         # Dodanie przycisków do grupy
         self.button_group = QButtonGroup(self)
@@ -663,12 +695,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         if 'nazwa elementu' in combined_parameters_lower:
             combined_parameters_lower['nazwaElementu'] = combined_parameters_lower.pop('nazwa elementu')
 
-        # # Budowanie URL z parametrami w wymaganym formacie
-        # query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-        # print(query_string)
-        # full_url = f"{self.api_url}/czesci?{query_string}"
-        # print(f"Final URL: {full_url}")
-
         if self.screen_type == ScreenType.CZESCI:
             # Budowanie URL z parametrami w wymaganym formacie
             query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
@@ -704,3 +730,102 @@ class WarehouseFrame(QtWidgets.QFrame):
 
             # Użycie QTimer dla opóźnienia wywołania adjust_column_widths
         QTimer.singleShot(0, self.adjust_column_widths)
+
+    def show_raport_frame(self):
+        """
+        Wyświetla ramkę do wyboru folderu i nazwy pliku.
+        """
+        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport części")
+        self.raport_dialog.show()
+
+    def generate_raport(self, pdf_file):
+        # Upewnij się, że ścieżka katalogu istnieje
+        output_dir = os.path.dirname(pdf_file)
+        if not os.path.exists(output_dir):
+            try:
+                os.makedirs(output_dir)
+            except Exception as e:
+                QMessageBox.critical(self, "Błąd", f"Nie udało się utworzyć katalogu: {str(e)}")
+                return
+
+        # Ścieżka do czcionki
+        font_path = "./frontend/fonts/dejavu-sans-ttf-2.37/ttf/DejaVuSans.ttf"
+
+        try:
+            # Rejestracja czcionki
+            pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
+        except Exception as e:
+            QMessageBox.critical(self, "Błąd", f"Nie udało się załadować czcionki: {str(e)}")
+            return
+
+        try:
+            # Utwórz dokument PDF
+            pdf = canvas.Canvas(pdf_file, pagesize=A4)
+            pdf.setTitle("Raport Części")
+
+            # Ustawienie czcionki na DejaVuSans
+            pdf.setFont("DejaVuSans", 16)
+            pdf.drawString(50, 800, "Raport Części")
+            pdf.setFont("DejaVuSans", 12)
+
+            # Przygotowanie nagłówków tabeli
+            headers = ["ID Części", "Typ Serwisu", "Nazwa Elementu", "Ilość"]
+            column_widths = [0] * len(headers)  # Lista na szerokości kolumn
+
+            # Oblicz szerokość kolumn na podstawie danych
+            for col in range(len(headers)):
+                header_width = pdf.stringWidth(headers[col], "DejaVuSans", 12)
+                max_width = header_width
+                for row in range(self.model_pojazd.rowCount()):
+                    cell_text = self.model_pojazd.item(row, col).text()
+                    cell_width = pdf.stringWidth(cell_text, "DejaVuSans", 10)
+                    max_width = max(max_width, cell_width)
+                column_widths[col] = max_width + 10  # Dodaj margines 10 punktów
+
+            # Pozycje X dla kolumn (dynamiczne)
+            x_offsets = [50]  # Start od X=50
+            for width in column_widths[:-1]:
+                x_offsets.append(x_offsets[-1] + width)
+
+            y_position = 750  # Pozycja Y początkowa
+            line_height = 20  # Odstęp między wierszami
+
+            # Dodaj nagłówki do tabeli
+            pdf.setFont("DejaVuSans", 12)
+            for i, header in enumerate(headers):
+                pdf.drawString(x_offsets[i], y_position, header)
+            y_position -= line_height
+
+            # Dodaj dane do tabeli
+            pdf.setFont("DejaVuSans", 10)
+            for row in range(self.model_pojazd.rowCount()):
+                if y_position < 50:  # Sprawdź, czy trzeba przejść na nową stronę
+                    pdf.showPage()
+                    y_position = 800  # Reset pozycji Y
+                    pdf.setFont("DejaVuSans", 12)
+                    for i, header in enumerate(headers):
+                        pdf.drawString(x_offsets[i], y_position, header)
+                    y_position -= line_height
+                    pdf.setFont("DejaVuSans", 10)
+
+                # Pobierz dane z modelu
+                id_czesc = self.model_pojazd.item(row, 0).text()
+                typ_serwisu = self.model_pojazd.item(row, 1).text()
+                nazwa_elementu = self.model_pojazd.item(row, 2).text()
+                ilosc = self.model_pojazd.item(row, 3).text()
+
+                # Dodaj wiersz do tabeli
+                pdf.drawString(x_offsets[0], y_position, id_czesc)
+                pdf.drawString(x_offsets[1], y_position, typ_serwisu)
+                pdf.drawString(x_offsets[2], y_position, nazwa_elementu)
+                pdf.drawString(x_offsets[3], y_position, ilosc)
+                y_position -= line_height
+
+            # Zapisz plik PDF
+            pdf.save()
+
+            # Wyświetl komunikat o sukcesie
+            QMessageBox.information(self, "Sukces", f"Raport został wygenerowany i zapisany jako {pdf_file}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Błąd", f"Nie udało się wygenerować raportu: {str(e)}")

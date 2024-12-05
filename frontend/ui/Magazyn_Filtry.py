@@ -373,8 +373,6 @@ class FilterMagazineFrame(QFrame):
         self.close()  # Zamykamy okno
 
     def close_window(self):
-        if self.refresh_callback:
-            self.refresh_callback()  # Wywołujemy metodę odświeżania, jeżeli została przekazana
         self.close()  # Zamykamy okno
 
     # Mouse event overrides for dragging
