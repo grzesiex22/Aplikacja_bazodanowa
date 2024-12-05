@@ -10,6 +10,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import fonts
 from PyQt5.QtGui import QStandardItem
+from datetime import datetime
+import textwrap
 
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
@@ -763,32 +765,31 @@ class WarehouseFrame(QtWidgets.QFrame):
             pdf = canvas.Canvas(pdf_file, pagesize=A4)
             pdf.setTitle("Raport Części")
 
+            # Aktualna data i godzina
+            current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            def draw_header():
+                """Rysowanie nagłówka z datą i godziną."""
+                pdf.setFont("DejaVuSans", 10)
+                pdf.drawRightString(550, 830, current_datetime)  # Pozycja: prawy górny róg
+
             # Ustawienie czcionki na DejaVuSans
             pdf.setFont("DejaVuSans", 16)
             pdf.drawString(50, 800, "Raport Części")
             pdf.setFont("DejaVuSans", 12)
 
+            draw_header()  # Rysowanie nagłówka na pierwszej stronie
+
             # Przygotowanie nagłówków tabeli
             headers = ["ID Części", "Typ Serwisu", "Nazwa Elementu", "Ilość"]
-            column_widths = [0] * len(headers)  # Lista na szerokości kolumn
+            column_widths = [80, 100, 250, 50]  # Ustalona szerokość kolumn
 
-            # Oblicz szerokość kolumn na podstawie danych
-            for col in range(len(headers)):
-                header_width = pdf.stringWidth(headers[col], "DejaVuSans", 12)
-                max_width = header_width
-                for row in range(self.model_pojazd.rowCount()):
-                    cell_text = self.model_pojazd.item(row, col).text()
-                    cell_width = pdf.stringWidth(cell_text, "DejaVuSans", 10)
-                    max_width = max(max_width, cell_width)
-                column_widths[col] = max_width + 10  # Dodaj margines 10 punktów
-
-            # Pozycje X dla kolumn (dynamiczne)
             x_offsets = [50]  # Start od X=50
             for width in column_widths[:-1]:
                 x_offsets.append(x_offsets[-1] + width)
 
             y_position = 750  # Pozycja Y początkowa
-            line_height = 20  # Odstęp między wierszami
+            line_height = 20
 
             # Dodaj nagłówki do tabeli
             pdf.setFont("DejaVuSans", 12)
@@ -799,33 +800,40 @@ class WarehouseFrame(QtWidgets.QFrame):
             # Dodaj dane do tabeli
             pdf.setFont("DejaVuSans", 10)
             for row in range(self.model_pojazd.rowCount()):
-                if y_position < 50:  # Sprawdź, czy trzeba przejść na nową stronę
-                    pdf.showPage()
-                    y_position = 800  # Reset pozycji Y
-                    pdf.setFont("DejaVuSans", 12)
-                    for i, header in enumerate(headers):
-                        pdf.drawString(x_offsets[i], y_position, header)
-                    y_position -= line_height
-                    pdf.setFont("DejaVuSans", 10)
-
                 # Pobierz dane z modelu
                 id_czesc = self.model_pojazd.item(row, 0).text()
                 typ_serwisu = self.model_pojazd.item(row, 1).text()
                 nazwa_elementu = self.model_pojazd.item(row, 2).text()
                 ilosc = self.model_pojazd.item(row, 3).text()
 
-                # Dodaj wiersz do tabeli
+                # Podziel nazwę elementu na linie
+                wrapped_name = textwrap.wrap(nazwa_elementu, width=int(column_widths[2] / 7))  # Dopasowanie szerokości
+                row_height = line_height * len(wrapped_name)  # Wysokość wiersza zależna od liczby linii
+
+                # Sprawdź miejsce na stronie
+                if y_position - row_height < 50:
+                    pdf.showPage()
+                    draw_header()  # Nagłówek na nowej stronie
+                    y_position = 800
+                    pdf.setFont("DejaVuSans", 12)
+                    for i, header in enumerate(headers):
+                        pdf.drawString(x_offsets[i], y_position, header)
+                    y_position -= line_height
+                    pdf.setFont("DejaVuSans", 10)
+
+                # Rysuj dane w tabeli
                 pdf.drawString(x_offsets[0], y_position, id_czesc)
                 pdf.drawString(x_offsets[1], y_position, typ_serwisu)
-                pdf.drawString(x_offsets[2], y_position, nazwa_elementu)
+                for i, line in enumerate(wrapped_name):
+                    pdf.drawString(x_offsets[2], y_position - (i * line_height), line)
                 pdf.drawString(x_offsets[3], y_position, ilosc)
-                y_position -= line_height
+                y_position -= row_height
 
             # Zapisz plik PDF
             pdf.save()
 
-            # Wyświetl komunikat o sukcesie
             QMessageBox.information(self, "Sukces", f"Raport został wygenerowany i zapisany jako {pdf_file}")
 
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Nie udało się wygenerować raportu: {str(e)}")
+
