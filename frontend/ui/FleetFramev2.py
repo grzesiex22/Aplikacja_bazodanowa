@@ -8,11 +8,21 @@ from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
 from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
+from Aplikacja_bazodanowa.frontend.ui.Raport_Frame import SimpleGenerateRaport
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
 import requests
 
+#do raportu
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib import fonts
+from PyQt5.QtGui import QStandardItem
+from datetime import datetime
+import textwrap
 
 class ScreenType(Enum):
     CIAGNIKI = 1
@@ -336,6 +346,33 @@ class FleetFrame(QtWidgets.QFrame):
         # Ustawienie stylów przycisków i początkowego stanu
         self.button_flota_ciagniki.setChecked(True)
         self.update_screen_type(ScreenType.CIAGNIKI.value)  # Ustawienie początkowej wartości zmiennej
+
+        # Dodanie przycisku "Generuj raport" pomiędzy "KIEROWCY" a "Filtruj"
+        self.button_flota_raport = QtWidgets.QPushButton(self.widget_choice_buttons)
+        self.button_flota_raport.setFixedHeight(60)
+        self.button_flota_raport.setText("Generuj raport")
+        self.button_flota_raport.setStyleSheet("""
+            QPushButton {
+                color: #5d5d5d;
+                background-color: #c4bbf0; /* Tło */
+                border: 2px solid #5d5d5d; /* Ramka */
+                border-radius: 15px; /* Zaokrąglone rogi */
+                padding: 5px; /* Odstępy wewnętrzne */
+                font-size: 20px;  /* Rozmiar czcionki */
+                font-family: Arial, sans-serif;  /* Czcionka */
+            }
+            QPushButton:hover {
+                background-color: #ac97e2; /* Kolor tła po najechaniu */
+            }
+            QPushButton:pressed {
+                background-color: #927fbf;  /* Kolor tła po kliknięciu */
+            }
+        """)
+        self.button_flota_raport.setObjectName("button_flota_raport")
+        self.button_flota_raport.clicked.connect(self.show_raport_frame)
+
+        # Dodanie przycisku "Generuj raport" pomiędzy innymi przyciskami
+        self.horizontalLayout_buttons.addWidget(self.button_flota_raport)
 
     def erase_filters(self):
         if self.screen_type == ScreenType.KIEROWCY:
@@ -763,6 +800,139 @@ class FleetFrame(QtWidgets.QFrame):
         # Usuwamy nakładkę po zamknięciu FilterFrame
         self.overlay.deleteLater()
 
+
+    def show_raport_frame(self):
+        """
+        Wyświetla ramkę do wyboru folderu i nazwy pliku.
+        """
+        if self.screen_type == ScreenType.KIEROWCY:
+            header = "Raport kierowców"
+        if self.screen_type == ScreenType.CIAGNIKI:
+            header = "Raport ciągników"
+        if self.screen_type == ScreenType.NACZEPY:
+            header = "Raport naczep"
+        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title=header)
+        self.raport_dialog.show()
+
+    def generate_raport(self, pdf_file):
+        print("Rozpoczęcie generowania raportu...")
+        try:
+            # Sprawdź katalog wyjściowy
+            output_dir = os.path.dirname(pdf_file)
+            print(f"Ścieżka katalogu wyjściowego: {output_dir}")
+            if not os.path.exists(output_dir):
+                print("Katalog nie istnieje. Tworzę...")
+                os.makedirs(output_dir)
+
+            # Rejestracja czcionki
+            font_path = "./frontend/fonts/dejavu-sans-ttf-2.37/ttf/DejaVuSans.ttf"
+            print(f"Ścieżka czcionki: {font_path}")
+            if not os.path.exists(font_path):
+                QMessageBox.critical(self, "Błąd", "Nie znaleziono pliku czcionki.")
+                print("Błąd: Nie znaleziono pliku czcionki.")
+                return
+            pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
+            print("Czcionka została załadowana pomyślnie.")
+
+            # Tworzenie PDF
+            print(f"Tworzenie pliku PDF: {pdf_file}")
+            pdf = canvas.Canvas(pdf_file, pagesize=A4)
+            pdf.setTitle("Raport")
+
+            current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"Aktualna data i czas: {current_datetime}")
+
+            def draw_header():
+                print("Rysowanie nagłówka...")
+                pdf.setFont("DejaVuSans", 7)
+                pdf.drawRightString(550, 830, current_datetime)
+
+            # Nagłówek raportu
+            pdf.setFont("DejaVuSans", 10)
+            pdf.drawString(50, 800, "Raport")
+            draw_header()
+
+            # Wybór modelu danych na podstawie screen_type
+            print(f"Typ ekranu: {self.screen_type}")
+            if self.screen_type == ScreenType.KIEROWCY:
+                headers = ["ID Kierowcy", "Imię", "Nazwisko", "Nr telefonu"]
+                column_widths = [50, 100, 100, 80]
+                model = self.model_kierowca
+            elif self.screen_type in {ScreenType.CIAGNIKI, ScreenType.NACZEPY}:
+                headers = ["ID Pojazdu", "ID Kierowcy", "Dane Kierowcy", "Typ Pojazdu", "Marka", "Model",
+                           "Numer Rejestracyjny", "Dodatkowe Informacje"]
+                column_widths = [50, 50, 90, 50, 60, 60, 90, 150]
+                model = self.model_pojazd
+            else:
+                QMessageBox.critical(self, "Błąd", "Nieobsługiwany typ ekranu")
+                print("Błąd: Nieobsługiwany typ ekranu.")
+                return
+            print(f"Nagłówki tabeli: {headers}")
+
+            x_offsets = [50]
+            for width in column_widths[:-1]:
+                x_offsets.append(x_offsets[-1] + width)
+            print(f"X-offsets kolumn: {x_offsets}")
+
+            y_position = 770
+            line_height = 12
+            wrapped_line_spacing = 8
+
+            # Nagłówki tabeli
+            print("Rysowanie nagłówków tabeli...")
+            pdf.setFont("DejaVuSans", 7)
+            for i, header in enumerate(headers):
+                pdf.drawString(x_offsets[i], y_position, header)
+            y_position -= line_height
+
+            # Dane tabeli
+            print("Dodawanie danych tabeli...")
+            pdf.setFont("DejaVuSans", 6)
+            for row in range(model.rowCount()):
+                print(f"Przetwarzanie wiersza: {row}")
+                if y_position < 30:
+                    print("Brak miejsca na stronie. Tworzenie nowej strony...")
+                    pdf.showPage()
+                    draw_header()
+                    y_position = 770
+                    pdf.setFont("DejaVuSans", 7)
+                    for i, header in enumerate(headers):
+                        pdf.drawString(x_offsets[i], y_position, header)
+                    y_position -= line_height
+                    pdf.setFont("DejaVuSans", 6)
+
+                # Pobranie danych wiersza
+                values = []
+                for col in range(len(headers)):
+                    item = model.item(row, col)
+                    value = item.text() if item and item.text() else "Brak danych"
+                    values.append(value)
+                print(f"Wartości wiersza: {values}")
+
+                # Rysowanie wierszy
+                max_wrapped_lines = 1
+                for i, value in enumerate(values):
+                    wrapped_value = textwrap.wrap(value, width=int(column_widths[i] / 6))
+                    for line_idx, line in enumerate(wrapped_value):
+                        y_offset = y_position - (line_idx * wrapped_line_spacing)
+                        pdf.drawString(x_offsets[i], y_offset, line)
+                    max_wrapped_lines = max(max_wrapped_lines, len(wrapped_value))
+
+                # Przesunięcie pozycji Y po zakończeniu rysowania całego wiersza
+                y_position -= (max_wrapped_lines - 1) * wrapped_line_spacing + line_height
+
+            # Zapisanie PDF
+            print("Zapisywanie pliku PDF...")
+            pdf.save()
+            QMessageBox.information(self, "Sukces", f"Raport został wygenerowany i zapisany jako {pdf_file}")
+            print("Raport wygenerowany pomyślnie.")
+
+        except PermissionError:
+            QMessageBox.critical(self, "Błąd", "Brak uprawnień do zapisu pliku.")
+            print("Błąd: Brak uprawnień do zapisu pliku.")
+        except Exception as e:
+            QMessageBox.critical(self, "Błąd", f"Nie udało się wygenerować raportu: {str(e)}")
+            print(f"Nie udało się wygenerować raportu: {str(e)}")
 
     # def highlight_sorted_column(self, column_index, order):
     #     """
