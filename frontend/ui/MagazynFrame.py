@@ -78,7 +78,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         try:
             # Przykład statycznych nagłówków, dostosuj do swojej logiki
             headers = {
-                "czesc": ["ID", "ID Typ Serwisu", "Nazwa Elementu", "Ilość"],
+                "czesc": ["ID", "Typ Serwisu", "Nazwa Elementu", "Ilość"],
                 # Możesz dodać więcej modeli z odpowiednimi nagłówkami
             }
 
@@ -513,17 +513,18 @@ class WarehouseFrame(QtWidgets.QFrame):
             response = requests.get(f"{self.api_url}/czesc/{czesc_id}")
             if response.status_code == 200:
                 czesc_data = response.json()
+                print(czesc_data)
                 # Przekazanie danych do okna edycji
                 if self.filters_set:
                     self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
                                                 api_url=f"{self.api_url}/czesc",
-                                                parent=self, header_title="Edycja pojazdu",
+                                                parent=self, header_title="Edycja części",
                                                 # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
                                                 refresh_callback=self.load_data_filtered)
                 else:
                     self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
                                             api_url=f"{self.api_url}/czesc",
-                                            parent=self, header_title="Edycja pojazdu",
+                                            parent=self, header_title="Edycja części",
                                             # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
                                             refresh_callback=self.load_data)
                 self.edit_frame.show()
@@ -585,7 +586,9 @@ class WarehouseFrame(QtWidgets.QFrame):
         if self.screen_type == ScreenType.CZESCI:
             try:
                 # Wykonanie żądania HTTP GET do API z parametrami
-                response = requests.get(f"{self.api_url}/czesci?excludeIdTypSerwisu=4", params=params)
+                # response = requests.get(f"{self.api_url}/czesci?excludeIdTypSerwisu=4", params=params)
+                response = requests.get(f"{self.api_url}/czesci?excludeTypSerwisu=Wyposażenie", params=params)
+
                 if response.status_code == 200:
                     czesci_data = response.json()  # Pobranie danych w formacie JSON
 
@@ -608,7 +611,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         elif self.screen_type == ScreenType.WYPOSAZENIE:
             try:
                 # Wykonanie żądania HTTP GET do API z parametrami
-                response = requests.get(f"{self.api_url}/czesci?idTypSerwisu=4", params=params)
+                response = requests.get(f"{self.api_url}/czesci?includeTypSerwisu=Wyposażenie", params=params)
                 if response.status_code == 200:
                     czesci_data = response.json()  # Pobranie danych w formacie JSON
 
@@ -718,12 +721,12 @@ class WarehouseFrame(QtWidgets.QFrame):
         if self.screen_type == ScreenType.CZESCI:
             # Budowanie URL z parametrami w wymaganym formacie
             query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-            full_url = f"{self.api_url}/czesci?excludeIdTypSerwisu=4&{query_string}"
+            full_url = f"{self.api_url}/czesci?excludeTypSerwisu=Wyposażenie&{query_string}"
             print(f"Final URL: {full_url}")
         elif self.screen_type == ScreenType.WYPOSAZENIE:
             # Budowanie URL z parametrami w wymaganym formacie
             query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-            full_url = f"{self.api_url}/czesci?idTypSerwisu=4&{query_string}"
+            full_url = f"{self.api_url}/czesci?includeTypSerwisu=Wyposażenie&{query_string}"
             print(f"Final URL: {full_url}")
         try:
             # Wykonanie żądania HTTP GET do API z parametrami

@@ -308,7 +308,7 @@ class AddFrame(QFrame):
                 spin_box.setStyleSheet("""
                                     background-color: #90aa92;  /* Żółte tło */
                                     border: 1px solid #ccc;      /* Szara ramka */
-                                    border-radius: 10px;          /* Zaokrąglone rogi */
+                                    border-radius: 5px;          /* Zaokrąglone rogi */
                                     padding: 5px;                /* Wewnętrzna przestrzeń */
                                     font-size: 14px;             /* Rozmiar czcionki */
                                 """)  # Opcjonalne style

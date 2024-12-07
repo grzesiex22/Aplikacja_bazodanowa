@@ -17,11 +17,12 @@ def pobierz_czesc(id):
         # Pobieramy dane typu serwisu na podstawie idTypSerwisu
         typ_serwisu = TypSerwisu.query.get(czesc.idTypSerwisu) if czesc.idTypSerwisu else None
         typ_serwisu_nazwa = typ_serwisu.rodzajSerwisu if typ_serwisu else "Brak typu serwisu"
+        typ_serwisu_pojazd = typ_serwisu.typPojazdu if typ_serwisu else ""
 
         return jsonify({
             'ID części': czesc.idCzesc,
             'idTypSerwisu': czesc.idTypSerwisu,
-            'Dane Typ serwisu': typ_serwisu_nazwa, # Zwracamy nazwę typu serwisu
+            'Typ Serwisu': f"{typ_serwisu_pojazd}, {typ_serwisu_nazwa}",  # Zwracamy nazwę typu serwisu
             'Nazwa elementu': czesc.nazwaElementu,
             'Ilość': czesc.ilosc
         }), 200
@@ -81,7 +82,9 @@ def pobierz_wszystkie_czesci():
         # Pobieranie parametrów z zapytania
         nazwa_elementu = request.args.get('nazwaElementu', '').strip()
         id_typ_serwisu = request.args.get('idTypSerwisu', None)
-        exclude_id_typ_serwisu = request.args.get('excludeIdTypSerwisu', None)
+        include_typ_serwisu = request.args.get('includeTypSerwisu', None)  # Uwzględnienie tylko określonych serwisów
+        # exclude_id_typ_serwisu = request.args.get('excludeIdTypSerwisu', None)
+        exclude_typ_serwisu = request.args.get('excludeTypSerwisu', None)  # Zmieniona nazwa parametru
         sort_by = request.args.get('sort_by', 'nazwaElementu')  # Domyślnie sortowanie po nazwie elementu
         order = request.args.get('order', 'asc')  # Domyślnie sortowanie rosnące
 
@@ -94,9 +97,26 @@ def pobierz_wszystkie_czesci():
         if id_typ_serwisu:
             query = query.filter(Czesc.idTypSerwisu == int(id_typ_serwisu))
 
-        # Filtruj części, aby wykluczyć określony 'idTypSerwisu', jeśli podano 'excludeIdTypSerwisu'
-        if exclude_id_typ_serwisu:
-            query = query.filter(Czesc.idTypSerwisu != int(exclude_id_typ_serwisu))
+        # # Filtruj części, aby wykluczyć określony 'idTypSerwisu', jeśli podano 'excludeIdTypSerwisu'
+        # if exclude_id_typ_serwisu:
+        #     query = query.filter(Czesc.idTypSerwisu != int(exclude_id_typ_serwisu))
+        #
+        # Jeśli podano 'excludeTypSerwisu', wyszukaj idTypSerwisu dla podanego rodzaju serwisu
+        if exclude_typ_serwisu:
+            # Wyszukaj idTypSerwisu pasujące do podanego rodzaju serwisu
+            typy_serwisu = TypSerwisu.query.filter(TypSerwisu.rodzajSerwisu.ilike(f'%{exclude_typ_serwisu}%')).all()
+            exclude_ids = [typ.idTypSerwisu for typ in typy_serwisu]
+
+            if exclude_ids:
+                query = query.filter(~Czesc.idTypSerwisu.in_(exclude_ids))
+
+        # Jeśli podano 'includeTypSerwisu', wyszukaj idTypSerwisu dla podanego rodzaju serwisu
+        if include_typ_serwisu:
+            typy_serwisu = TypSerwisu.query.filter(TypSerwisu.rodzajSerwisu.ilike(f'%{include_typ_serwisu}%')).all()
+            include_ids = [typ.idTypSerwisu for typ in typy_serwisu]
+
+            if include_ids:
+                query = query.filter(Czesc.idTypSerwisu.in_(include_ids))
 
         # Dodaj sortowanie
         if sort_by in ['nazwaElementu', 'ilosc']:
@@ -114,10 +134,12 @@ def pobierz_wszystkie_czesci():
             # Pobranie typu serwisu na podstawie idTypSerwisu
             typ_serwisu = TypSerwisu.query.get(czesc.idTypSerwisu) if czesc.idTypSerwisu else None
             typ_serwisu_nazwa = typ_serwisu.rodzajSerwisu if typ_serwisu else "Brak typu serwisu"
+            typ_serwisu_pojazd = typ_serwisu.typPojazdu if typ_serwisu else ""
 
             wynik.append({
                 'idCzesc': czesc.idCzesc,
-                'typSerwisu': typ_serwisu_nazwa,  # Wyświetlamy nazwę typu serwisu
+                'idTypSerwisu': czesc.idTypSerwisu,
+                'typSerwisu': str(typ_serwisu_pojazd + ", " + typ_serwisu_nazwa),  # Wyświetlamy nazwę typu serwisu
                 'nazwaElementu': czesc.nazwaElementu,
                 'ilosc': czesc.ilosc
             })
@@ -181,8 +203,8 @@ def validate_czesc():
     if 'Ilość' not in data or not isinstance(data['Ilość'], int):
         return jsonify({'message': 'Ilość musi być liczbą całkowitą'}), 400
 
-    if 'Dane Typ serwisu' not in data or not isinstance(data['Dane Typ serwisu'], str):
-        return jsonify({'message': 'Dane Typ serwisu musi być ciągiem znaków'}), 400
+    # if 'Dane Typ serwisu' not in data or not isinstance(data['Dane Typ serwisu'], str):
+    #     return jsonify({'message': 'Dane Typ serwisu musi być ciągiem znaków'}), 400
 
     # Walidacja idTypSerwisu
     if 'idTypSerwisu' not in data:
@@ -216,8 +238,8 @@ def edytuj_czesc(id):
         if czesc is None:
             return jsonify({'message': 'Część nie znaleziona'}), 404
 
-            id_typ_serwisu = int(data['idTypSerwisu'])
-            czesc.typ_serwisu = typ_serwis  # Przypisanie powiązania do nowego obiektu TypSerwisu
+        id_typ_serwisu = int(data['idTypSerwisu'])
+        czesc.idTypSerwisu = id_typ_serwisu  # Przypisanie powiązania do nowego obiektu TypSerwisu
 
         # Aktualizacja pól, jeśli są obecne w danych wejściowych
         czesc.nazwaElementu = data.get('Nazwa elementu', czesc.nazwaElementu)

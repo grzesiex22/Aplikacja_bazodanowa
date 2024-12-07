@@ -4,6 +4,8 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
     QAbstractItemView, QComboBox, QSpinBox
+from Aplikacja_bazodanowa.frontend.ui.MultiSelectComboBox import MultiSelectComboBox
+
 from urllib.parse import urlparse
 import requests
 from functools import partial
@@ -15,6 +17,13 @@ class FilterMagazineFrame(QFrame):
 
         # Pełna ścieżka do folderu z ikonami
         self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
+
+        # styl dla QComboBox
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FilterFrame_QComboBox.qss')
+        with open(file_path, "r") as file:
+            self.combobox_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.combobox_style = self.combobox_style.replace('url(icons/', f'url({self.icon_path}/')
 
 
         self.api_url = api_url  # URL dla POST danych
@@ -244,15 +253,7 @@ class FilterMagazineFrame(QFrame):
                 #
                 #             """)
 
-                combo_box.setStyleSheet("""
-                                QComboBox {
-                                    border: 2px solid #ac97e2;
-                                    border-radius: 5px;
-                                    padding: 2px;
-                                    background-color: #c4bbf0;
-                                    color: #333333;
-                                }
-                                """)
+                combo_box.setStyleSheet(self.combobox_style)
 
                 name_to_connect = tmp['friendly_name'] #if tmp['input_type'] == column_name else "None"
 

@@ -917,13 +917,13 @@ class Czesc(BaseModel):
         'idTypSerwisu': {
             'friendly_name': 'idTypSerwisu',
             'editable': False,
-            'input_type': 'Dane Typ Serwisu',
+            'input_type': 'Typ Serwisu',
         },
-        'TypSerwisu': {
-            'friendly_name': 'Dane Typ serwisu',
+        'typSerwisu': {
+            'friendly_name': 'Typ Serwisu',
             'editable': True,
             'input_type': 'list',
-            'inputs': 'typserwisu/show/alltochoice',
+            'inputs': 'typserwis/show/alltochoice2',
         },
         'nazwaElementu': {
             'friendly_name': 'Nazwa elementu',
