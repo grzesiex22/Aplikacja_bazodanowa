@@ -702,6 +702,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.filter_dialog.finished.connect(self.remove_overlay)
 
     def load_data_filtered(self, filtr_parameteres_czesci=None, sort_by='', order=''):
+        self.remove_overlay()
         # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
         if filtr_parameteres_czesci is not None:
             self.filtr_parameteres_czesci = filtr_parameteres_czesci
