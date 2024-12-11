@@ -793,6 +793,9 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.raport_dialog.finished.connect(self.remove_overlay)
 
     def generate_raport(self, pdf_file):
+
+        self.remove_overlay()
+
         # Upewnij się, że ścieżka katalogu istnieje
         output_dir = os.path.dirname(pdf_file)
         if not os.path.exists(output_dir):
@@ -834,7 +837,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
             # Przygotowanie nagłówków tabeli
             headers = ["ID Części", "Typ Serwisu", "Nazwa Elementu", "Ilość"]
-            column_widths = [80, 100, 250, 50]  # Ustalona szerokość kolumn
+            column_widths = [80, 120, 210, 50]  # Ustalona szerokość kolumn
 
             x_offsets = [50]  # Start od X=50
             for width in column_widths[:-1]:
@@ -853,7 +856,7 @@ class WarehouseFrame(QtWidgets.QFrame):
             pdf.setFont("DejaVuSans", 10)
             for row in range(self.model_pojazd.rowCount()):
                 # Pobierz dane z modelu
-                #id_czesc = self.model_pojazd.item(row, 0).text()
+                id_czesc = self.model_pojazd.item(row, 0).text()
                 typ_serwisu = self.model_pojazd.item(row, 1).text()
                 nazwa_elementu = self.model_pojazd.item(row, 2).text()
                 ilosc = self.model_pojazd.item(row, 3).text()

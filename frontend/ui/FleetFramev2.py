@@ -822,6 +822,7 @@ class FleetFrame(QtWidgets.QFrame):
         self.raport_dialog.finished.connect(self.remove_overlay)
 
     def generate_raport(self, pdf_file):
+        self.remove_overlay()
         print("Rozpoczęcie generowania raportu...")
         try:
             # Sprawdź katalog wyjściowy
