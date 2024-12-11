@@ -1,9 +1,11 @@
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QPushButton, QLabel, QFileDialog, QVBoxLayout, QHBoxLayout, QLineEdit
 
 class SimpleGenerateRaport(QFrame):
+    finished = pyqtSignal()  #
+
     def __init__(self, parent=None, header_title="title", save_callback=None):
         super().__init__(parent)
 
@@ -161,6 +163,7 @@ class SimpleGenerateRaport(QFrame):
         layout.addLayout(button_layout)
 
     def close_window(self):
+        self.finished.emit()
         self.close()  # Zamykamy okno
 
     def choose_folder(self):

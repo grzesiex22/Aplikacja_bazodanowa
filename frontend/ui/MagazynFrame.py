@@ -27,6 +27,14 @@ class ScreenType(Enum):
     CZESCI = 1
     WYPOSAZENIE = 2
 
+class OverlayWidget(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setGeometry(parent.rect())
+        self.setStyleSheet("background-color: rgba(0, 0, 0, 120);")  # Semi-transparent black
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)  # To block mouse events
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setCursor(Qt.WaitCursor)  # Ustawienie kursora oczekiwania na czas blokad
 
 class WarehouseFrame(QtWidgets.QFrame):
     def __init__(self, parent=None, api_url=None):
@@ -59,7 +67,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
         self.primary_key_index = None  # aktualne pole z kluczem głównym (potrzebne by było wiadomow skąd pobrać ID i aby ukryć kolumne)
 
-        # Ustawienie rozmiaru floty
+        # Ustawienie rozmiaru magazynu
         self.width = 0
         self.height = 0
         available_rect = self.parent().screen().availableGeometry()
@@ -67,7 +75,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.height = available_rect.height()
         self.setFixedSize(self.width, self.height)
 
-        self.setup_frame()  # Ustawienie ramki floty
+        self.setup_frame()  # Ustawienie ramki magazynu
 
         self.hide()  # schowanie się
 
@@ -489,9 +497,11 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.animation.finished.connect(self.hide)  # Ukryj po zakończeniu animacji
         self.setEnabled(False)
 
-
-
     def add_new_line(self):
+        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         if self.filters_set:
             self.add_frame = AddFrame(class_name="czesc", api_url=f"{self.api_url}/czesc",
                                       parent=self, header_title="Dodawanie części", refresh_callback=self.load_data_filtered)
@@ -500,9 +510,14 @@ class WarehouseFrame(QtWidgets.QFrame):
                                   parent=self, header_title="Dodawanie części", refresh_callback=self.load_data)
         self.add_frame.show()
 
-
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.add_frame.finished.connect(self.remove_overlay)
 
     def on_table_double_click(self, index):
+        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         row = index.row()
 
         czesc_id = self.model_pojazd.data(
@@ -533,6 +548,9 @@ class WarehouseFrame(QtWidgets.QFrame):
                                     f"Nie udało się pobrać danych pojazdu. Status: {response.status_code}")
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.edit_frame.finished.connect(self.remove_overlay)
 
     def adjust_column_widths(self):
         """
@@ -663,6 +681,10 @@ class WarehouseFrame(QtWidgets.QFrame):
         """
         Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
         """
+        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
             self.filter_dialog = FilterMagazineFrame(
@@ -676,6 +698,8 @@ class WarehouseFrame(QtWidgets.QFrame):
             )
             # Pokazujemy istniejący dialog (nowy lub już wcześniej utworzony)
         self.filter_dialog.show()
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.filter_dialog.finished.connect(self.remove_overlay)
 
     def load_data_filtered(self, filtr_parameteres_czesci=None, sort_by='', order=''):
         # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
@@ -758,8 +782,15 @@ class WarehouseFrame(QtWidgets.QFrame):
         """
         Wyświetla ramkę do wyboru folderu i nazwy pliku.
         """
+        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport części")
         self.raport_dialog.show()
+
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.raport_dialog.finished.connect(self.remove_overlay)
 
     def generate_raport(self, pdf_file):
         # Upewnij się, że ścieżka katalogu istnieje
@@ -822,7 +853,7 @@ class WarehouseFrame(QtWidgets.QFrame):
             pdf.setFont("DejaVuSans", 10)
             for row in range(self.model_pojazd.rowCount()):
                 # Pobierz dane z modelu
-                id_czesc = self.model_pojazd.item(row, 0).text()
+                #id_czesc = self.model_pojazd.item(row, 0).text()
                 typ_serwisu = self.model_pojazd.item(row, 1).text()
                 nazwa_elementu = self.model_pojazd.item(row, 2).text()
                 ilosc = self.model_pojazd.item(row, 3).text()
@@ -858,3 +889,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Nie udało się wygenerować raportu: {str(e)}")
 
+    def remove_overlay(self):
+        # Usuwamy nakładkę po zamknięciu FilterFrame
+        self.overlay.deleteLater()

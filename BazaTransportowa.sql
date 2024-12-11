@@ -220,4 +220,3 @@ USE `TransportManagerDB`;
 INSERT INTO `TransportManagerDB`.`WyposażeniePojazdu` (`idWyposazeniePojazdu`, `idPojazd`, `opis`, `ilosc`) VALUES (DEFAULT, 1, 'Gaśnica', 1);
 
 COMMIT;
-

@@ -805,6 +805,10 @@ class FleetFrame(QtWidgets.QFrame):
         """
         Wyświetla ramkę do wyboru folderu i nazwy pliku.
         """
+        # Tworzymy nakładkę, która zablokuje interakcje w frame
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
         if self.screen_type == ScreenType.KIEROWCY:
             header = "Raport kierowców"
         if self.screen_type == ScreenType.CIAGNIKI:
@@ -813,6 +817,9 @@ class FleetFrame(QtWidgets.QFrame):
             header = "Raport naczep"
         self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title=header)
         self.raport_dialog.show()
+
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.raport_dialog.finished.connect(self.remove_overlay)
 
     def generate_raport(self, pdf_file):
         print("Rozpoczęcie generowania raportu...")

@@ -1,7 +1,7 @@
 import os
 
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
     QAbstractItemView, QComboBox, QSpinBox
 from Aplikacja_bazodanowa.frontend.ui.MultiSelectComboBox import MultiSelectComboBox
@@ -12,6 +12,8 @@ from functools import partial
 
 
 class FilterMagazineFrame(QFrame):
+    finished = pyqtSignal()
+
     def __init__(self, class_name, api_url, parent=None, header_title="title", screen_type=1, refresh_callback=None):
         super().__init__(parent)
 
@@ -374,6 +376,7 @@ class FilterMagazineFrame(QFrame):
         self.close()  # Zamykamy okno
 
     def close_window(self):
+        self.finished.emit()
         self.close()  # Zamykamy okno
 
     # Mouse event overrides for dragging
