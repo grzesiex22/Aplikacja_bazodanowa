@@ -200,6 +200,10 @@ def validate_czesc():
     if 'Nazwa elementu' not in data or not isinstance(data['Nazwa elementu'], str):
         return jsonify({'message': 'Nazwa elementu musi być ciągiem znaków'}), 400
 
+    # Sprawdzenie długości nazwy elementu
+    if len(data['Nazwa elementu']) > 100:
+        return jsonify({'message': 'Nazwa elementu nie może mieć więcej niż 100 znaków'}), 400
+
     if 'Ilość' not in data or not isinstance(data['Ilość'], int):
         return jsonify({'message': 'Ilość musi być liczbą całkowitą'}), 400
 
