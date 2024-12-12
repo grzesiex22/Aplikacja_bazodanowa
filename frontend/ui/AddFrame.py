@@ -1,9 +1,9 @@
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal, QRegExp
-from PyQt5.QtGui import QFont, QIntValidator, QRegExpValidator
+from PyQt5.QtGui import QFont, QIntValidator, QRegExpValidator, QIcon
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
-    QAbstractItemView, QComboBox, QStyleOptionComboBox, QListView, QSpinBox
+    QAbstractItemView, QComboBox, QStyleOptionComboBox, QListView, QSpinBox, QHBoxLayout
 from Aplikacja_bazodanowa.frontend.ui.DateLineEdit import DateLineEdit
 
 from urllib.parse import urlparse
@@ -37,6 +37,13 @@ class AddFrame(QFrame):
             self.lineEdit_style = file.read()
         # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
         self.lineEdit_style = self.lineEdit_style.replace('url(icons/', f'url({self.icon_path}/')
+
+        # styl dla QSpinBox
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'AddFrame_QSpinBox.qss')
+        with open(file_path, "r") as file:
+            self.spinBox_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.spinBox_style = self.spinBox_style.replace('url(icons/', f'url({self.icon_path}/')
 
         # Ustawienie QIntValidator (tylko liczby całkowite)
         self.validator = QIntValidator(0, 999999, self)  # Zakres od 0 do 999999
@@ -305,15 +312,11 @@ class AddFrame(QFrame):
                 spin_box.setMaximum(1000000)  # Ustaw maksymalną wartość (dostosuj według potrzeb)
                 spin_box.setFixedHeight(30)
                 spin_box.setObjectName(f"spin_box_{column_name}")
-                spin_box.setStyleSheet("""
-                                    background-color: #90aa92;  /* Żółte tło */
-                                    border: 1px solid #ccc;      /* Szara ramka */
-                                    border-radius: 5px;          /* Zaokrąglone rogi */
-                                    padding: 5px;                /* Wewnętrzna przestrzeń */
-                                    font-size: 14px;             /* Rozmiar czcionki */
-                                """)  # Opcjonalne style
+                spin_box.setStyleSheet(self.spinBox_style)
+
                 self.gridLayout_add.addWidget(spin_box, row, 1)
                 self.fields[column_name] = spin_box
+
             elif input_type == 'number':
                 # Tworzymy pole tekstowe
                 line_edit = QLineEdit()
@@ -334,6 +337,7 @@ class AddFrame(QFrame):
                 self.fields[column_name] = date_edit
 
             row += 1
+
 
 
     def populate_combo_box_from_api(self, combo_box, api_endpoint):

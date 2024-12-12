@@ -100,8 +100,8 @@ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
 
 QScrollBar::up-arrow:vertical {
     image: url(icons/angle-up.png);
-    subcontrol-origin: padding;
-    subcontrol-position: center;
+subcontrol-origin: padding;
+subcontrol-position: center;
 
 }
 QScrollBar::down-arrow:vertical {
