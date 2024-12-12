@@ -370,9 +370,21 @@ class FilterFrame(QFrame):
             self.mouse_press_pos = event.globalPos() - self.pos()
             event.accept()
 
+    # def mouseMoveEvent(self, event):
+    #     if self.is_moving and event.buttons() & QtCore.Qt.LeftButton:
+    #         self.move(event.globalPos() - self.mouse_press_pos)
+    #         event.accept()
+
     def mouseMoveEvent(self, event):
-        if self.is_moving and event.buttons() & QtCore.Qt.LeftButton:
-            self.move(event.globalPos() - self.mouse_press_pos)
+        if self.is_moving and event.buttons() & Qt.LeftButton:
+            screen_geometry = self.screen().geometry()  # Pobierz geometrię ekranu, na którym znajduje się okno
+            new_position = event.globalPos() - self.mouse_press_pos  # Wylicz nową pozycję okna
+
+            # Ogranicz pozycję okna do granic ekranu
+            x = max(screen_geometry.left(), min(new_position.x(), screen_geometry.right() - self.width))
+            y = max(screen_geometry.top(), min(new_position.y(), screen_geometry.bottom() - self.height))
+
+            self.move(x, y)  # Przesuń okno na ograniczoną pozycję
             event.accept()
 
     def mouseReleaseEvent(self, event):
