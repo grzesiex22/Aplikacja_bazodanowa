@@ -404,7 +404,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         column_name = self.tableView_flota.model().headerData(column_index, Qt.Horizontal)
         print(f"Sorting by {column_name}...")
 
-        if column_name == 'ID Typ Serwisu':
+        if column_name == 'Typ Serwisu':
             return
 
         # Jeśli ta sama kolumna była wcześniej posortowana
