@@ -224,14 +224,18 @@ class Kierowca(BaseModel):
         # Walidacja imienia i nazwiska
         if 'Imię' in data and not isinstance(data['Imię'], str):
             return {'message': 'Imię musi być ciągiem znaków'}, 400
+        elif 'Imię' in data and len(data['Imię']) > 45:
+            return {'message': 'Imię może składać się z maksymalnie 45 znaków'}, 400
+
         if 'Nazwisko' in data and not isinstance(data['Nazwisko'], str):
             return {'message': 'Nazwisko musi być ciągiem znaków'}, 400
+        elif 'Nazwisko' in data and len(data['Nazwisko']) > 45:
+            return {'message': 'Nazwisko może składać się z maksymalnie 45 znaków'}, 400
 
         # Walidacja numeru telefonu (tylko cyfry, dokładnie 9 cyfr)
         if 'Nr telefonu' in data:
             if not re.match(r'^\d{9}$', data['Nr telefonu']):
                 return {'message': 'Numer telefonu musi składać się z 9 cyfr'}, 400
-
         return None  # Brak błędów, walidacja przeszła pomyślnie
 
 
@@ -377,7 +381,7 @@ class Pojazd(BaseModel):
         if 'Typ pojazdu' in data:
             typ_pojazdu = data['Typ pojazdu']
 
-            valid_types = [typ for typ in TypPojazdu]# Korzystamy z TypPojazdu jako Enum
+            valid_types = [typ for typ in TypPojazdu]  # Korzystamy z TypPojazdu jako Enum
             print(f"Valid_types: {valid_types}")
             if typ_pojazdu not in [typ.name for typ in valid_types]:  # Typy Enum są w .name
                 return {'message': f"Nieprawidłowy typ pojazdu: {typ_pojazdu}"}, 400
@@ -388,6 +392,15 @@ class Pojazd(BaseModel):
             kierowca = Kierowca.query.get(id_kierowca)
             if not id_kierowca:
                 return {'message': f"Kierowca o ID {id_kierowca} nie istnieje."}, 400
+
+        if 'Marka' in data and len(data['Marka']) > 20:
+            return {'message': 'Marka może składać się z maksymalnie 20 znaków'}, 400
+
+        if 'Model' in data and len(data['Model']) > 45:
+            return {'message': 'Model może składać się z maksymalnie 45 znaków'}, 400
+
+        if 'Dodatkowe informacje' in data and len(data['Dodatkowe informacje']) > 100:
+            return {'message': 'Dodatkowe informacje mogą składać się z maksymalnie 100 znaków'}, 400
 
         # Walidacja numeru rejestracyjnego (alfanumeryczny, maksymalnie 8 znaków)
         if 'Numer rejestracyjny' in data:

@@ -239,7 +239,7 @@ class SerwisFrame(QtWidgets.QFrame):
         Przyciski górne
         """
         self.widget_choice_buttons = QtWidgets.QWidget(self)
-        self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-1000/2), 70, 1000, 60))
+        self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-200/2), 70, 200, 60))
         self.widget_choice_buttons.setObjectName("widget_choice_buttons")
         self.widget_choice_buttons.setStyleSheet("""
             QPushButton {
