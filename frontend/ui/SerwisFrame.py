@@ -160,10 +160,6 @@ class SerwisFrame(QtWidgets.QFrame):
         self.tableView_serwis.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView_serwis.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableView_serwis.setAlternatingRowColors(True)
-        # self.tableView_flota.resizeColumnsToContents()
-        # self.tableView_flota.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        # self.tableView_flota.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-
         self.tableView_serwis.horizontalHeader().setSectionsClickable(True)
         self.tableView_serwis.setCornerButtonEnabled(False)  # Usuwa kwadrat w lewym górnym rogu
 
@@ -177,16 +173,21 @@ class SerwisFrame(QtWidgets.QFrame):
         self.tableView_serwis.doubleClicked.connect(self.on_table_double_click)
         self.tableView_serwis.horizontalHeader().sectionClicked.connect(self.sort_by_column)
 
+
         """
-        Przyciski
+        Przyciski dolne
         """
-        self.button_serwis_dodaj = QtWidgets.QPushButton(self)
-        self.button_serwis_dodaj.setGeometry(QtCore.QRect(
-            int(table_frame_side_margin + table_frame_width / 2 - 500 / 2),
-            table_frame_top_margin + table_frame_height + 20, 500, 60))
-        self.button_serwis_dodaj.setText("DODAJ")
-        self.button_serwis_dodaj.setStyleSheet("QPushButton {"
-                                              "     color: #333333;"
+        self.widget_bottom_buttons = QtWidgets.QWidget(self)
+        self.widget_bottom_buttons.setGeometry(QtCore.QRect(int(self.width/2-1000/2),
+                                                            table_frame_top_margin + table_frame_height + 20,
+                                                            1000, 60))
+        self.widget_bottom_buttons.setObjectName("widget_bottom_buttons")
+
+        self.button_dodaj = QtWidgets.QPushButton(self.widget_bottom_buttons)
+        self.button_dodaj.setFixedHeight(60)
+        self.button_dodaj.setText("DODAJ")
+        self.button_dodaj.setStyleSheet("QPushButton {"
+                                              "     color: #5d5d5d;"
                                               "    background-color: #79cf65; /* Ustawia przezroczyste tło */"
                                               "    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */"
                                               "    border-radius: 15px; /* Zaokrąglone rogi ramki */"
@@ -201,9 +202,42 @@ class SerwisFrame(QtWidgets.QFrame):
                                               "    background-color: #4e8340;  /* Kolor tła po kliknięciu */"
                                               "    border: 2px solid #4e8340; /* Ustawia kolor ramki (czarny) */"
                                               "}")
-        self.button_serwis_dodaj.setObjectName("button_serwis_dodaj")
-        self.button_serwis_dodaj.clicked.connect(self.add_new_line)
+        self.button_dodaj.setObjectName("button_flota_dodaj")
+        self.button_dodaj.clicked.connect(self.add_new_line)
 
+        self.button_raport = QtWidgets.QPushButton(self.widget_bottom_buttons)
+        self.button_raport.setFixedHeight(60)
+        self.button_raport.setText("GENERUJ RAPORT")
+        self.button_raport.setStyleSheet("""QPushButton {
+                                                      color: #5d5d5d;
+                                                      background-color: #c4bbf0; /* Ustawia przezroczyste tło */
+                                                      border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
+                                                      border-radius: 15px; /* Zaokrąglone rogi ramki */
+                                                      padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
+                                                      font-size: 20px;  /* Rozmiar czcionki */
+                                                      font-family: Arial, sans-serif;  /* Czcionka */
+                                                  }
+                                                  QPushButton:hover {
+                                                      background-color: #ac97e2; /* Ustawia kolor tła po najechaniu */
+                                                  }
+                                                  QPushButton:pressed {
+                                                      background-color: #927fbf;  /* Kolor tła po kliknięciu */
+                                                  }""")
+        self.button_raport.setObjectName("button_magazyn_raport")
+        self.button_raport.clicked.connect(self.show_raport_frame)
+
+        # Położenie Poziome dla przycisków
+        self.horizontalLayout_bottom_buttons = QtWidgets.QHBoxLayout(self.widget_bottom_buttons)
+        self.horizontalLayout_bottom_buttons.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_bottom_buttons.setSpacing(50)  # Ustawia odstęp między przyciskami na 20 pikseli
+        self.horizontalLayout_bottom_buttons.setObjectName("horizontalLayout_bottom")
+
+        self.horizontalLayout_bottom_buttons.addWidget(self.button_dodaj)
+        self.horizontalLayout_bottom_buttons.addWidget(self.button_raport)
+
+        """
+        Przyciski górne
+        """
         self.widget_choice_buttons = QtWidgets.QWidget(self)
         self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-1000/2), 70, 1000, 60))
         self.widget_choice_buttons.setObjectName("widget_choice_buttons")
@@ -269,7 +303,6 @@ class SerwisFrame(QtWidgets.QFrame):
                     }
                 """)
 
-        ######przycisk wyczyść filtry####################
         # Tworzenie przycisku button_filtruj
         self.button_wyczysc_filtry = QtWidgets.QPushButton(self.widget_choice_buttons)
         self.button_wyczysc_filtry.setFixedWidth(70)
@@ -286,10 +319,10 @@ class SerwisFrame(QtWidgets.QFrame):
         # Ustawienie stylu dla przycisku button_wyczysc_filtry
         self.button_wyczysc_filtry.setStyleSheet("""
                         QPushButton {
-                        background-color: #c4bbf0; /* Złoty kolor */
-                        border: 2px solid #5d5d5d;
-                        border-radius: 15px;
-                        padding: 5px;
+                            background-color: #c4bbf0; /* Złoty kolor */
+                            border: 2px solid #5d5d5d;
+                            border-radius: 15px;
+                            padding: 5px;
                         }
                         QPushButton:hover {
                             background-color: #ac97e2;
@@ -299,28 +332,6 @@ class SerwisFrame(QtWidgets.QFrame):
                         }
                         """)
 
-        self.button_magazyn_raport = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_magazyn_raport.setFixedHeight(60)
-        self.button_magazyn_raport.setFixedWidth(200)
-        self.button_magazyn_raport.setText("Generuj raport")
-        self.button_magazyn_raport.setStyleSheet("""QPushButton {
-                                                                      color: #5d5d5d;
-                                                                      background-color: #c4bbf0; /* Ustawia przezroczyste tło */
-                                                                      border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
-                                                                      border-radius: 15px; /* Zaokrąglone rogi ramki */
-                                                                      padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
-                                                                      font-size: 20px;  /* Rozmiar czcionki */
-                                                                      font-family: Arial, sans-serif;  /* Czcionka */
-                                                                  }
-                                                                  QPushButton:hover {
-                                                                      background-color: #ac97e2; /* Ustawia kolor tła po najechaniu */
-                                                                  }
-                                                                  QPushButton:pressed {
-                                                                      background-color: #927fbf;  /* Kolor tła po kliknięciu */
-                                                                  }""")
-        self.button_magazyn_raport.setObjectName("button_magazyn_raport")
-        self.horizontalLayout_buttons.addWidget(self.button_magazyn_raport)
-        self.button_magazyn_raport.clicked.connect(self.show_raport_frame)
 
         # Widget wyświetlający sumę kosztów
         self.widget_suma_kosztow = QtWidgets.QWidget(self)

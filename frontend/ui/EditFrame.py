@@ -38,6 +38,13 @@ class EditFrame(QFrame):
         # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
         self.lineEdit_style = self.lineEdit_style.replace('url(icons/', f'url({self.icon_path}/')
 
+        # styl dla QSpinBox
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'EditFrame_QSpinBox.qss')
+        with open(file_path, "r") as file:
+            self.spinBox_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.spinBox_style = self.spinBox_style.replace('url(icons/', f'url({self.icon_path}/')
+
         # Ustawienie QIntValidator (tylko liczby całkowite)
         self.validator = QIntValidator(0, 999999, self)  # Zakres od 0 do 999999
 
@@ -321,13 +328,7 @@ class EditFrame(QFrame):
                 spin_box.setMaximum(1000000)  # Ustaw maksymalną wartość (dostosuj według potrzeb)
                 spin_box.setFixedHeight(30)
                 spin_box.setObjectName(f"spin_box_{column_name}")
-                spin_box.setStyleSheet("""
-                    background-color: #cfb796;  /* Żółte tło */
-                    border: 1px solid #ccc;      /* Szara ramka */
-                    border-radius: 10px;          /* Zaokrąglone rogi */
-                    padding: 5px;                /* Wewnętrzna przestrzeń */
-                    font-size: 14px;             /* Rozmiar czcionki */
-                """)
+                spin_box.setStyleSheet(self.spinBox_style)
 
                 if column_value is not None:  # Sprawdzenie, czy w model_data jest wartość
                     try:

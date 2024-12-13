@@ -1,0 +1,34 @@
+QSpinBox {
+    font-size: 14px;
+    padding: 5px;
+    border: 2px solid #cfb796;
+    border-radius: 5px;
+    background-color: #e6d9c3;
+}
+QSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 30px;
+    border-left: 1px solid #cfb796;
+    background: transparent;
+}
+QSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 30px;
+    border-top: 1px solid #cfb796;
+    border-left: 1px solid #cfb796;
+    background: transparent;
+}
+QSpinBox::up-arrow {
+    image: url(icons/angle-up.png);
+    margin: 2px 0px 0px 0px; /* top right bottom left */
+    width: 18px;
+    height: 18px;
+}
+QSpinBox::down-arrow {
+    image: url(icons/angle-down.png);
+    margin: 0px 0px 2px 0px; /* top right bottom left */
+    width: 18px;
+    height: 18px;
+}
