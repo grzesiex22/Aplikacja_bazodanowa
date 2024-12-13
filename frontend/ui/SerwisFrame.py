@@ -420,7 +420,7 @@ class SerwisFrame(QtWidgets.QFrame):
 
     def show_serwis(self):
         self.update_frame_size()  # Zaktualizowanie rozmiaru przed pokazaniem ramki
-        self.raise_()  # Przesunięcie ramki floty na wierzch
+        self.raise_()  # Przesunięcie ramki floty na wierz-ch
         self.show()
         self.setEnabled(True)
         # Animacja przesuwania ramki w dół
@@ -700,7 +700,7 @@ class SerwisFrame(QtWidgets.QFrame):
 
             # Nagłówek raportu
             pdf.setFont("DejaVuSans", 10)
-            pdf.drawString(50, 550, "Raport")  # Zmiana pozycji nagłówka w poziomie
+            pdf.drawString(50, 550, "Raport serwisów")  # Zmiana pozycji nagłówka w poziomie
             draw_header()
 
             headers = [
@@ -773,7 +773,7 @@ class SerwisFrame(QtWidgets.QFrame):
                 values = []
                 for col in range(len(headers)):
                     item = model.item(row, col)
-                    value = item.text() if item and item.text() else "Brak danych"
+                    value = item.text() if item and item.text() else "-"
                     values.append(value)
                 print(f"Wartości wiersza: {values}")
 

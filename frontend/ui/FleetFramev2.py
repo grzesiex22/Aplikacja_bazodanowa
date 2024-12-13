@@ -854,10 +854,20 @@ class FleetFrame(QtWidgets.QFrame):
             # Tworzenie PDF
             print(f"Tworzenie pliku PDF: {pdf_file}")
             pdf = canvas.Canvas(pdf_file, pagesize=A4)
-            pdf.setTitle("Raport")
 
+            if self.screen_type == ScreenType.CIAGNIKI:
+                title = "Raport ciągników siodłowych"
+            elif self.screen_type == ScreenType.NACZEPY:
+                title = "Raport naczep ciężarowych"
+            elif self.screen_type == ScreenType.KIEROWCY:
+                title = "Raport kierowców"
+            else:
+                title = "Raport"
+
+            pdf.setTitle(title)
+
+            # Aktualna data i godzina
             current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(f"Aktualna data i czas: {current_datetime}")
 
             def draw_header():
                 print("Rysowanie nagłówka...")
@@ -866,7 +876,7 @@ class FleetFrame(QtWidgets.QFrame):
 
             # Nagłówek raportu
             pdf.setFont("DejaVuSans", 10)
-            pdf.drawString(50, 800, "Raport")
+            pdf.drawString(50, 800, title)
             draw_header()
 
             # Wybór modelu danych na podstawie screen_type
@@ -922,7 +932,7 @@ class FleetFrame(QtWidgets.QFrame):
                 values = []
                 for col in range(len(headers)):
                     item = model.item(row, col)
-                    value = item.text() if item and item.text() else "Brak danych"
+                    value = item.text() if item and item.text() else "-"
                     values.append(value)
                 print(f"Wartości wiersza: {values}")
 

@@ -812,7 +812,14 @@ class WarehouseFrame(QtWidgets.QFrame):
         try:
             # Utwórz dokument PDF
             pdf = canvas.Canvas(pdf_file, pagesize=A4)
-            pdf.setTitle("Raport Części")
+            if self.screen_type == ScreenType.CZESCI:
+                title = "Raport części"
+            elif self.screen_type == ScreenType.WYPOSAZENIE:
+                title = "Raport wyposażenia"
+            else:
+                title = "Raport"
+
+            pdf.setTitle(title)
 
             # Aktualna data i godzina
             current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -824,7 +831,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
             # Ustawienie czcionki na DejaVuSans
             pdf.setFont("DejaVuSans", 16)
-            pdf.drawString(50, 800, "Raport Części")
+            pdf.drawString(50, 800, title)
             pdf.setFont("DejaVuSans", 12)
 
             draw_header()  # Rysowanie nagłówka na pierwszej stronie
