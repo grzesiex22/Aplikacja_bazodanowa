@@ -770,6 +770,9 @@ class Serwis(BaseModel):
                     'message': f"Koszt robocizny ({robocizna}) nie może być większy niż koszt całkowity netto ({koszt_calkowity})."
                 }, 400
 
+        if 'Dodatkowe informacje' in data and len(data['Dodatkowe informacje']) > 200:
+            return {'message': 'Dodatkowe informacje mogą składać się z maksymalnie 200 znaków'}, 400
+
         return None  # Brak błędów, walidacja przeszła pomyślnie
 
 
