@@ -322,6 +322,62 @@ class SerwisFrame(QtWidgets.QFrame):
         self.horizontalLayout_buttons.addWidget(self.button_magazyn_raport)
         self.button_magazyn_raport.clicked.connect(self.show_raport_frame)
 
+        # Widget wyświetlający sumę kosztów
+        self.widget_suma_kosztow = QtWidgets.QWidget(self)
+        self.widget_suma_kosztow.setGeometry(QtCore.QRect(self.width - 300, self.height - 120, 280, 60))
+        self.widget_suma_kosztow.setStyleSheet("""
+                QWidget {
+                    background-color: #accccb;
+                    border: 2px solid #5d5d5d;
+                    border-radius: 15px;
+                    padding: 5px;
+                }
+                QLabel {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #333;
+                }
+            """)
+
+        # Etykieta sumy kosztów
+        self.label_suma_kosztow = QtWidgets.QLabel(self.widget_suma_kosztow)
+        self.label_suma_kosztow.setGeometry(QtCore.QRect(10, 10, 260, 40))
+        self.label_suma_kosztow.setAlignment(Qt.AlignCenter)
+        self.label_suma_kosztow.setText("Suma kosztów: 0.00 zł")
+
+    def update_suma_kosztow(self):
+        suma_kosztow = 0.0
+
+        # Szukamy numeru kolumny na podstawie nagłówka
+        kolumna_koszt = -1  # Jeśli nie znajdziesz odpowiedniej kolumny, ustawimy na -1
+
+        # Zakładając, że nagłówki są dostępne przez model
+        for column in range(self.model_serwis.columnCount()):
+            header_item = self.model_serwis.headerData(column, Qt.Horizontal)  # Pobieramy nagłówek kolumny
+            if header_item == 'Koszt całkowity netto':  # Jeśli nagłówek pasuje
+                kolumna_koszt = column
+                break  # Zatrzymujemy, gdy znajdziemy odpowiednią kolumnę
+
+        # Jeśli kolumna kosztów nie została znaleziona
+        if kolumna_koszt == -1:
+            print("Nie znaleziono kolumny 'Koszt całkowity netto'")
+            return
+
+        # Przechodzimy przez wszystkie wiersze w tabeli i sumujemy koszty
+        for row in range(self.model_serwis.rowCount()):
+            koszt_item = self.model_serwis.item(row, kolumna_koszt)  # Pobieramy wartość z odpowiedniej kolumny
+            if koszt_item:
+                try:
+                    # Dodajemy wartość kosztu (jeśli można ją przekonwertować na float)
+                    suma_kosztow += float(koszt_item.text()) if koszt_item.text() else 0.0
+                except ValueError:
+                    # Jeśli nie można przekonwertować tekstu na liczbę, pomijamy ten wiersz
+                    continue
+
+        # Aktualizowanie etykiety z sumą
+        self.label_suma_kosztow.setText(f"Suma kosztów: {suma_kosztow:.2f} zł")
+
+
     def erase_filters(self):
         self.filtr_parameteres_serwis = {}
         self.load_data()
@@ -498,6 +554,8 @@ class SerwisFrame(QtWidgets.QFrame):
                 print(f"Błąd API: {response.status_code}")
         except Exception as e:
             print(f"Błąd przy ładowaniu danych: {str(e)}")
+
+        self.update_suma_kosztow()
 
         # Użycie QTimer dla opóźnienia wywołania adjust_column_widths z kluczem głównym dla serwisu
         QTimer.singleShot(0, self.adjust_column_widths)
