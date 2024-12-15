@@ -119,9 +119,9 @@ class WyposazenieFrame(QtWidgets.QFrame):
                             "}")
 
         # Widget dla tytułu floty
-        self.widget_flota_header = QtWidgets.QWidget(self)
-        self.widget_flota_header.setGeometry(QtCore.QRect(0, 0, self.width, 50))
-        self.widget_flota_header.setStyleSheet("QWidget {"
+        self.widget_header = QtWidgets.QWidget(self)
+        self.widget_header.setGeometry(QtCore.QRect(0, 0, self.width, 50))
+        self.widget_header.setStyleSheet("QWidget {"
                                                 "    background-color: #accccb;"
                                                 "    border: 0px solid #e67e22;"
                                                 "    border-radius: 15px;"
@@ -135,7 +135,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
                                                "}"
                                                "QPushButton {"
                                                "    background-color: #a0bebd;"  # Kolor przycisku
-                                               "    border: 2px solid white; /* Ustawia kolor ramki (czarny) */"
+                                         "    border: 2px solid white; /* Ustawia kolor ramki (czarny) */"
                                                "    border-radius: 15px; /* Zaokrąglone rogi ramki */"
                                                "    padding: 5px; /* Wewnętrzne odstępy, opcjonalne */"
                                                "}"
@@ -143,23 +143,23 @@ class WyposazenieFrame(QtWidgets.QFrame):
                                                "    background-color: #8ea8a7; /* Ustawia kolor tła po najechaniu */"
                                                "}")
 
-        self.widget_flota_header.setObjectName("widget_flota_header")
+        self.widget_header.setObjectName("widget_flota_header")
 
-        self.label_flota_header = QtWidgets.QLabel(self.widget_flota_header)
-        self.label_flota_header.setGeometry(QtCore.QRect(int(self.width / 2 - 200 / 2), 10, 200, 30))
-        self.label_flota_header.setAlignment(Qt.AlignCenter)
-        self.label_flota_header.setObjectName("label_flota_header")
-        self.label_flota_header.setText("Magazyn")
+        self.label_header = QtWidgets.QLabel(self.widget_header)
+        self.label_header.setGeometry(QtCore.QRect(int(self.width / 2 - 300 / 2), 10, 300, 30))
+        self.label_header.setAlignment(Qt.AlignCenter)
+        self.label_header.setObjectName("label_header")
+        self.label_header.setText("Wyposażenie pojazdów")
 
-        self.button_exit_flota = QtWidgets.QPushButton(self.widget_flota_header)
-        self.button_exit_flota.setGeometry(QtCore.QRect(self.width-40-10, 5, 40, 40))
+        self.button_exit = QtWidgets.QPushButton(self.widget_header)
+        self.button_exit.setGeometry(QtCore.QRect(self.width - 40 - 10, 5, 40, 40))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/undo_white.png"), QIcon.Normal, QIcon.Off)
-        self.button_exit_flota.setIcon(icon)
-        self.button_exit_flota.setIconSize(QtCore.QSize(30, 30))
-        self.button_exit_flota.setObjectName("button_exit_flota")
+        self.button_exit.setIcon(icon)
+        self.button_exit.setIconSize(QtCore.QSize(30, 30))
+        self.button_exit.setObjectName("button_exit")
         # Połączenie przycisku zamykania
-        self.button_exit_flota.clicked.connect(self.hide_flota)
+        self.button_exit.clicked.connect(self.hide_flota)
 
 
         # Tworzenie QScrollArea
@@ -210,17 +210,13 @@ class WyposazenieFrame(QtWidgets.QFrame):
         Przyciski dolne
         """
         self.widget_bottom_buttons = QtWidgets.QWidget(self)
-        self.widget_bottom_buttons.setGeometry(QtCore.QRect(int(self.width/2-1000/2),
+        self.widget_bottom_buttons.setGeometry(QtCore.QRect(int(self.width/2-1200/2),
                                                             table_fleet_top_margin + table_fleet_height + 20,
-                                                            1000, 60))
+                                                            1200, 60))
         self.widget_bottom_buttons.setObjectName("widget_bottom_buttons")
 
         self.button_dodaj = QtWidgets.QPushButton(self.widget_bottom_buttons)
         self.button_dodaj.setFixedHeight(60)
-
-        # self.button_dodaj.setGeometry(QtCore.QRect
-        #     int(table_fleet_side_margin + table_fleet_width / 2 - 500 / 2),
-        #     table_fleet_top_margin + table_fleet_height + 20, 500, 60))
         self.button_dodaj.setText("DODAJ")
         self.button_dodaj.setStyleSheet("QPushButton {"
                                               "     color: #5d5d5d;"
@@ -241,10 +237,10 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.button_dodaj.setObjectName("button_flota_dodaj")
         self.button_dodaj.clicked.connect(self.add_new_line)
 
-        self.button_magazyn_raport = QtWidgets.QPushButton(self.widget_bottom_buttons)
-        self.button_magazyn_raport.setFixedHeight(60)
-        self.button_magazyn_raport.setText("Generuj raport")
-        self.button_magazyn_raport.setStyleSheet("""QPushButton {
+        self.button_raport = QtWidgets.QPushButton(self.widget_bottom_buttons)
+        self.button_raport.setFixedHeight(60)
+        self.button_raport.setText("Generuj raport")
+        self.button_raport.setStyleSheet("""QPushButton {
                                                       color: #5d5d5d;
                                                       background-color: #c4bbf0; /* Ustawia przezroczyste tło */
                                                       border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
@@ -259,8 +255,29 @@ class WyposazenieFrame(QtWidgets.QFrame):
                                                   QPushButton:pressed {
                                                       background-color: #927fbf;  /* Kolor tła po kliknięciu */
                                                   }""")
-        self.button_magazyn_raport.setObjectName("button_magazyn_raport")
-        self.button_magazyn_raport.clicked.connect(self.show_raport_frame)
+        self.button_raport.setObjectName("button_magazyn_raport")
+        self.button_raport.clicked.connect(self.show_raport_frame)
+
+        self.button_odpisz = QtWidgets.QPushButton(self.widget_bottom_buttons)
+        self.button_odpisz.setFixedHeight(60)
+        self.button_odpisz.setText("ODPISZ WYPOSAŻENIE")
+        self.button_odpisz.setStyleSheet("""QPushButton {
+                                                      color: #5d5d5d;
+                                                      background-color: #c4bbf0; /* Ustawia przezroczyste tło */
+                                                      border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
+                                                      border-radius: 15px; /* Zaokrąglone rogi ramki */
+                                                      padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
+                                                      font-size: 20px;  /* Rozmiar czcionki */
+                                                      font-family: Arial, sans-serif;  /* Czcionka */
+                                                  }
+                                                  QPushButton:hover {
+                                                      background-color: #ac97e2; /* Ustawia kolor tła po najechaniu */
+                                                  }
+                                                  QPushButton:pressed {
+                                                      background-color: #927fbf;  /* Kolor tła po kliknięciu */
+                                                  }""")
+        self.button_odpisz.setObjectName("button_odpisz")
+        self.button_odpisz.clicked.connect(self.odpisanie)
 
         # Położenie Poziome dla przycisków
         self.horizontalLayout_bottom_buttons = QtWidgets.QHBoxLayout(self.widget_bottom_buttons)
@@ -269,13 +286,16 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.horizontalLayout_bottom_buttons.setObjectName("horizontalLayout_bottom")
 
         self.horizontalLayout_bottom_buttons.addWidget(self.button_dodaj)
-        self.horizontalLayout_bottom_buttons.addWidget(self.button_magazyn_raport)
+        self.horizontalLayout_bottom_buttons.addWidget(self.button_raport)
+        self.horizontalLayout_bottom_buttons.addWidget(self.button_odpisz)
+
+
 
         """
         Przyciski górne
         """
         self.widget_choice_buttons = QtWidgets.QWidget(self)
-        self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-1000/2), 70, 1000, 60))
+        self.widget_choice_buttons.setGeometry(QtCore.QRect(int(self.width/2-200/2), 70, 200, 60))
         self.widget_choice_buttons.setObjectName("widget_choice_buttons")
         self.widget_choice_buttons.setStyleSheet("""
             QPushButton {
@@ -310,25 +330,6 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.horizontalLayout_buttons.setSpacing(20)  # Ustawia odstęp między przyciskami na 20 pikseli
         self.horizontalLayout_buttons.setObjectName("horizontalLayout")
 
-        self.button_magazyn_czesci = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_magazyn_czesci.setText("Części")
-        self.button_magazyn_czesci.setObjectName("button_magazyn_czesci")
-        self.button_magazyn_czesci.setCheckable(True)
-
-        self.button_magazyn_wyposazenie = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_magazyn_wyposazenie.setText("Wyposażenie")
-        self.button_magazyn_wyposazenie.setObjectName("button_magazyn_wyposazenie")
-        self.button_magazyn_wyposazenie.setCheckable(True)
-
-
-
-        self.horizontalLayout_buttons.addWidget(self.button_magazyn_czesci)
-        self.horizontalLayout_buttons.addWidget(self.button_magazyn_wyposazenie)
-
-        # Dodanie przycisków do grupy
-        self.button_group = QButtonGroup(self)
-        self.button_group.addButton(self.button_magazyn_czesci, ScreenType.CZESCI.value)
-        self.button_group.addButton(self.button_magazyn_wyposazenie, ScreenType.WYPOSAZENIE.value)
 
         # Tworzenie przycisku button_filtruj
         self.button_filtruj = QtWidgets.QPushButton(self.widget_choice_buttons)
@@ -389,12 +390,9 @@ class WyposazenieFrame(QtWidgets.QFrame):
                     }
                 """)
 
-        # Podłączenie sygnału dla grupy przycisków
-        self.button_group.buttonClicked[int].connect(self.update_screen_type)
 
-        # Ustawienie stylów przycisków i początkowego stanu
-        self.button_magazyn_czesci.setChecked(True)
-        self.update_screen_type(ScreenType.CZESCI.value)  # Ustawienie początkowej wartości zmiennej
+    def odpisanie(self):
+        print("odpisanie")
 
     def erase_filters(self):
         self.filters_set = False
