@@ -4,10 +4,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer, QDateTime, Qt
 from PyQt5.QtWidgets import QMainWindow
 
+from Aplikacja_bazodanowa.backend.models import WyposazeniePojazdu
 from Aplikacja_bazodanowa.frontend.ui.FleetFramev2 import FleetFrame
 from Aplikacja_bazodanowa.frontend.ui.MagazynFrame import WarehouseFrame
 from Aplikacja_bazodanowa.frontend.ui.SerwisFrame import SerwisFrame
-
+from Aplikacja_bazodanowa.frontend.ui.WyposazeniePojazduFrame import WyposazenieFrame
 
 class MainWindow(QMainWindow):
     def __init__(self, api_url):
@@ -63,6 +64,7 @@ class Ui_MainWindow(object):
         self.flota_window = FleetFrame(MainWindow, self.api_url)
         self.magazyn_window = WarehouseFrame(MainWindow, self.api_url)
         self.serwis_window = SerwisFrame(MainWindow, self.api_url)
+        self.wyposazenie_window = WyposazenieFrame(MainWindow, self.api_url)
 
         # Ustawienie głównego widgetu
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -86,8 +88,19 @@ class Ui_MainWindow(object):
         self.frame_main.setObjectName("frame_main")
 
         # Tworzenie widgetu przycisków
+        # self.widget_buttons = QtWidgets.QWidget(self.frame_main)
+        # self.widget_buttons.setGeometry(QtCore.QRect(int(self.screen_width/2-300/2), int((self.screen_height-50)/2-400/2), 300, 400))
+        # Tworzenie widgetu przycisków
         self.widget_buttons = QtWidgets.QWidget(self.frame_main)
-        self.widget_buttons.setGeometry(QtCore.QRect(int(self.screen_width/2-300/2), int((self.screen_height-50)/2-400/2), 300, 400))
+        self.widget_buttons.setGeometry(
+            QtCore.QRect(
+                int(self.screen_width / 2 - 300 / 2),  # Centrowanie na szerokości
+                int((self.screen_height - 50) / 2 - 500 / 2) - 40,  # Przesunięcie w górę o 50 pikseli
+                300,  # Szerokość
+                600  # Wysokość zwiększona do pomieszczenia 4 przycisków
+            )
+        )
+
         self.widget_buttons.setStyleSheet("QPushButton {"
                                            "    background-color: #3498db;  /* Kolor tła */"
                                            "    color: white;  /* Kolor tekstu */"
@@ -130,6 +143,12 @@ class Ui_MainWindow(object):
         self.button_magazyn.setGeometry(QtCore.QRect(0, 300, 300, 100))
         self.button_magazyn.setObjectName("button_magazyn")
         self.button_magazyn.clicked.connect(self.magazyn_window.show_magazyn)
+
+        self.button_wyposazenie = QtWidgets.QPushButton(self.widget_buttons)
+        self.button_wyposazenie.setEnabled(True)
+        self.button_wyposazenie.setGeometry(QtCore.QRect(0, 450, 300, 100))
+        self.button_wyposazenie.setObjectName("button_wyposazenie")
+        self.button_wyposazenie.clicked.connect(self.wyposazenie_window.show_magazyn)
 
         # Widget daty i czasu
         self.widget_datetime = QtWidgets.QWidget(self.centralwidget)
@@ -252,6 +271,7 @@ class Ui_MainWindow(object):
         self.button_flota.setText(_translate("MainWindow", "Flota"))
         self.button_serwis.setText(_translate("MainWindow", "Serwis"))
         self.button_magazyn.setText(_translate("MainWindow", "Magazyn"))
+        self.button_wyposazenie.setText(_translate("MainWindow", "Wyposażenie pojazdu"))
         self.label_date.setText(_translate("MainWindow", "Data"))
         self.label_time.setText(_translate("MainWindow", "Czas"))
         self.title.setText(_translate("MainWindow", "Aplikacja transportowa"))

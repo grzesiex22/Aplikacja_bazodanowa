@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd, Czesc, SerwisWidok, Serwis
+from Aplikacja_bazodanowa.backend.models import Kierowca, Pojazd, Czesc, SerwisWidok, Serwis, WyposazeniePojazdu
 
 app_bp = Blueprint('app', __name__)
 
@@ -24,6 +24,8 @@ def get_columns(table_name):
         model_class = SerwisWidok
     elif table_name == "serwis":
         model_class = Serwis
+    elif table_name == "WyposazeniePojazdu":
+        model_class = WyposazeniePojazdu
     else:
         return jsonify({"error": "Nieznana tabela"}), 400
 

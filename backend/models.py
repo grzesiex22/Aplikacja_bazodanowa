@@ -1039,148 +1039,137 @@ class Czesc(BaseModel):
 
         return None  # Brak błędów, walidacja przeszła pomyślnie
 
+# Model WyposażeniePojazdu
+class WyposazeniePojazdu(BaseModel):
+    __tablename__ = 'WyposażeniePojazdu'
 
-# from flask_sqlalchemy import SQLAlchemy
-# from pydantic import BaseModel
+    idWyposazeniePojazdu = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    idPojazd = db.Column(db.Integer, db.ForeignKey('Pojazd.idPojazd'), nullable=False)
+    opis = db.Column(db.String(100), nullable=False)
+    ilosc = db.Column(db.Integer, nullable=False)
 
-# db = SQLAlchemy()
+    # Relacje
+    pojazd = db.relationship('Pojazd', backref='wyposazenie', lazy=True)
 
-# class WyposazeniePojazdu(BaseModel):
-#     __tablename__ = 'WyposażeniePojazdu'
-#
-#     idWyposazeniePojazdu = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     idPojazd = db.Column(db.Integer, db.ForeignKey('Pojazd.idPojazd'), nullable=False)
-#     opis = db.Column(db.String(100), nullable=False)
-#     ilosc = db.Column(db.Integer, nullable=False)
-#
-#     # Relacje
-#     pojazd = db.relationship('Pojazd', backref='wyposazenie', lazy=True)
-#
-#     # Mapa kolumn z przyjaznymi nazwami
-#     COLUMN_NAME_MAP = {
-#         'idWyposazeniePojazdu': {
-#             'friendly_name': 'ID Wyposażenia Pojazdu',
-#             'editable': False,
-#             'input_type': 'text',
-#         },
-#         'idPojazd': {
-#             'friendly_name': 'ID Pojazdu',
-#             'editable': False,
-#             'input_type': 'Dane Pojazd',
-#         },
-#         'Pojazd': {
-#             'friendly_name': 'Dane Pojazdu',
-#             'editable': True,
-#             'input_type': 'list',
-#             'inputs': 'pojazd/show/alltochoice',
-#         },
-#         'opis': {
-#             'friendly_name': 'Opis',
-#             'editable': True,
-#             'input_type': 'text',
-#         },
-#         'ilosc': {
-#             'friendly_name': 'Ilość',
-#             'editable': True,
-#             'input_type': 'quantity',
-#         }
-#     }
-#
-#     @staticmethod
-#     def serialize(wyposazenie):
-#         """
-#         Serializacja obiektu WyposazeniePojazdu z zamianą nazw kolumn na przyjazne.
-#         """
-#         serialized_data = {}
-#         for column_name, properties in WyposazeniePojazdu.COLUMN_NAME_MAP.items():
-#             friendly_name = properties['friendly_name']
-#             value = getattr(wyposazenie, column_name)
-#
-#             # Jeśli chodzi o relację, dodajemy również szczegóły z powiązanego obiektu
-#             if column_name == 'idPojazd':
-#                 if wyposazenie.pojazd:
-#                     # We are concatenating the 'marka' and 'model' to represent the vehicle in a friendly manner.
-#                     serialized_data[properties['friendly_name']] = f"{wyposazenie.pojazd.marka} {wyposazenie.pojazd.model}"
-#                 else:
-#                     serialized_data[properties['friendly_name']] = None
-#             else:
-#                 serialized_data[friendly_name] = value
-#
-#         return serialized_data
-#
-#     @staticmethod
-#     def deserialize(data):
-#         """
-#         Deserializacja danych z przyjaznymi nazwami na nazwy kolumn w bazie danych (te nieprzyjazne).
-#         """
-#         deserialized_data = {}
-#
-#         # Mapowanie przyjaznych nazw na kolumny
-#         for column_name, properties in WyposazeniePojazdu.COLUMN_NAME_MAP.items():
-#             friendly_name = properties['friendly_name']
-#             if friendly_name in data:
-#                 deserialized_data[column_name] = data[friendly_name]
-#
-#         # Dla pola 'Dane Pojazdu', znajdź odpowiedni `idPojazd`
-#         if 'Dane Pojazdu' in data:
-#             pojazd_name = data['Dane Pojazdu']
-#             print(f"Deserializacja: Szukam Pojazdu dla '{pojazd_name}'")
-#
-#             # Zapytanie do bazy danych w celu uzyskania `idPojazd`
-#             try:
-#                 # Assuming the Pojazd model has a 'marka' field to use for lookup
-#                 pojazd = Pojazd.query.filter(
-#                     (Pojazd.marka + " " + Pojazd.model) == pojazd_name
-#                 ).first()
-#                 if pojazd:
-#                     deserialized_data['idPojazd'] = pojazd.idPojazd
-#                     print(f"Znaleziono idPojazd: {pojazd.idPojazd} dla '{pojazd_name}'")
-#                 else:
-#                     print(f"Pojazd o nazwie '{pojazd_name}' nie istnieje w bazie danych")
-#                     deserialized_data['idPojazd'] = None
-#             except Exception as e:
-#                 print(f"Błąd podczas wyszukiwania Pojazdu: {e}")
-#                 deserialized_data['idPojazd'] = None
-#
-#         return deserialized_data
-#
-#     @staticmethod
-#     def validate_data(data):
-#         """
-#         Walidacja danych wejściowych dla Wyposażenia Pojazdu.
-#         """
-#         print(f"Data in validation method: {data}")
-#
-#         # Sprawdzanie, czy wszystkie wymagane pola są obecne i nie puste
-#         required_fields = ['Opis', 'Ilość', 'Dane Pojazdu']
-#         missing_fields = [field for field in required_fields if
-#                           field not in data or not data.get(field, '').strip()]
-#
-#         if missing_fields:
-#             missing_fields_str = ", ".join(missing_fields)
-#             return {'message': f"Brak wymaganych pól: {missing_fields_str}"}, 400
-#
-#         # Walidacja 'Opis' - musi być ciągiem znaków
-#         if 'Opis' in data and not isinstance(data['Opis'], str):
-#             return {'message': 'Opis musi być ciągiem znaków'}, 400
-#
-#         # Walidacja 'Ilość' - musi być liczbą całkowitą
-#         if 'Ilość' in data:
-#             try:
-#                 quantity = int(data['Ilość'])
-#                 if quantity < 0:
-#                     return {'message': 'Ilość musi być liczbą całkowitą większą lub równą 0'}, 400
-#             except ValueError:
-#                 return {'message': 'Ilość musi być liczbą całkowitą'}, 400
-#
-#         # Walidacja 'Dane Pojazdu' - sprawdzanie, czy ten pojazd istnieje w bazie danych
-#         if 'Dane Pojazdu' in data:
-#             pojazd_name = data['Dane Pojazdu']
-#             # Sprawdzenie, czy pojazd o podanej nazwie istnieje w bazie danych
-#             pojazd = Pojazd.query.filter(
-#                 (Pojazd.marka + " " + Pojazd.model) == pojazd_name
-#             ).first()
-#             if not pojazd:
-#                 return {'message': f"Pojazd '{pojazd_name}' nie istnieje w bazie danych"}, 400
-#
-#         return None  # Brak błędów, walidacja przeszła pomyślnie
+    # Mapa kolumn z przyjaznymi nazwami
+    COLUMN_NAME_MAP = {
+        'idWyposazeniePojazdu': {
+            'friendly_name': 'ID Wyposażenia Pojazdu',
+            'editable': False,
+            'input_type': 'text',
+        },
+        'idPojazd': {
+            'friendly_name': 'ID Pojazdu',
+            'editable': False,
+            'input_type': 'Pojazd',
+        },
+        'Pojazd': {
+            'friendly_name': 'Pojazd',
+            'editable': True,
+            'input_type': 'list',
+            'inputs': 'pojazd/show/alltochoice',
+        },
+        'opis': {
+            'friendly_name': 'Opis',
+            'editable': True,
+            'input_type': 'text',
+        },
+        'ilosc': {
+            'friendly_name': 'Ilość',
+            'editable': True,
+            'input_type': 'quantity',
+        },
+    }
+
+    @staticmethod
+    def serialize(wyposazenie):
+        """
+        Serializacja obiektu WyposazeniePojazdu z zamianą nazw kolumn na przyjazne.
+        """
+        serialized_data = {}
+        for column_name, properties in WyposazeniePojazdu.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            value = getattr(wyposazenie, column_name)
+
+            # Jeśli chodzi o relację, dodajemy również szczegóły z powiązanego obiektu
+            if column_name == 'idPojazd':
+                if wyposazenie.pojazd:
+                    serialized_data[properties['friendly_name']] = wyposazenie.pojazd.nazwa  # Pole `nazwa` w modelu `Pojazd`
+                else:
+                    serialized_data[properties['friendly_name']] = None
+            else:
+                serialized_data[friendly_name] = value
+
+        return serialized_data
+
+    @staticmethod
+    def deserialize(data):
+        """
+        Deserializacja danych z przyjaznymi nazwami na nazwy kolumn w bazie danych (te nieprzyjazne).
+        """
+        deserialized_data = {}
+
+        # Mapowanie przyjaznych nazw na kolumny
+        for column_name, properties in WyposazeniePojazdu.COLUMN_NAME_MAP.items():
+            friendly_name = properties['friendly_name']
+            if friendly_name in data:
+                deserialized_data[column_name] = data[friendly_name]
+
+        # Dla pola 'ID Pojazdu', znajdź odpowiedni `idPojazd`
+        if 'ID Pojazdu' in data:
+            pojazd_name = data['ID Pojazdu']
+            print(f"Deserializacja: Szukam Pojazdu dla '{pojazd_name}'")
+
+            # Zapytanie do bazy danych w celu uzyskania `idPojazd`
+            try:
+                pojazd = Pojazd.query.filter_by(nazwa=pojazd_name).first()  # Pole `nazwa` w modelu `Pojazd`
+                if pojazd:
+                    deserialized_data['idPojazd'] = pojazd.idPojazd
+                    print(f"Znaleziono idPojazd: {pojazd.idPojazd} dla '{pojazd_name}'")
+                else:
+                    print(f"Pojazd o nazwie '{pojazd_name}' nie istnieje w bazie danych")
+                    deserialized_data['idPojazd'] = None
+            except Exception as e:
+                print(f"Błąd podczas wyszukiwania Pojazdu: {e}")
+                deserialized_data['idPojazd'] = None
+
+        return deserialized_data
+
+    @staticmethod
+    def validate_data(data):
+        """
+        Walidacja danych wejściowych dla Wyposażenia Pojazdu.
+        """
+        print(f"Data in validation method: {data}")
+
+        # Sprawdzanie, czy wszystkie wymagane pola są obecne i nie puste
+        required_fields = ['Opis', 'Ilość', 'ID Pojazdu']
+        missing_fields = [field for field in required_fields if
+                          field not in data or not data.get(field, '').strip()]
+
+        if missing_fields:
+            missing_fields_str = ", ".join(missing_fields)
+            return {'message': f"Brak wymaganych pól: {missing_fields_str}"}, 400
+
+        # Walidacja 'Opis' - musi być ciągiem znaków
+        if 'Opis' in data and not isinstance(data['Opis'], str):
+            return {'message': 'Opis musi być ciągiem znaków'}, 400
+
+        # Walidacja 'Ilość' - musi być liczbą całkowitą
+        if 'Ilość' in data:
+            try:
+                quantity = int(data['Ilość'])
+                if quantity < 0:
+                    return {'message': 'Ilość musi być liczbą całkowitą większą lub równą 0'}, 400
+            except ValueError:
+                return {'message': 'Ilość musi być liczbą całkowitą'}, 400
+
+        # Walidacja 'ID Pojazdu' - sprawdzanie, czy ten pojazd istnieje w bazie danych
+        if 'ID Pojazdu' in data:
+            pojazd_name = data['ID Pojazdu']
+            # Sprawdzenie, czy pojazd o podanej nazwie istnieje w bazie danych
+            pojazd = Pojazd.query.filter_by(nazwa=pojazd_name).first()  # Pole `nazwa` w modelu `Pojazd`
+            if not pojazd:
+                return {'message': f"Pojazd '{pojazd_name}' nie istnieje w bazie danych"}, 400
+
+        return None  # Brak błędów, walidacja przeszła pomyślnie

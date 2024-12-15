@@ -255,6 +255,8 @@ class EditFrame(QFrame):
                 """ koniec stylizaci """
 
                 # Ustawienie wybranej wartości na podstawie model_data
+                print("printuje column_value")
+                print(column_value)
                 if column_value:  # Jeżeli w model_data jest wartość
                     index = combo_box.findText(str(column_value))  # Znajdujemy indeks opcji
                     if index != -1:  # Jeśli wartość została znaleziona
