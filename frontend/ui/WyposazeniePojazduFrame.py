@@ -752,7 +752,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.overlay = OverlayWidget(self)
         self.overlay.show()
 
-        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport wyposażenia pojazdu")
+        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport wyposażenia")
         self.raport_dialog.show()
 
         # Po zamknięciu okna dialogowego, przywrócenie interakcji
