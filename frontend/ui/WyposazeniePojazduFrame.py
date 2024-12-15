@@ -13,7 +13,7 @@ from PyQt5.QtGui import QStandardItem
 from datetime import datetime
 import textwrap
 
-from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
+from Aplikacja_bazodanowa.frontend.ui.EditFrameWyposazenie import EditFrameWyposazenie
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
 from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterMagazineFrame
 from Aplikacja_bazodanowa.frontend.ui.Raport_Frame import SimpleGenerateRaport
@@ -530,13 +530,13 @@ class WyposazenieFrame(QtWidgets.QFrame):
                 print(czesc_data)
                 # Przekazanie danych do okna edycji
                 if self.filters_set:
-                    self.edit_frame = EditFrame(class_name="WyposazeniePojazdu", data=czesc_data,
+                    self.edit_frame = EditFrameWyposazenie(class_name="WyposazeniePojazdu", data=czesc_data,
                                                 api_url=f"{self.api_url}/wyposazenie",
                                                 parent=self, header_title="Edycja wyposażenia",
                                                 # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
                                                 refresh_callback=self.load_data_filtered)
                 else:
-                    self.edit_frame = EditFrame(class_name="WyposazeniePojazdu", data=czesc_data,
+                    self.edit_frame = EditFrameWyposazenie(class_name="WyposazeniePojazdu", data=czesc_data,
                                             api_url=f"{self.api_url}/wyposazenie",
                                             parent=self, header_title="Edycja wyposażenia",
                                             # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,

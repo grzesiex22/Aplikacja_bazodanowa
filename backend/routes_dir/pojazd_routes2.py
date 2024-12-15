@@ -469,3 +469,20 @@ def validate_pojazd():
 
     return jsonify({'message': 'Dane są poprawne'}), 200  # Jeśli dane są poprawne, zwróć komunikat i kod 200
 
+@pojazd_bp.route('/pojazd/typpojazdu/<int:id>', methods=['GET'])
+def jaki_typ_pojazdu(id):
+    try:
+        # Pobranie pojazdu z bazy danych na podstawie podanego ID
+        pojazd = Pojazd.query.get(id)
+
+        # Sprawdzenie, czy pojazd istnieje
+        if pojazd is None:
+            return jsonify({'message': 'Pojazd nie znaleziony'}), 404
+
+        typ_pojazdu = pojazd.typPojazdu.value
+        print(typ_pojazdu)
+        return jsonify({'typ_pojazdu': typ_pojazdu}), 200
+
+    except Exception as e:
+        # Obsługa błędów: zwracamy szczegóły błędu w odpowiedzi
+        return jsonify({'error': str(e)}), 500
