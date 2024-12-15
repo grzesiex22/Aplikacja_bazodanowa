@@ -63,8 +63,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.current_sorted_column_czesci = None  # potrzebne do zmiany sortowania asc/desc
         self.current_sorted_column_wyposazenie = None  # potrzebne do zmiany sortowania asc/desc
 
-
-
         self.primary_key_index = None  # aktualne pole z kluczem głównym (potrzebne by było wiadomow skąd pobrać ID i aby ukryć kolumne)
 
         # Ustawienie rozmiaru magazynu
@@ -119,9 +117,9 @@ class WarehouseFrame(QtWidgets.QFrame):
                             "}")
 
         # Widget dla tytułu floty
-        self.widget_flota_header = QtWidgets.QWidget(self)
-        self.widget_flota_header.setGeometry(QtCore.QRect(0, 0, self.width, 50))
-        self.widget_flota_header.setStyleSheet("QWidget {"
+        self.widget_frame_header = QtWidgets.QWidget(self)
+        self.widget_frame_header.setGeometry(QtCore.QRect(0, 0, self.width, 50))
+        self.widget_frame_header.setStyleSheet("QWidget {"
                                                 "    background-color: #accccb;"
                                                 "    border: 0px solid #e67e22;"
                                                 "    border-radius: 15px;"
@@ -143,34 +141,34 @@ class WarehouseFrame(QtWidgets.QFrame):
                                                "    background-color: #8ea8a7; /* Ustawia kolor tła po najechaniu */"
                                                "}")
 
-        self.widget_flota_header.setObjectName("widget_flota_header")
+        self.widget_frame_header.setObjectName("widget_flota_header")
 
-        self.label_flota_header = QtWidgets.QLabel(self.widget_flota_header)
-        self.label_flota_header.setGeometry(QtCore.QRect(int(self.width / 2 - 200 / 2), 10, 200, 30))
-        self.label_flota_header.setAlignment(Qt.AlignCenter)
-        self.label_flota_header.setObjectName("label_flota_header")
-        self.label_flota_header.setText("Magazyn")
+        self.label_frame_header = QtWidgets.QLabel(self.widget_frame_header)
+        self.label_frame_header.setGeometry(QtCore.QRect(int(self.width / 2 - 200 / 2), 10, 200, 30))
+        self.label_frame_header.setAlignment(Qt.AlignCenter)
+        self.label_frame_header.setObjectName("label_flota_header")
+        self.label_frame_header.setText("Magazyn")
 
-        self.button_exit_flota = QtWidgets.QPushButton(self.widget_flota_header)
-        self.button_exit_flota.setGeometry(QtCore.QRect(self.width-40-10, 5, 40, 40))
+        self.button_exit_frame = QtWidgets.QPushButton(self.widget_frame_header)
+        self.button_exit_frame.setGeometry(QtCore.QRect(self.width - 40 - 10, 5, 40, 40))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(f"{self.icon_path}/undo_white.png"), QIcon.Normal, QIcon.Off)
-        self.button_exit_flota.setIcon(icon)
-        self.button_exit_flota.setIconSize(QtCore.QSize(30, 30))
-        self.button_exit_flota.setObjectName("button_exit_flota")
+        self.button_exit_frame.setIcon(icon)
+        self.button_exit_frame.setIconSize(QtCore.QSize(30, 30))
+        self.button_exit_frame.setObjectName("button_exit_flota")
         # Połączenie przycisku zamykania
-        self.button_exit_flota.clicked.connect(self.hide_flota)
+        self.button_exit_frame.clicked.connect(self.hide_flota)
 
 
         # Tworzenie QScrollArea
-        table_fleet_width = self.width-500
-        table_fleet_height = self.height - 50 - 150 - 100
-        table_fleet_side_margin = int(self.width/2-table_fleet_width/2)
-        table_fleet_top_margin = 150
+        table_frame_width = self.width-500
+        table_frame_height = self.height - 50 - 150 - 100
+        table_frame_side_margin = int(self.width/2-table_frame_width/2)
+        table_frame_top_margin = 150
 
         self.scroll_area = QtWidgets.QScrollArea(self)
         self.scroll_area.setGeometry(QtCore.QRect(
-            table_fleet_side_margin, table_fleet_top_margin, table_fleet_width, table_fleet_height))
+            table_frame_side_margin, table_frame_top_margin, table_frame_width, table_frame_height))
         self.scroll_area.setWidgetResizable(False)  # Rozciąganie zawartości
         # Wczytanie stylu z pliku
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QScrollArea.qss')
@@ -180,47 +178,42 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.scroll_area.viewport().update()
 
         # Ustawienie tabeli
-        self.tableView_flota = QTableView(self.scroll_area)
-        self.tableView_flota.setGeometry(QtCore.QRect(0, 0, table_fleet_width, table_fleet_height))
+        self.tableView_magazyn = QTableView(self.scroll_area)
+        self.tableView_magazyn.setGeometry(QtCore.QRect(0, 0, table_frame_width, table_frame_height))
         # Wczytanie stylu z pliku
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QTableView.qss')
         with open(file_path, "r") as file:
             stylesheet = file.read()
-        self.tableView_flota.setStyleSheet(stylesheet)
+        self.tableView_magazyn.setStyleSheet(stylesheet)
 
-        self.tableView_flota.setObjectName("tableView_flota")
-        self.tableView_flota.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tableView_flota.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.tableView_flota.setAlternatingRowColors(True)
-
-        self.tableView_flota.horizontalHeader().setSectionsClickable(True)
-        self.tableView_flota.setCornerButtonEnabled(False)  # Usuwa kwadrat w lewym górnym rogu
+        self.tableView_magazyn.setObjectName("tableView_flota")
+        self.tableView_magazyn.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableView_magazyn.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tableView_magazyn.setAlternatingRowColors(True)
+        self.tableView_magazyn.horizontalHeader().setSectionsClickable(True)
+        self.tableView_magazyn.setCornerButtonEnabled(False)  # Usuwa kwadrat w lewym górnym rogu
 
         # Umożliwienie zmiany szerokości kolumn przez użytkownika
-        header = self.tableView_flota.horizontalHeader()
+        header = self.tableView_magazyn.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Interactive)  # Umożliwia interaktywne zmienianie rozmiaru
         header.setStretchLastSection(False)  # Ostatnia kolumna nie rozciąga się na całą szerokość
         header.setSectionsClickable(True)  # Sekcje są klikalne, co umożliwia zmianę szerokości
 
         # Połączenie sygnału podwójnego kliknięcia z funkcją
-        self.tableView_flota.doubleClicked.connect(self.on_table_double_click)
-        self.tableView_flota.horizontalHeader().sectionClicked.connect(self.sort_by_column)
+        self.tableView_magazyn.doubleClicked.connect(self.on_table_double_click)
+        self.tableView_magazyn.horizontalHeader().sectionClicked.connect(self.sort_by_column)
 
         """
         Przyciski dolne
         """
         self.widget_bottom_buttons = QtWidgets.QWidget(self)
         self.widget_bottom_buttons.setGeometry(QtCore.QRect(int(self.width/2-1000/2),
-                                                            table_fleet_top_margin + table_fleet_height + 20,
+                                                            table_frame_top_margin + table_frame_height + 20,
                                                             1000, 60))
         self.widget_bottom_buttons.setObjectName("widget_bottom_buttons")
 
         self.button_dodaj = QtWidgets.QPushButton(self.widget_bottom_buttons)
         self.button_dodaj.setFixedHeight(60)
-
-        # self.button_dodaj.setGeometry(QtCore.QRect
-        #     int(table_fleet_side_margin + table_fleet_width / 2 - 500 / 2),
-        #     table_fleet_top_margin + table_fleet_height + 20, 500, 60))
         self.button_dodaj.setText("DODAJ")
         self.button_dodaj.setStyleSheet("QPushButton {"
                                               "     color: #5d5d5d;"
@@ -241,10 +234,10 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_dodaj.setObjectName("button_flota_dodaj")
         self.button_dodaj.clicked.connect(self.add_new_line)
 
-        self.button_magazyn_raport = QtWidgets.QPushButton(self.widget_bottom_buttons)
-        self.button_magazyn_raport.setFixedHeight(60)
-        self.button_magazyn_raport.setText("Generuj raport")
-        self.button_magazyn_raport.setStyleSheet("""QPushButton {
+        self.button_raport = QtWidgets.QPushButton(self.widget_bottom_buttons)
+        self.button_raport.setFixedHeight(60)
+        self.button_raport.setText("GENERUJ RAPORT")
+        self.button_raport.setStyleSheet("""QPushButton {
                                                       color: #5d5d5d;
                                                       background-color: #c4bbf0; /* Ustawia przezroczyste tło */
                                                       border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
@@ -259,8 +252,8 @@ class WarehouseFrame(QtWidgets.QFrame):
                                                   QPushButton:pressed {
                                                       background-color: #927fbf;  /* Kolor tła po kliknięciu */
                                                   }""")
-        self.button_magazyn_raport.setObjectName("button_magazyn_raport")
-        self.button_magazyn_raport.clicked.connect(self.show_raport_frame)
+        self.button_raport.setObjectName("button_magazyn_raport")
+        self.button_raport.clicked.connect(self.show_raport_frame)
 
         # Położenie Poziome dla przycisków
         self.horizontalLayout_bottom_buttons = QtWidgets.QHBoxLayout(self.widget_bottom_buttons)
@@ -269,7 +262,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.horizontalLayout_bottom_buttons.setObjectName("horizontalLayout_bottom")
 
         self.horizontalLayout_bottom_buttons.addWidget(self.button_dodaj)
-        self.horizontalLayout_bottom_buttons.addWidget(self.button_magazyn_raport)
+        self.horizontalLayout_bottom_buttons.addWidget(self.button_raport)
 
         """
         Przyciski górne
@@ -401,7 +394,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.load_data()
 
     def sort_by_column(self, column_index):
-        column_name = self.tableView_flota.model().headerData(column_index, Qt.Horizontal)
+        column_name = self.tableView_magazyn.model().headerData(column_index, Qt.Horizontal)
         print(f"Sorting by {column_name}...")
 
         if column_name == 'Typ Serwisu':
@@ -556,25 +549,25 @@ class WarehouseFrame(QtWidgets.QFrame):
         """
         Dostosowanie szerokości kolumn do zawartości nagłówków (+20 szerokości) z ustawieniem minimalnej szerokości.
         """
-        model = self.tableView_flota.model()
+        model = self.tableView_magazyn.model()
         if not model:
             return
 
         for i in range(model.columnCount()):
             # Dopasuj szerokość kolumny do zawartości
-            self.tableView_flota.resizeColumnToContents(i)
+            self.tableView_magazyn.resizeColumnToContents(i)
 
             # Uzyskaj szerokości zawartości i nagłówka
-            content_width = self.tableView_flota.columnWidth(i)+20
-            header_width = self.tableView_flota.horizontalHeader().sectionSize(i)
+            content_width = self.tableView_magazyn.columnWidth(i) + 20
+            header_width = self.tableView_magazyn.horizontalHeader().sectionSize(i)
 
             # Wybierz większą szerokość, ale ustaw minimum na 100 pikseli
             new_width = max(content_width, header_width, 100)
-            self.tableView_flota.setColumnWidth(i, new_width)
+            self.tableView_magazyn.setColumnWidth(i, new_width)
 
         # Ustaw szerokość kolumny klucza głównego na 0, jeśli jest dostępna
         if self.primary_key_index is not None:
-            self.tableView_flota.setColumnWidth(self.primary_key_index, 0)
+            self.tableView_magazyn.setColumnWidth(self.primary_key_index, 0)
 
         # # Ustaw szerokość kolumn kluczy obcych na 0
         # print(f"foreign_keys: {self.foreign_key_index}")
@@ -588,7 +581,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         Pobiera dane części z API i wyświetla je w tabeli.
         """
         self.primary_key_index = self.primary_key_index_czesc
-        self.tableView_flota.setModel(self.model_pojazd)
+        self.tableView_magazyn.setModel(self.model_pojazd)
 
         # Przygotowanie parametrów zapytania
         params = {}
@@ -819,7 +812,14 @@ class WarehouseFrame(QtWidgets.QFrame):
         try:
             # Utwórz dokument PDF
             pdf = canvas.Canvas(pdf_file, pagesize=A4)
-            pdf.setTitle("Raport Części")
+            if self.screen_type == ScreenType.CZESCI:
+                title = "Raport części"
+            elif self.screen_type == ScreenType.WYPOSAZENIE:
+                title = "Raport wyposażenia"
+            else:
+                title = "Raport"
+
+            pdf.setTitle(title)
 
             # Aktualna data i godzina
             current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -831,7 +831,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
             # Ustawienie czcionki na DejaVuSans
             pdf.setFont("DejaVuSans", 16)
-            pdf.drawString(50, 800, "Raport Części")
+            pdf.drawString(50, 800, title)
             pdf.setFont("DejaVuSans", 12)
 
             draw_header()  # Rysowanie nagłówka na pierwszej stronie
