@@ -258,3 +258,26 @@ def edytuj_czesc(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@czesc_bp.route('/czesc/check', methods=['POST'])
+def sprawdz_czesc():
+    try:
+        data = request.get_json()
+
+        # Walidacja danych wejściowych
+        if 'Nazwa elementu' not in data or 'idTypSerwisu' not in data:
+            return jsonify({'error': 'Nazwa elementu i idTypSerwisu są wymagane'}), 400
+
+        nazwa = data['Nazwa elementu']
+        id_typ_serwisu = data['idTypSerwisu']
+
+        # Wyszukiwanie części w bazie danych
+        czesc = Czesc.query.filter_by(nazwaElementu=nazwa, idTypSerwisu=id_typ_serwisu).first()
+
+        # Zwracanie wyniku
+        if czesc:
+            return jsonify({'idCzesc': czesc.idCzesc}), 200
+        else:
+            return jsonify({'idCzesc': None}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

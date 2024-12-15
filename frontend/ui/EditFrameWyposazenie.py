@@ -540,18 +540,18 @@ class EditFrameWyposazenie(QFrame):
 
         data = {}
         dane_z_bazy = {}
+        dane_z_bazy_czesci = {}
         self.api_url2 = self.api_url.replace("/wyposazenie", "")
 
         print(f'Printuje self.api_url2: {self.api_url2}')
 
         try:
-            response = requests.get(f'http://127.0.0.1:5000/wyposazenie/show/{self.driver_id}')
+            response = requests.get(f'{self.api_url}/show/{self.driver_id}')
             if response.status_code == 200:
                 # Pobieramy odpowiedź z API
                 dane_z_bazy = response.json()
             else:
                 print(f"Błąd zapytania: {response.status_code}")
-                id_typ_serwisu = None
 
         except Exception as e:
             print(f"Błąd połączenia z serwerem: {str(e)}")
@@ -587,7 +587,7 @@ class EditFrameWyposazenie(QFrame):
         # Jeśli ID pojazdu zostało podane, wykonaj zapytanie GET do API, aby uzyskać typ pojazdu
         if id_pojazdu:
             try:
-                response = requests.get(f'http://127.0.0.1:5000/pojazd/typpojazdu/{id_pojazdu}')
+                response = requests.get(f'{self.api_url2}/pojazd/typpojazdu/{id_pojazdu}')
                 if response.status_code == 200:
                     # Pobieramy odpowiedź z API
                     typ_pojazdu_info = response.json()
@@ -622,6 +622,7 @@ class EditFrameWyposazenie(QFrame):
         dane_po_odlozeniu['Ilość']=dane_z_bazy['Ilość']-data['Ilość']
         print(f"print DANEEEEEE PO ODŁOŻENIU", dane_po_odlozeniu)
         if dane_po_odlozeniu['Ilość'] == 0:
+            response2 = requests.post(f'{self.api_url2}/czesc/add', json=payload)
             self.delete_item()
         elif dane_po_odlozeniu['Ilość'] > 0:
             try:
@@ -662,25 +663,76 @@ class EditFrameWyposazenie(QFrame):
                     # Obsłuż błędy połączenia (np. brak dostępu do serwera)
                     QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
-                # Użyj requests dodania do magazynu
+                # # Użyj requests dodania do magazynu
+                # try:
+                #     print(f"Data to update: {data}")
+                #     response = requests.post(f'{self.api_url2}/czesc/add', json=payload)
+                #     print(f'Printuje payload', payload)
+                #     if response.status_code == 200:
+                #         # Jeśli zapis się powiódł, zamknij okno
+                #         self.close_window()
+                #     else:
+                #         # Obsłuż błędy w odpowiedzi
+                #         error_message = response.json().get('message', 'Wystąpił błąd')
+                #         print(f"Błąd zapisu: {error_message}")
+                #         # Tutaj możesz np. pokazać użytkownikowi komunikat o błędzie
+                #         QMessageBox.information(self, "Sukces",
+                #                             f"Wyposażenie zostało przeniesione do magazynu!")
+                #
+                # except requests.exceptions.RequestException as e:
+                #     print(f"Błąd połączenia z serwerem: {e}")
+                #     # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+                #     QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+
                 try:
                     print(f"Data to update: {data}")
-                    response = requests.post(f'{self.api_url2}/czesc/add', json=payload)
-                    print(f'Printuje payload', payload)
-                    if response.status_code == 200:
-                        # Jeśli zapis się powiódł, zamknij okno
-                        self.close_window()
+                    # Sprawdzenie, czy część już istnieje
+                    check_response = requests.post(f'{self.api_url2}/czesc/check', json=payload)
+                    check_result = check_response.json()
+                    print(f"CHECK RESULT: {check_result}")
+                    if check_result.get('idCzesc') is not None:
+                        id_czesc = check_result['idCzesc']
+                        try:
+                            response = requests.get(f'{self.api_url2}/czesc/{id_czesc}')
+                            if response.status_code == 200:
+                                # Pobieramy odpowiedź z API
+                                dane_z_bazy_czesci = response.json()
+                            else:
+                                print(f"Błąd zapytania: {response.status_code}")
+
+                        except Exception as e:
+                            print(f"Błąd połączenia z serwerem: {str(e)}")
+
+                        print("printuje dane z bazy")
+                        print(dane_z_bazy_czesci)
+                        print(f"Suma: {data.get('Ilość')} i {int(dane_z_bazy.get('Ilość'))} i {int(dane_z_bazy_czesci.get('Ilość'))}")
+
+
+                        payload2 = {
+                            'idTypSerwisu': id_typ_serwisu,
+                            'Nazwa elementu': data.get('Opis'),
+                            'Ilość': int(dane_z_bazy.get('Ilość')) - int(data.get('Ilość')) + int(dane_z_bazy_czesci.get('Ilość'))
+                        }
+
+                        response = requests.put(f'{self.api_url2}/czesc/edit/{id_czesc}', json=payload2)
+                        print(f'Edytuję część o ID: {id_czesc}')
                     else:
-                        # Obsłuż błędy w odpowiedzi
-                        error_message = response.json().get('message', 'Wystąpił błąd')
-                        print(f"Błąd zapisu: {error_message}")
-                        # Tutaj możesz np. pokazać użytkownikowi komunikat o błędzie
-                        QMessageBox.information(self, "Sukces",
-                                            f"Wyposażenie zostało przeniesione do magazynu!")
+                        # Jeśli część nie istnieje, dodaj nową
+                        response = requests.post(f'{self.api_url2}/czesc/add', json=payload)
+                        print('Dodaję nową część')
+
+                    # if response.status_code == 200:
+                    #     # Jeśli zapis lub edycja się powiodły, zamknij okno
+                    #     QMessageBox.information(self, "Sukces", "Wyposażenie zostało przeniesione do magazynu!")
+                    #     self.close_window()
+                    # else:
+                    #     # Obsłuż błędy w odpowiedzi
+                    #     error_message = response.json().get('message', 'Wystąpił błąd')
+                    #     print(f"Błąd operacji: {error_message}")
+                    #     QMessageBox.critical(self, "Błąd", f"Wystąpił błąd: {error_message}")
 
                 except requests.exceptions.RequestException as e:
                     print(f"Błąd połączenia z serwerem: {e}")
-                    # Obsłuż błędy połączenia (np. brak dostępu do serwera)
                     QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
             except Exception as e:
