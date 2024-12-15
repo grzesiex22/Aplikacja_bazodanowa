@@ -752,7 +752,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.overlay = OverlayWidget(self)
         self.overlay.show()
 
-        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport części")
+        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport wyposażenia pojazdu")
         self.raport_dialog.show()
 
         # Po zamknięciu okna dialogowego, przywrócenie interakcji
@@ -784,25 +784,25 @@ class WyposazenieFrame(QtWidgets.QFrame):
         try:
             # Utwórz dokument PDF
             pdf = canvas.Canvas(pdf_file, pagesize=A4)
-            pdf.setTitle("Raport Części")
+            pdf.setTitle("Raport Wyposażenia pojazdu")
 
             # Aktualna data i godzina
             current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             def draw_header():
                 """Rysowanie nagłówka z datą i godziną."""
-                pdf.setFont("DejaVuSans", 10)
+                pdf.setFont("DejaVuSans", 6)  # Zmniejszona czcionka nagłówka strony
                 pdf.drawRightString(550, 830, current_datetime)  # Pozycja: prawy górny róg
 
             # Ustawienie czcionki na DejaVuSans
-            pdf.setFont("DejaVuSans", 16)
+            pdf.setFont("DejaVuSans", 12)  # Tytuł raportu, nieco mniejsza czcionka
             pdf.drawString(50, 800, "Raport Części")
-            pdf.setFont("DejaVuSans", 12)
+            pdf.setFont("DejaVuSans", 8)  # Ogólny tekst
 
             draw_header()  # Rysowanie nagłówka na pierwszej stronie
 
             # Przygotowanie nagłówków tabeli
-            headers = ["ID Części", "Typ Serwisu", "Nazwa Elementu", "Ilość"]
+            headers = ["ID Wyposażenia Pojazdu", "Pojazd", "Opis", "Ilość"]
             column_widths = [80, 120, 210, 50]  # Ustalona szerokość kolumn
 
             x_offsets = [50]  # Start od X=50
@@ -810,16 +810,16 @@ class WyposazenieFrame(QtWidgets.QFrame):
                 x_offsets.append(x_offsets[-1] + width)
 
             y_position = 750  # Pozycja Y początkowa
-            line_height = 20
+            line_height = 12  # Zmniejszona wysokość wierszy
 
             # Dodaj nagłówki do tabeli
-            pdf.setFont("DejaVuSans", 12)
+            pdf.setFont("DejaVuSans", 6)  # Zmniejszona czcionka nagłówków tabeli
             for i, header in enumerate(headers):
                 pdf.drawString(x_offsets[i], y_position, header)
             y_position -= line_height
 
             # Dodaj dane do tabeli
-            pdf.setFont("DejaVuSans", 10)
+            pdf.setFont("DejaVuSans", 6)  # Zmniejszona czcionka danych tabeli
             for row in range(self.model_pojazd.rowCount()):
                 # Pobierz dane z modelu
                 id_czesc = self.model_pojazd.item(row, 0).text()
@@ -828,7 +828,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
                 ilosc = self.model_pojazd.item(row, 3).text()
 
                 # Podziel nazwę elementu na linie
-                wrapped_name = textwrap.wrap(nazwa_elementu, width=int(column_widths[2] / 7))  # Dopasowanie szerokości
+                wrapped_name = textwrap.wrap(nazwa_elementu, width=int(column_widths[2] / 5))  # Dopasowanie szerokości
                 row_height = line_height * len(wrapped_name)  # Wysokość wiersza zależna od liczby linii
 
                 # Sprawdź miejsce na stronie
@@ -836,11 +836,11 @@ class WyposazenieFrame(QtWidgets.QFrame):
                     pdf.showPage()
                     draw_header()  # Nagłówek na nowej stronie
                     y_position = 800
-                    pdf.setFont("DejaVuSans", 12)
+                    pdf.setFont("DejaVuSans", 6)  # Zmniejszenie czcionki nagłówków
                     for i, header in enumerate(headers):
                         pdf.drawString(x_offsets[i], y_position, header)
                     y_position -= line_height
-                    pdf.setFont("DejaVuSans", 10)
+                    pdf.setFont("DejaVuSans", 6)
 
                 # Rysuj dane w tabeli
                 pdf.drawString(x_offsets[0], y_position, id_czesc)
