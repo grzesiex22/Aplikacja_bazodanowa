@@ -146,7 +146,7 @@ def validate_wyposazenie_edit():
         return jsonify({'error': str(e)}), 500
 
 # Usuwanie wyposażenia pojazdu
-@wyposazenie_bp.route('/wyposazenie/edit/delete/<int:id>', methods=['DELETE'])
+@wyposazenie_bp.route('/wyposazenie/delete/<int:id>', methods=['DELETE'])
 def usun_wyposazenie(id):
     try:
         wyposazenie = WyposazeniePojazdu.query.get(id)

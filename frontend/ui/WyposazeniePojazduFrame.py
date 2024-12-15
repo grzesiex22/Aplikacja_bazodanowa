@@ -22,10 +22,10 @@ from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
 import requests
-
-class ScreenType(Enum):
-    CZESCI = 1
-    WYPOSAZENIE = 2
+#
+# class ScreenType(Enum):
+#     CZESCI = 1
+#     WYPOSAZENIE = 2
 
 class OverlayWidget(QtWidgets.QFrame):
     def __init__(self, parent=None):
@@ -43,8 +43,8 @@ class WyposazenieFrame(QtWidgets.QFrame):
         # Pełna ścieżka do folderu z ikonami
         self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
 
-        # Inicjalizacja
-        self.screen_type = ScreenType.CZESCI
+        # # Inicjalizacja
+        # self.screen_type = ScreenType.CZESCI
         self.api_url = api_url
 
         # Inicjalizacja flagi
@@ -149,7 +149,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.label_flota_header.setGeometry(QtCore.QRect(int(self.width / 2 - 200 / 2), 10, 200, 30))
         self.label_flota_header.setAlignment(Qt.AlignCenter)
         self.label_flota_header.setObjectName("label_flota_header")
-        self.label_flota_header.setText("Magazyn")
+        self.label_flota_header.setText("Wyposażenie")
 
         self.button_exit_flota = QtWidgets.QPushButton(self.widget_flota_header)
         self.button_exit_flota.setGeometry(QtCore.QRect(self.width-40-10, 5, 40, 40))
@@ -310,25 +310,25 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.horizontalLayout_buttons.setSpacing(20)  # Ustawia odstęp między przyciskami na 20 pikseli
         self.horizontalLayout_buttons.setObjectName("horizontalLayout")
 
-        self.button_magazyn_czesci = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_magazyn_czesci.setText("Części")
-        self.button_magazyn_czesci.setObjectName("button_magazyn_czesci")
-        self.button_magazyn_czesci.setCheckable(True)
+        # self.button_magazyn_czesci = QtWidgets.QPushButton(self.widget_choice_buttons)
+        # self.button_magazyn_czesci.setText("Części")
+        # self.button_magazyn_czesci.setObjectName("button_magazyn_czesci")
+        # self.button_magazyn_czesci.setCheckable(True)
+        #
+        # self.button_magazyn_wyposazenie = QtWidgets.QPushButton(self.widget_choice_buttons)
+        # self.button_magazyn_wyposazenie.setText("Wyposażenie")
+        # self.button_magazyn_wyposazenie.setObjectName("button_magazyn_wyposazenie")
+        # self.button_magazyn_wyposazenie.setCheckable(True)
 
-        self.button_magazyn_wyposazenie = QtWidgets.QPushButton(self.widget_choice_buttons)
-        self.button_magazyn_wyposazenie.setText("Wyposażenie")
-        self.button_magazyn_wyposazenie.setObjectName("button_magazyn_wyposazenie")
-        self.button_magazyn_wyposazenie.setCheckable(True)
 
 
-
-        self.horizontalLayout_buttons.addWidget(self.button_magazyn_czesci)
-        self.horizontalLayout_buttons.addWidget(self.button_magazyn_wyposazenie)
+        # self.horizontalLayout_buttons.addWidget(self.button_magazyn_czesci)
+        # self.horizontalLayout_buttons.addWidget(self.button_magazyn_wyposazenie)
 
         # Dodanie przycisków do grupy
         self.button_group = QButtonGroup(self)
-        self.button_group.addButton(self.button_magazyn_czesci, ScreenType.CZESCI.value)
-        self.button_group.addButton(self.button_magazyn_wyposazenie, ScreenType.WYPOSAZENIE.value)
+        # self.button_group.addButton(self.button_magazyn_czesci, ScreenType.CZESCI.value)
+        # self.button_group.addButton(self.button_magazyn_wyposazenie, ScreenType.WYPOSAZENIE.value)
 
         # Tworzenie przycisku button_filtruj
         self.button_filtruj = QtWidgets.QPushButton(self.widget_choice_buttons)
@@ -393,8 +393,8 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.button_group.buttonClicked[int].connect(self.update_screen_type)
 
         # Ustawienie stylów przycisków i początkowego stanu
-        self.button_magazyn_czesci.setChecked(True)
-        self.update_screen_type(ScreenType.CZESCI.value)  # Ustawienie początkowej wartości zmiennej
+        # self.button_magazyn_czesci.setChecked(True)
+        # self.update_screen_type(ScreenType.CZESCI.value)  # Ustawienie początkowej wartości zmiennej
 
     def erase_filters(self):
         self.filters_set = False
@@ -441,7 +441,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
 
     def update_screen_type(self, screen_value):
         # Zmiana wartości zmiennej na podstawie ID przycisku
-        self.screen_type = ScreenType(screen_value)
+        # self.screen_type = ScreenType(screen_value)
         print(f"Aktualna wartość zmiennej: {self.screen_type.name}")
 
         self.erase_filters()
@@ -657,18 +657,18 @@ class WyposazenieFrame(QtWidgets.QFrame):
         """
         Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
         """
-        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
-        self.overlay = OverlayWidget(self)
-        self.overlay.show()
+
+        if not hasattr(self, 'filter_dialog'):
+            self.overlay = OverlayWidget(self)
+            self.overlay.show()
 
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
             self.filter_dialog = FilterMagazineFrame(
-                class_name="czesc",
-                api_url=f"{self.api_url}/czesci",
+                class_name="WyposazeniePojazdu",
+                api_url=f"{self.api_url}/wyposazenie",
                 parent=self,
-                header_title="Filtrowanie części",
-                screen_type=self.screen_type.value,
+                header_title="Filtrowanie wyposażenia",
                 # Przekazujemy istniejące filtry
                 refresh_callback=self.load_data_filtered
             )
@@ -708,19 +708,15 @@ class WyposazenieFrame(QtWidgets.QFrame):
 
 
         # Usuń 'Dane kierowcy' z parametrów, aby nie pojawił się w URL
-        if 'dane typ serwisu' in combined_parameters_lower:
-            combined_parameters_lower.pop('dane typ serwisu')
+        if 'pojazd' in combined_parameters_lower:
+            combined_parameters_lower.pop('pojazd')
 
         # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-        if 'idtypserwisu' in combined_parameters_lower:
-            combined_parameters_lower['idTypSerwisu'] = combined_parameters_lower.pop('idtypserwisu')
-
-        # Jeśli 'numer rejestracyjny' jest obecny, zmień na 'nrRejestracyjny'
-        if 'nazwa elementu' in combined_parameters_lower:
-            combined_parameters_lower['nazwaElementu'] = combined_parameters_lower.pop('nazwa elementu')
+        if 'id pojazdu' in combined_parameters_lower:
+            combined_parameters_lower['idPojazd'] = combined_parameters_lower.pop('id pojazdu')
 
         query_string = '&'.join([f"{key}={value}" for key, value in combined_parameters_lower.items()])
-        full_url = f"{self.api_url}/czesci?excludeTypSerwisu=Wyposażenie&{query_string}"
+        full_url = f"{self.api_url}/wyposazenie/show/all?{query_string}&"
         print(f"Final URL: {full_url}")
 
         try:
@@ -735,7 +731,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
                 for wyposazeniepojazdu in czesci_data:
                     self.model_pojazd.appendRow([
                         QStandardItem(str(wyposazeniepojazdu['ID Wyposażenia Pojazdu'])),
-                        QStandardItem(str(wyposazeniepojazdu['Pojazd'])),  # Zmieniono na 'Pojazd'
+                        QStandardItem(str(wyposazeniepojazdu['Pojazd'])),
                         QStandardItem(str(wyposazeniepojazdu['Opis'])),
                         QStandardItem(str(wyposazeniepojazdu['Ilość']))
                     ])
@@ -863,5 +859,9 @@ class WyposazenieFrame(QtWidgets.QFrame):
             QMessageBox.critical(self, "Błąd", f"Nie udało się wygenerować raportu: {str(e)}")
 
     def remove_overlay(self):
-        # Usuwamy nakładkę po zamknięciu FilterFrame
-        self.overlay.deleteLater()
+        """
+        Usuwa nakładkę, jeśli istnieje.
+        """
+        if hasattr(self, 'overlay') and self.overlay is not None:
+            self.overlay.deleteLater()  # Lub self.overlay.delete() dla natychmiastowego usunięcia
+            self.overlay = None
