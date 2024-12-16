@@ -16,7 +16,7 @@ def pobierz_wyposazenie(id):
 
         # Pobieramy dane pojazdu
         pojazd = Pojazd.query.get(wyposazenie.idPojazd) if wyposazenie.idPojazd else None
-        pojazd_opis = f"{pojazd.marka} {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}" if pojazd else "Brak pojazdu"
+        pojazd_opis = f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}" if pojazd else "Brak pojazdu"
 
         # Zwracamy szczegółowe dane wyposażenia
         return jsonify({
@@ -63,8 +63,7 @@ def pobierz_wszystkie_wyposazenie():
         wynik = []
         for wyposazenie in wyposazenie_list:
             pojazd = Pojazd.query.get(wyposazenie.idPojazd) if wyposazenie.idPojazd else None
-            pojazd_opis = f"{pojazd.marka} {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}" if pojazd else "Brak pojazdu"
-
+            pojazd_opis = f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}" if pojazd else "Brak pojazdu"
             wynik.append({
                 'ID Wyposażenia Pojazdu': wyposazenie.idWyposazeniePojazdu,
                 'ID Pojazdu': wyposazenie.idPojazd,
@@ -79,23 +78,57 @@ def pobierz_wszystkie_wyposazenie():
 
 
 # Dodawanie nowego wyposażenia pojazdu
+# @wyposazenie_bp.route('/wyposazenie/add', methods=['POST'])
+# def dodaj_wyposazenie():
+#     try:
+#         data = request.get_json()
+#
+#         # Tworzenie obiektu WyposazeniePojazdu na podstawie danych
+#         nowe_wyposazenie = WyposazeniePojazdu(
+#             idPojazd=int(data['ID Pojazdu']),
+#             opis=data['Opis'],
+#             ilosc=int(data['Ilość'])
+#         )
+#
+#         # Dodanie do bazy danych
+#         db.session.add(nowe_wyposazenie)
+#         db.session.commit()
+#
+#         return jsonify({'message': 'Wyposażenie pojazdu dodane pomyślnie'}), 201
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({'error': str(e)}), 500
+
+
 @wyposazenie_bp.route('/wyposazenie/add', methods=['POST'])
 def dodaj_wyposazenie():
     try:
         data = request.get_json()
 
         # Tworzenie obiektu WyposazeniePojazdu na podstawie danych
-        nowe_wyposazenie = WyposazeniePojazdu(
-            idPojazd=int(data['ID Pojazdu']),
-            opis=data['Opis'],
-            ilosc=int(data['Ilość'])
-        )
+        id_pojazd = int(data['ID Pojazdu'])
+        opis = data['Opis']
+        ilosc = int(data['Ilość'])
 
-        # Dodanie do bazy danych
-        db.session.add(nowe_wyposazenie)
+        # Sprawdzenie, czy wyposażenie już istnieje w tabeli
+        istnieje_wyposazenie = WyposazeniePojazdu.query.filter_by(idPojazd=id_pojazd, opis=opis).first()
+
+        if istnieje_wyposazenie:
+            # Jeśli wyposażenie istnieje, zwiększamy wartość pola 'ilosc'
+            istnieje_wyposazenie.ilosc += ilosc
+        else:
+            # Jeśli wyposażenie nie istnieje, tworzymy nowe
+            nowe_wyposazenie = WyposazeniePojazdu(
+                idPojazd=id_pojazd,
+                opis=opis,
+                ilosc=ilosc
+            )
+            db.session.add(nowe_wyposazenie)
+
+        # Zapisujemy zmiany w bazie danych
         db.session.commit()
 
-        return jsonify({'message': 'Wyposażenie pojazdu dodane pomyślnie'}), 201
+        return jsonify({'message': 'Wyposażenie pojazdu zostało dodane lub zaktualizowane pomyślnie'}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
