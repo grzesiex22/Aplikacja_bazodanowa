@@ -303,8 +303,10 @@ def pobierz_i_sortuj_pojazdy():
         # Ustalanie kolumny do sortowania
         if sort_by == "Dane kierowcy":
             # Sortowanie po imieniu i nazwisku kierowcy
-            query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca)
+            query = query.join(Kierowca, Pojazd.idKierowca == Kierowca.idKierowca, isouter=True)
             query = query.order_by(
+                kierunek_sortowania(Kierowca.imie.is_(None)),
+                # Pojazdy bez kierowcy na początku lub końcu (zależnie od kierunku)
                 kierunek_sortowania(Kierowca.imie),
                 kierunek_sortowania(Kierowca.nazwisko)
             )
