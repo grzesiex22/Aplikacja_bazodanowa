@@ -185,3 +185,32 @@ def edytuj_wyposazenie(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@wyposazenie_bp.route('/wyposazenie/check', methods=['POST'])
+def sprawdz_wyposazenie():
+    try:
+        data = request.get_json()
+
+        # Walidacja danych wejściowych: sprawdzenie, czy opis i ID Pojazdu są w danych
+        if 'Opis' not in data or 'ID Pojazdu' not in data:
+            return jsonify({'error': 'Opis i ID Pojazdu są wymagane'}), 400
+
+        opis = data['Opis']
+        id_pojazd = data['ID Pojazdu']
+
+        # Sprawdzenie, czy pojazd o podanym ID istnieje
+        pojazd = Pojazd.query.get(id_pojazd)
+        if not pojazd:
+            return jsonify({'error': 'Pojazd o podanym ID nie istnieje'}), 404
+
+        # Wyszukiwanie wyposażenia w bazie danych na podstawie opisu i ID Pojazdu
+        wyposazenie = WyposazeniePojazdu.query.filter_by(opis=opis, idPojazd=id_pojazd).first()
+
+        # Zwracanie wyniku
+        if wyposazenie:
+            return jsonify({'idWyposazeniePojazdu': wyposazenie.idWyposazeniePojazdu}), 200
+        else:
+            return jsonify({'idWyposazeniePojazdu': None}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

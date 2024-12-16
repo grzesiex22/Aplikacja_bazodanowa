@@ -245,15 +245,15 @@ class FilterMagazineFrame(QFrame):
                 self.fields[column_name] = combo_box
 
                 # Stylizacja QComboBox
-                # combo_box.setStyleSheet("""
-                #                 QComboBox {
-                #                     background-color: #c4bbf0;
-                #                     padding: 2px;
-                #                     border-radius: 5px;
-                #                     font-size: 14px;
-                #                 }
-                #
-                #             """)
+                combo_box.setStyleSheet("""
+                                QComboBox {
+                                    background-color: #c4bbf0;
+                                    padding: 2px;
+                                    border-radius: 5px;
+                                    font-size: 14px;
+                                }
+
+                            """)
 
                 combo_box.setStyleSheet(self.combobox_style)
 

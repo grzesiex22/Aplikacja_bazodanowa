@@ -15,10 +15,12 @@ from datetime import datetime
 import textwrap
 
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
+from Aplikacja_bazodanowa.frontend.ui.EditFrameCzesci import EditFrameCzesci
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
+from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
 from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterMagazineFrame
 from Aplikacja_bazodanowa.frontend.ui.Raport_Frame import SimpleGenerateRaport
-from Aplikacja_bazodanowa.backend.models import TypPojazdu
+from Aplikacja_bazodanowa.backend.models import TypPojazdu, Czesc
 
 import os
 from enum import Enum, auto
@@ -484,7 +486,14 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.update_screen_type(ScreenType.CZESCI.value)  # Ustawienie początkowej wartości zmiennej
 
     def przypisanie(self):
-        print("przypisanie")
+        if self.filters_set:
+            self.przypisanie_frame = FilterFrame(class_name="WyposazeniePojazdu", api_url=f"{self.api_url}/wyposazenie",
+                                      parent=self, header_title="Dodawanie części",
+                                      refresh_callback=self.load_data_filtered)
+        else:
+            self.przypisanie_frame = AddFrame(class_name="WyposazeniePojazdu", api_url=f"{self.api_url}/wyposazenie",
+                                      parent=self, header_title="Dodawanie części", refresh_callback=self.load_data)
+        self.przypisanie_frame.show()
 
     def erase_filters(self):
         self.filters_set = False
@@ -627,14 +636,26 @@ class WarehouseFrame(QtWidgets.QFrame):
                 czesc_data = response.json()
                 print(czesc_data)
                 # Przekazanie danych do okna edycji
-                if self.filters_set:
+                if self.filters_set and self.screen_type == ScreenType.CZESCI:
+                    self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
+                                                api_url=f"{self.api_url}/czesc",
+                                                parent=self, header_title="Edycja części",
+                                                # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
+                                                refresh_callback=self.load_data_filtered)
+                elif self.filters_set and self.screen_type == ScreenType.WYPOSAZENIE:
+                    self.edit_frame = EditFrameCzesci(class_name="czesc", data=czesc_data,
+                                                api_url=f"{self.api_url}/czesc",
+                                                parent=self, header_title="Edycja części",
+                                                # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
+                                                refresh_callback=self.load_data_filtered)
+                elif not self.filters_set and self.screen_type == ScreenType.CZESCI:
                     self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
                                                 api_url=f"{self.api_url}/czesc",
                                                 parent=self, header_title="Edycja części",
                                                 # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
                                                 refresh_callback=self.load_data_filtered)
                 else:
-                    self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
+                    self.edit_frame = EditFrameCzesci(class_name="czesc", data=czesc_data,
                                             api_url=f"{self.api_url}/czesc",
                                             parent=self, header_title="Edycja części",
                                             # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
