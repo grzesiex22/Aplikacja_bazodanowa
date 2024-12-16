@@ -794,17 +794,17 @@ class WyposazenieFrame(QtWidgets.QFrame):
                 pdf.drawRightString(550, 830, current_datetime)  # Pozycja: prawy górny róg
 
             # Ustawienie czcionki na DejaVuSans
-            pdf.setFont("DejaVuSans", 12)  # Tytuł raportu, nieco mniejsza czcionka
+            pdf.setFont("DejaVuSans", 16)  # Tytuł raportu, nieco mniejsza czcionka
             pdf.drawString(50, 800, "Raport Części")
             pdf.setFont("DejaVuSans", 8)  # Ogólny tekst
 
             draw_header()  # Rysowanie nagłówka na pierwszej stronie
 
             # Przygotowanie nagłówków tabeli
-            headers = ["ID Wyposażenia Pojazdu", "Pojazd", "Opis", "Ilość"]
-            column_widths = [80, 140, 160, 50]  # Poprawiona szerokość kolumn
+            headers = ["Pojazd", "Opis", "Ilość"]
+            column_widths = [170, 200, 60]  # Poprawiona szerokość kolumn
 
-            column_spacing = 30  # Dodaj odstęp między kolumnami
+            column_spacing = 35  # Dodaj odstęp między kolumnami
 
             # Oblicz przesunięcia X kolumn, uwzględniając odstępy
             x_offsets = [50]  # Start od X=50
@@ -815,7 +815,7 @@ class WyposazenieFrame(QtWidgets.QFrame):
             line_height = 12  # Zmniejszona wysokość wierszy
 
             # Dodaj nagłówki do tabeli
-            pdf.setFont("DejaVuSans", 6)  # Zmniejszona czcionka nagłówków tabeli
+            pdf.setFont("DejaVuSans", 10)  # Zmniejszona czcionka nagłówków tabeli
             for i, header in enumerate(headers):
                 pdf.drawString(x_offsets[i], y_position, header)
             y_position -= line_height
@@ -824,17 +824,17 @@ class WyposazenieFrame(QtWidgets.QFrame):
             pdf.setFont("DejaVuSans", 6)  # Zmniejszona czcionka danych tabeli
             for row in range(self.model_pojazd.rowCount()):
                 # Pobierz dane z modelu
-                id_czesc = self.model_pojazd.item(row, 0).text()
+                # id_czesc = self.model_pojazd.item(row, 0).text()
                 typ_serwisu = self.model_pojazd.item(row, 1).text()
                 nazwa_elementu = self.model_pojazd.item(row, 2).text()
                 ilosc = self.model_pojazd.item(row, 3).text()
 
                 # Podziel zawartość kolumn na linie, jeśli tekst jest za długi
                 wrapped_data = [
-                    textwrap.wrap(id_czesc, width=int(column_widths[0] / 5)),
-                    textwrap.wrap(typ_serwisu, width=int(column_widths[1] / 5)),
-                    textwrap.wrap(nazwa_elementu, width=int(column_widths[2] / 5)),
-                    textwrap.wrap(ilosc, width=int(column_widths[3] / 5))
+                    # textwrap.wrap(id_czesc, width=int(column_widths[0] / 5)),
+                    textwrap.wrap(typ_serwisu, width=int(column_widths[0] / 5)),
+                    textwrap.wrap(nazwa_elementu, width=int(column_widths[1] / 5)),
+                    textwrap.wrap(ilosc, width=int(column_widths[2] / 5))
                 ]
 
                 # Oblicz maksymalną liczbę linii w tym wierszu
