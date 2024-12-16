@@ -544,6 +544,11 @@ class EditFrameCzesci(QFrame):
     def store_item(self, vehicle_data):
         self.vehicle_data = vehicle_data
 
+        if 'Ciągnik' in self.vehicle_data['name']:
+            self.typpojazdu = 'Ciągnik'
+        elif 'Naczepa' in self.vehicle_data['name']:
+            self.typpojazdu = 'Naczepa'
+
         data = {}
         dane_z_bazy = {}
         dane_z_bazy_czesci = {}
@@ -564,6 +569,11 @@ class EditFrameCzesci(QFrame):
 
         print("printuje dane z bazy")
         print(dane_z_bazy)
+
+        if 'Ciągnik' in dane_z_bazy['Typ Serwisu']:
+            self.typpojazdu2 = 'Ciągnik'
+        elif 'Naczepa' in dane_z_bazy['Typ Serwisu']:
+            self.typpojazdu2 = 'Naczepa'
 
         # Iterujemy przez wszystkie pola w formularzu
         for field_name, field in self.fields.items():
@@ -601,7 +611,7 @@ class EditFrameCzesci(QFrame):
         dane_po_odlozeniu = data
         dane_po_odlozeniu['Ilość']=dane_z_bazy['Ilość']-data['Ilość']
         print(f"print DANEEEEEE PO ODŁOŻENIU", dane_po_odlozeniu)
-        if dane_po_odlozeniu['Ilość'] == 0:
+        if dane_po_odlozeniu['Ilość'] == 0 and self.typpojazdu == self.typpojazdu2:
             self.delete_item()
             try:
 
@@ -654,7 +664,7 @@ class EditFrameCzesci(QFrame):
                 print(f"Błąd połączenia z serwerem: {str(e)}")
 
 
-        elif dane_po_odlozeniu['Ilość'] > 0:
+        elif dane_po_odlozeniu['Ilość'] > 0 and self.typpojazdu == self.typpojazdu2:
             try:
                 # Użyj requests do wysłania zapytania PUT
                 try:
@@ -722,9 +732,14 @@ class EditFrameCzesci(QFrame):
 
             except Exception as e:
                 print(f"Błąd połączenia z serwerem: {str(e)}")
-        else:
+        elif dane_po_odlozeniu['Ilość'] < 0:
             QMessageBox.critical(self, "Błąd", f"Nie możesz odłożyć do magazynu więcej częśći niż posiadasz w pojeździe,"
-                                               f"przejdź do zakładki magazyn i tam dodaj wyposażenie!")
+                                               f"przejdź do zakładki magazyn i tam dodaj wyposażenie lub wybrałeś ")
+        elif self.typpojazdu != self.typpojazdu2:
+            QMessageBox.critical(self, "Błąd", f"Typ serwisu musi zgadzać się z typem pojazdu,"
+                                               f"wybierz pojazd ponownie")
+        else:
+            QMessageBox.critical(self, "Błąd", f"Błąd zamknij okno i spróbuj przypisać ponownie!")
 
 
 
