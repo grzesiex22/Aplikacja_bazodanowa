@@ -277,90 +277,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.horizontalLayout_bottom_buttons.addWidget(self.button_raport)
 
         """
-        Przyciski dolne 2
-        """
-        self.widget_bottom_buttons2 = QtWidgets.QWidget(self)
-        self.widget_bottom_buttons2.setGeometry(QtCore.QRect(int(self.width/2-1200/2),
-                                                            table_frame_top_margin + table_frame_height + 20,
-                                                            1200, 60))
-        self.widget_bottom_buttons2.setObjectName("widget_bottom_buttons")
-
-        self.button_dodaj2 = QtWidgets.QPushButton(self.widget_bottom_buttons2)
-        self.button_dodaj2.setFixedHeight(60)
-        self.button_dodaj2.setText("DODAJ")
-        self.button_dodaj2.setStyleSheet("QPushButton {"
-                                              "    color: #333333;"
-                                              "    background-color: #79cf65; /* Ustawia przezroczyste tło */"
-                                              "    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */"
-                                              "    border-radius: 15px; /* Zaokrąglone rogi ramki */"
-                                              "    padding: 5px; /* Wewnętrzne odstępy, opcjonalne */"
-                                              "    font-size: 20px;  /* Rozmiar czcionki */"
-                                              "    font-family: Arial, sans-serif;  /* Czcionka */"
-                                              "}"
-                                              "QPushButton:hover {"
-                                              "    background-color: #6bb558; /* Ustawia kolor tła po najechaniu */"
-                                              "}"
-                                              "QPushButton:pressed {"
-                                              "    background-color: #4e8340;  /* Kolor tła po kliknięciu */"
-                                              "    border: 2px solid #4e8340; /* Ustawia kolor ramki (czarny) */"
-                                              "}")
-        self.button_dodaj2.setObjectName("button_flota_dodaj")
-        self.button_dodaj2.clicked.connect(self.add_new_line)
-
-        self.button_raport2 = QtWidgets.QPushButton(self.widget_bottom_buttons2)
-        self.button_raport2.setFixedHeight(60)
-        self.button_raport2.setText("GENERUJ RAPORT")
-        self.button_raport2.setStyleSheet("""QPushButton {
-                                                      color: #333333;
-                                                      background-color: #c4bbf0; /* Ustawia przezroczyste tło */
-                                                      border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
-                                                      border-radius: 15px; /* Zaokrąglone rogi ramki */
-                                                      padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
-                                                      font-size: 20px;  /* Rozmiar czcionki */
-                                                      font-family: Arial, sans-serif;  /* Czcionka */
-                                                  }
-                                                  QPushButton:hover {
-                                                      background-color: #ac97e2; /* Ustawia kolor tła po najechaniu */
-                                                  }
-                                                  QPushButton:pressed {
-                                                      background-color: #927fbf;  /* Kolor tła po kliknięciu */
-                                                  }""")
-        self.button_raport2.setObjectName("button_magazyn_raport")
-        self.button_raport2.clicked.connect(self.show_raport_frame)
-
-        # Położenie Poziome dla przycisków
-        self.horizontalLayout_bottom_buttons2 = QtWidgets.QHBoxLayout(self.widget_bottom_buttons2)
-        self.horizontalLayout_bottom_buttons2.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_bottom_buttons2.setSpacing(50)  # Ustawia odstęp między przyciskami na 20 pikseli
-        self.horizontalLayout_bottom_buttons2.setObjectName("horizontalLayout_bottom")
-
-        self.button_przypisz = QtWidgets.QPushButton(self.widget_bottom_buttons2)
-        self.button_przypisz.setFixedHeight(60)
-        self.button_przypisz.setText("PRZYPISZ WYPOSAŻENIE")
-        self.button_przypisz.setStyleSheet("""QPushButton {
-                                                      color: #5d5d5d;
-                                                      background-color: #c4bbf0; /* Ustawia przezroczyste tło */
-                                                      border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
-                                                      border-radius: 15px; /* Zaokrąglone rogi ramki */
-                                                      padding: 5px; /* Wewnętrzne odstępy, opcjonalne */
-                                                      font-size: 20px;  /* Rozmiar czcionki */
-                                                      font-family: Arial, sans-serif;  /* Czcionka */
-                                                  }
-                                                  QPushButton:hover {
-                                                      background-color: #ac97e2; /* Ustawia kolor tła po najechaniu */
-                                                  }
-                                                  QPushButton:pressed {
-                                                      background-color: #927fbf;  /* Kolor tła po kliknięciu */
-                                                  }""")
-        self.button_przypisz.setObjectName("button_przypisz")
-        self.button_przypisz.clicked.connect(self.przypisanie)
-
-        self.horizontalLayout_bottom_buttons2.addWidget(self.button_dodaj2)
-        self.horizontalLayout_bottom_buttons2.addWidget(self.button_raport2)
-        self.horizontalLayout_bottom_buttons2.addWidget(self.button_przypisz)
-
-        self.widget_bottom_buttons2.hide()
-        """
         Przyciski górne
         """
         self.widget_choice_buttons = QtWidgets.QWidget(self)
@@ -545,12 +461,6 @@ class WarehouseFrame(QtWidgets.QFrame):
 
         self.erase_filters()
 
-        if self.screen_type == ScreenType.CZESCI:
-            self.widget_bottom_buttons.show()
-            self.widget_bottom_buttons2.hide()
-        elif self.screen_type == ScreenType.WYPOSAZENIE:
-            self.widget_bottom_buttons.hide()
-            self.widget_bottom_buttons2.show()
 
         # if self.filters_set:
         #     self.load_data_filtered()
