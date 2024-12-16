@@ -141,8 +141,9 @@ def validate_wyposazenie():
         data = request.get_json()
 
         # Walidacja opisu
-        if 'Opis' not in data or not isinstance(data['Opis'], str) or len(data['Opis']) > 100:
-            return jsonify({'message': 'Opis musi być ciągiem znaków o długości maksymalnie 100'}), 400
+        if 'Opis' not in data or not isinstance(data['Opis'], str) or not data['Opis'].strip() or len(
+                data['Opis']) > 100:
+            return jsonify({'message': 'Opis musi być niepustym ciągiem znaków o długości maksymalnie 100'}), 400
 
         # Walidacja ilości
         if 'Ilość' not in data or not isinstance(data['Ilość'], int) or data['Ilość'] < 0:
@@ -163,15 +164,19 @@ def validate_wyposazenie_edit():
         data = request.get_json()
 
         # Walidacja opisu
-        if 'Opis' not in data or not isinstance(data['Opis'], str) or len(data['Opis']) > 100:
-            return jsonify({'message': 'Opis musi być ciągiem znaków o długości maksymalnie 100'}), 400
+        if 'Opis' not in data or not isinstance(data['Opis'], str) or not data['Opis'].strip() or len(
+                data['Opis']) > 100:
+            return jsonify({'message': 'Opis musi być niepustym ciągiem znaków o długości maksymalnie 100'}), 400
 
         # Walidacja ilości
         if 'Ilość' not in data or not isinstance(data['Ilość'], int) or data['Ilość'] < 0:
             return jsonify({'message': 'Ilość musi być liczbą całkowitą większą lub równą 0'}), 400
 
         # Walidacja ID pojazdu
-        if 'ID Pojazdu' not in data or not Pojazd.query.get(int(data['ID Pojazdu'])):
+        if 'ID Pojazdu' not in data or not data['ID Pojazdu']:
+            return jsonify({'message': 'Musisz podać ID pojazdu'}), 400
+
+        if not Pojazd.query.get(int(data['ID Pojazdu'])):
             return jsonify({'message': 'Podano nieprawidłowe ID pojazdu'}), 400
 
         return jsonify({'message': 'Dane są poprawne'}), 200
