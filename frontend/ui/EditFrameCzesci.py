@@ -751,15 +751,12 @@ class EditFrameCzesci(QFrame):
         jaki_pojazd_frame = JakiPojazd(
             api_url=self.api_url2,  # Poprawiony URL
             parent=self,  # Przekazujemy rodzica
-            header_title = "Wybierz pojazd",
+            header_title="Wybierz pojazd",
             refresh_callback=self.store_item
         )
         # Pokazanie okna
         jaki_pojazd_frame.show()
 
-
-    def printujee(self):
-        print("LOOLOLOLO nie dziala")
 
     def close_window(self):
         if self.refresh_callback:

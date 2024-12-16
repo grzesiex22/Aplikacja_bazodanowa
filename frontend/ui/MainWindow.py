@@ -211,8 +211,6 @@ class Ui_MainWindow(object):
                                        "}")
         self.button_exit.setText("")
 
-
-
         icon1 = QtGui.QIcon()
         # Pobieramy pełną ścieżkę do folderu, gdzie znajduje się folder 'icons'
         file_path = os.path.join(os.path.dirname(__file__), '..', 'icons', 'cross_white.png')

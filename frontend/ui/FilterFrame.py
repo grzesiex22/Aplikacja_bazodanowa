@@ -195,10 +195,6 @@ class FilterFrame(QFrame):
         self.button_save.setObjectName("button_save")
         self.button_save.clicked.connect(self.save_changes)
 
-        # Ustawienie okna jako modalnego
-        # self.setWindowModality(Qt.ApplicationModal)
-        # self.setAttribute(Qt.WA_TransparentForMouseEvents)
-
 
     def setup_fields(self, columns):
         row = 0

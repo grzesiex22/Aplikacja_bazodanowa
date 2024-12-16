@@ -44,7 +44,6 @@ class JakiPojazd(QFrame):
         self.width = 500
 
         # Inicjalizacja pól
-        self.vehicle_combobox = QComboBox()  # Tworzymy QComboBox
         self.setup_ui(header_title)  # Budowa interfejsu
 
     def setup_ui(self, title):
@@ -53,19 +52,22 @@ class JakiPojazd(QFrame):
         """
         self.setGeometry(int(self.app_width / 2 - self.width / 2), int(self.app_height / 2 - self.height / 2),
                          self.width, self.height)
-        # Sprawdź, czy okno nie jest wyświetlane poza ekranem
+        # # Sprawdź, czy okno nie jest wyświetlane poza ekranem
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
-        self.setFixedSize(self.width, self.height)
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
         if self.app_width > 0 and self.app_height > 0:
             print(f"Ustawiono geometrię okna: {self.width}x{self.height}")
         else:
             print("Błąd w ustawianiu geometrii okna.")
 
-        self.setStyleSheet("""
+        self.frame = QtWidgets.QFrame(self)
+        self.frame.setGeometry(0, 0, self.width, self.height)
+        self.frame.setStyleSheet("""
             QFrame {
                 background-color: #c4bbf0;
                 border: 2px solid #ac97e2;
+                border-radius: 10px;
             }
             QLabel {
                 color: #333333;
@@ -76,15 +78,16 @@ class JakiPojazd(QFrame):
 
         # Widget na formularz
         self.addAreaWidget = QtWidgets.QWidget(self)
-        self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, 400, self.row_height))
+        self.addAreaWidget.setGeometry(QtCore.QRect(50, 50, self.width-100, self.row_height))
+
         self.gridLayout_add = QtWidgets.QGridLayout(self.addAreaWidget)
         self.gridLayout_add.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_add.setSpacing(10)
 
         # Dodanie QComboBox
+        self.vehicle_combobox = QComboBox()  # Tworzymy QComboBox
         self.vehicle_combobox.setStyleSheet(self.combobox_style)
         self.gridLayout_add.addWidget(self.vehicle_combobox, 0, 0)
-        self.vehicle_combobox.setGeometry(QtCore.QRect(self.width // 4, 50, self.width // 2, self.row_height))
 
         # Przycisk wyczyszczenia zmian
         self.button_clear = QtWidgets.QPushButton(self)
@@ -150,8 +153,7 @@ class JakiPojazd(QFrame):
         self.button_exit.setIconSize(QtCore.QSize(15, 15))
         self.button_exit.clicked.connect(self.close_window)
 
-        self.show()
-
+        # self.show()
         self.populate_vehicle_combobox()
 
     def populate_vehicle_combobox(self):
