@@ -1,3 +1,4 @@
+import json
 import os
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -592,14 +593,25 @@ class EditFrameWyposazenie(QFrame):
                     # Pobieramy odpowiedź z API
                     typ_pojazdu_info = response.json()
                     typ_pojazdu = typ_pojazdu_info.get('typ_pojazdu')
+                    filtry = {'Typ pojazdu': typ_pojazdu, 'Rodzaj serwisu': 'Wyposażenie'}
+                    params = {
+                        "filter_by": json.dumps(filtry),  # Przekształcamy filtr na JSON
+                        "sort_by": None,  # Dodajemy wartość sortowania
+                        "order": None,  # Dodajemy wartość kierunku sortowania
+                    }
+                    try:
+                        # Wykonanie żądania HTTP GET do API
+                        response = requests.get(f"{self.api_url2}/typserwis/show", params=params)
+                        if response.status_code == 200:
+                            typpojazdu_data = response.json()  # Pobranie danych w formacie JSON
+                            print(f"Response from typserwis/show with filters: {params} !: {typpojazdu_data}")
+                            id_typ_serwisu = int(typpojazdu_data[0]['ID typu serwisu'])
+                            print(f"ID typu serwisu: {id_typ_serwisu}")
+                        else:
+                            print(f"Błąd API: {response.status_code}")
+                    except Exception as e:
+                        print(f"Błąd przy ładowaniu danych: {str(e)}")
 
-                    # Określenie idTypSerwisu na podstawie odpowiedzi
-                    if typ_pojazdu == 'Ciągnik':
-                        id_typ_serwisu = 4
-                    elif typ_pojazdu == 'Naczepa':
-                        id_typ_serwisu = 12
-                    else:
-                        id_typ_serwisu = None
                 else:
                     print(f"Błąd zapytania: {response.status_code}")
                     id_typ_serwisu = None

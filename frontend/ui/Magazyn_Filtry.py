@@ -27,6 +27,12 @@ class FilterMagazineFrame(QFrame):
         # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
         self.combobox_style = self.combobox_style.replace('url(icons/', f'url({self.icon_path}/')
 
+        # styl dla QLineEdit
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FiltrFrame_QLineEdit.qss')
+        with open(file_path, "r") as file:
+            self.lineEdit_style = file.read()
+        # Zastąp wszystkie względne ścieżki obrazków pełnymi ścieżkami
+        self.lineEdit_style = self.lineEdit_style.replace('url(icons/', f'url({self.icon_path}/')
 
         self.api_url = api_url  # URL dla POST danych
         self.class_name = class_name
@@ -285,18 +291,12 @@ class FilterMagazineFrame(QFrame):
                 line_edit = QLineEdit()
                 line_edit.setPlaceholderText(f"Wprowadź {column_name}")
                 line_edit.setObjectName(f"line_edit_{column_name}")
+                line_edit.setFixedHeight(30)
+
                 self.gridLayout_add.addWidget(line_edit, row, 1)
                 self.fields[column_name] = line_edit
 
-                line_edit.setStyleSheet("""
-                                QLineEdit {
-                                    border: 2px solid #ac97e2;
-                                    border-radius: 5px;
-                                    padding: 2px;
-                                    background-color: #c4bbf0;
-                                    color: #333333;
-                                }
-                            """)
+                line_edit.setStyleSheet(self.lineEdit_style)
 
             row += 1
 

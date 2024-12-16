@@ -1,4 +1,8 @@
+import json
+
 from flask import Blueprint, request, jsonify
+from sqlalchemy import asc, desc
+
 from Aplikacja_bazodanowa.backend.database import db
 from Aplikacja_bazodanowa.backend.models import TypSerwisu
 import re
@@ -136,5 +140,85 @@ def pobierz_wszystkie_typyserwisu_do_okna_wyboru2():
             data = {'ID': typSerwisu.idTypSerwisu, 'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
             wynik.append(data)
         return jsonify(wynik), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@typserwis_bp.route('/typserwis/show', methods=['GET'])
+def pobierz_i_sortuj_typy_serwisu():
+    # Pobierz parametry zapytania
+    filter_by = request.args.get('filter_by', '{}')  # Filtrowanie - jest to słownik
+    sort_by = request.args.get('sort_by', 'ID typu serwisu')  # Sortowanie po `idTypSerwisu` domyślnie
+    order = request.args.get('order', 'asc')  # Domyślny kierunek sortowania to `asc`
+
+    print(f"api: pobierz i sortuj typy serwisu")
+    print(f"Filter by: {filter_by}")
+    print(f"Sort by: {sort_by}")
+    print(f"Order: {order}")
+
+    # Ustal kierunek sortowania
+    kierunek_sortowania = asc if order == 'asc' else desc
+
+    try:
+        # Budowanie podstawowego zapytania
+        query = db.session.query(TypSerwisu)
+
+        # Jeżeli filtr 'filter_by' jest przekazany, należy dodać filtry do zapytania
+        if filter_by != '{}':
+            print(f"Received filter_by: {filter_by}")
+
+            try:
+                filters = json.loads(filter_by)
+                print(f"Parsed filters: {filters}")
+
+                for friendly_name, values in filters.items():
+                    print(f"Processing filter: {friendly_name} with values: {values}")
+
+                    # Mapowanie `friendly_name` na rzeczywiste kolumny `TypSerwisu`
+                    column_name = None
+
+                    for column, column_info in TypSerwisu.COLUMN_NAME_MAP.items():
+                        if column_info['friendly_name'] == friendly_name:
+                            column_name = column
+                            print(f"Found column: {column_name}")
+                            break
+
+                    if column_name:
+                        column_to_filter = getattr(TypSerwisu, column_name)
+                        print(f"Applying filter for column {column_name}")
+
+                        if isinstance(values, list):  # Jeśli wartości to lista
+                            query = query.filter(column_to_filter.in_(values))
+                            print(f"Filter applied for list of values: {values}")
+                        elif isinstance(values, str) and len(values) >= 3:  # Minimum 3 litery do filtrowania LIKE
+                            query = query.filter(column_to_filter.ilike(f"%{values}%"))
+                            print(f"Partial match filter applied for: {values}")
+                    else:
+                        print(f"No column found for friendly_name: {friendly_name}")
+
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON for filter_by: {str(e)}")
+            except Exception as e:
+                print(f"Unexpected error while processing filters: {str(e)}")
+
+        # Ustalanie kolumny do sortowania
+        sort_column_name = None
+        for column_name, column_info in TypSerwisu.COLUMN_NAME_MAP.items():
+            if column_info['friendly_name'] == sort_by:
+                sort_column_name = column_name
+                break
+
+        # Pobieramy kolumnę modelu na podstawie `sort_column_name`, lub domyślnie `idTypSerwisu`
+        sort_column = getattr(TypSerwisu, sort_column_name, TypSerwisu.idTypSerwisu)
+        query = query.order_by(kierunek_sortowania(sort_column))
+
+        # Pobranie wyników
+        typy_serwisu = query.all()
+
+        # Konwersja wyników do formatu JSON
+        wynik = [TypSerwisu.serialize(typ_serwisu) for typ_serwisu in typy_serwisu]
+
+        return jsonify(wynik), 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
