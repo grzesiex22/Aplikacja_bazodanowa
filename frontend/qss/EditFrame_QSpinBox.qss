@@ -3,7 +3,7 @@ QSpinBox {
     padding: 5px;
     border: 2px solid #cfb796;
     border-radius: 5px;
-    background-color: #e6d9c3;
+    background-color: #e6dfcf;
 }
 QSpinBox::up-button {
     subcontrol-origin: border;

@@ -65,7 +65,7 @@ class EditFrameWyposazenie(QFrame):
         self.row_height = 50
 
         self.height = self.row_count * self.row_height + 120
-        self.width = 550
+        self.width = 600
         self.setGeometry(int(self.app_width / 2 - self.width / 2), int(self.app_height / 2 - self.height / 2),
                          self.width, self.height)
         self.setStyleSheet("""
@@ -100,7 +100,7 @@ class EditFrameWyposazenie(QFrame):
                             }""")
 
         self.scrollAreaWidget = QtWidgets.QWidget(self)
-        self.scrollAreaWidget.setGeometry(QtCore.QRect(50, 50, 450, self.row_count * self.row_height))
+        self.scrollAreaWidget.setGeometry(QtCore.QRect(50, 50, self.width-100, self.row_count * self.row_height))
         self.scrollAreaWidget.setStyleSheet("""QLabel {
                                                 background-color: #cfb796;
                                                 padding: 2px;
