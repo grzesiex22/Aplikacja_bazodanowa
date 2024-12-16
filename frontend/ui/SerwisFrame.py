@@ -56,6 +56,8 @@ class SerwisFrame(QtWidgets.QFrame):
         self.primary_key_index = None  # aktualne pole z kluczem głównym (potrzebne by było wiadomow skąd pobrać ID i aby ukryć kolumne)
         self.foreign_key_index = []  # aktualne pole z kluczem głównym (potrzebne by ukryć kolumny)
 
+        self.suma_kosztow = 0  # Suma kosztów całkowitych netto
+
         # Ustawienie rozmiaru floty
         self.width = 0
         self.height = 0
@@ -391,6 +393,7 @@ class SerwisFrame(QtWidgets.QFrame):
                     continue
 
         # Aktualizowanie etykiety z sumą
+        self.suma_kosztow = suma_kosztow
         self.label_suma_kosztow.setText(f"Suma kosztów: {suma_kosztow:.2f} zł")
 
 
@@ -669,6 +672,8 @@ class SerwisFrame(QtWidgets.QFrame):
         # Po zamknięciu okna dialogowego, przywrócenie interakcji
         self.raport_dialog.finished.connect(self.remove_overlay)
 
+
+
     def generate_raport(self, pdf_file):
         self.remove_overlay()
         print("Rozpoczęcie generowania raportu...")
@@ -761,6 +766,8 @@ class SerwisFrame(QtWidgets.QFrame):
             # Dane tabeli
             print("Dodawanie danych tabeli...")
             pdf.setFont("DejaVuSans", 6)
+            total_cost = 0  # Zmienna przechowująca całkowity koszt
+
             for row in range(model.rowCount()):
                 print(f"Przetwarzanie wiersza: {row}")
                 if y_position < 30:
@@ -780,6 +787,13 @@ class SerwisFrame(QtWidgets.QFrame):
                     item = model.item(row, col)
                     value = item.text() if item and item.text() else "-"
                     values.append(value)
+
+                # Dodanie kosztu całkowitego netto do sumy
+                try:
+                    total_cost += float(values[8]) if values[8] != "-" else 0
+                except ValueError:
+                    pass
+
                 print(f"Wartości wiersza: {values}")
 
                 # Rysowanie wierszy
@@ -794,6 +808,22 @@ class SerwisFrame(QtWidgets.QFrame):
                 # Przesunięcie pozycji Y po zakończeniu rysowania całego wiersza
                 y_position -= (max_wrapped_lines - 1) * wrapped_line_spacing + line_height
 
+            # Dodanie wiersza z kosztem całkowitym na końcu tabeli
+            if y_position < 30:
+                print("Brak miejsca na stronie. Tworzenie nowej strony...")
+                pdf.showPage()
+                draw_header()
+                y_position = 530
+                pdf.setFont("DejaVuSans", 7)
+                for i, header in enumerate(headers):
+                    pdf.drawString(x_offsets[i], y_position, header)
+                y_position -= line_height
+                pdf.setFont("DejaVuSans", 6)
+
+            pdf.setFont("DejaVuSans", 7)
+            pdf.drawString(x_offsets[0], y_position, "Koszt całkowity netto:")
+            pdf.drawString(x_offsets[8], y_position, f"{self.suma_kosztow:.2f}")
+
             # Zapisanie PDF
             print("Zapisywanie pliku PDF...")
             pdf.save()
@@ -806,5 +836,3 @@ class SerwisFrame(QtWidgets.QFrame):
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Nie udało się wygenerować raportu: {str(e)}")
             print(f"Nie udało się wygenerować raportu: {str(e)}")
-
-
