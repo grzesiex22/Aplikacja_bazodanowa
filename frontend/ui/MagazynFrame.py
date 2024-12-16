@@ -226,7 +226,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_dodaj.setFixedHeight(60)
         self.button_dodaj.setText("DODAJ")
         self.button_dodaj.setStyleSheet("QPushButton {"
-                                              "     color: #5d5d5d;"
+                                              "     color: #333333;"
                                               "    background-color: #79cf65; /* Ustawia przezroczyste tło */"
                                               "    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */"
                                               "    border-radius: 15px; /* Zaokrąglone rogi ramki */"
@@ -248,7 +248,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_raport.setFixedHeight(60)
         self.button_raport.setText("GENERUJ RAPORT")
         self.button_raport.setStyleSheet("""QPushButton {
-                                                      color: #5d5d5d;
+                                                      color: #333333;
                                                       background-color: #c4bbf0; /* Ustawia przezroczyste tło */
                                                       border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
                                                       border-radius: 15px; /* Zaokrąglone rogi ramki */
@@ -287,7 +287,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_dodaj2.setFixedHeight(60)
         self.button_dodaj2.setText("DODAJ")
         self.button_dodaj2.setStyleSheet("QPushButton {"
-                                              "     color: #5d5d5d;"
+                                              "    color: #333333;"
                                               "    background-color: #79cf65; /* Ustawia przezroczyste tło */"
                                               "    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */"
                                               "    border-radius: 15px; /* Zaokrąglone rogi ramki */"
@@ -309,7 +309,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_raport2.setFixedHeight(60)
         self.button_raport2.setText("GENERUJ RAPORT")
         self.button_raport2.setStyleSheet("""QPushButton {
-                                                      color: #5d5d5d;
+                                                      color: #333333;
                                                       background-color: #c4bbf0; /* Ustawia przezroczyste tło */
                                                       border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
                                                       border-radius: 15px; /* Zaokrąglone rogi ramki */
@@ -367,7 +367,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.widget_choice_buttons.setStyleSheet("""
             QPushButton {
                 height: 60px;
-                color: #5d5d5d;
+                color: #333333;
                 background-color: #B0C4DE; /* Ustawia przezroczyste tło */
                 border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
                 border-radius: 15px; /* Zaokrąglone rogi ramki */

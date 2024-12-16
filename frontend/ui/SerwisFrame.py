@@ -187,7 +187,7 @@ class SerwisFrame(QtWidgets.QFrame):
         self.button_dodaj.setFixedHeight(60)
         self.button_dodaj.setText("DODAJ")
         self.button_dodaj.setStyleSheet("QPushButton {"
-                                              "     color: #5d5d5d;"
+                                              "     color: #333333;"
                                               "    background-color: #79cf65; /* Ustawia przezroczyste tło */"
                                               "    border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */"
                                               "    border-radius: 15px; /* Zaokrąglone rogi ramki */"
@@ -209,7 +209,7 @@ class SerwisFrame(QtWidgets.QFrame):
         self.button_raport.setFixedHeight(60)
         self.button_raport.setText("GENERUJ RAPORT")
         self.button_raport.setStyleSheet("""QPushButton {
-                                                      color: #5d5d5d;
+                                                      color: #333333;
                                                       background-color: #c4bbf0; /* Ustawia przezroczyste tło */
                                                       border: 2px solid #5d5d5d; /* Ustawia kolor ramki (czarny) */
                                                       border-radius: 15px; /* Zaokrąglone rogi ramki */
@@ -232,7 +232,35 @@ class SerwisFrame(QtWidgets.QFrame):
         self.horizontalLayout_bottom_buttons.setSpacing(50)  # Ustawia odstęp między przyciskami na 20 pikseli
         self.horizontalLayout_bottom_buttons.setObjectName("horizontalLayout_bottom")
 
+        # Widget wyświetlający sumę kosztów
+        self.widget_suma_kosztow = QtWidgets.QWidget(self)
+        # self.widget_suma_kosztow.setGeometry(QtCore.QRect(self.width - 300, self.height - 120, 280, 60))
+        self.widget_suma_kosztow.setFixedWidth(280)
+        self.widget_suma_kosztow.setFixedHeight(60)
+        self.widget_suma_kosztow.setStyleSheet("""
+                QWidget {
+                    background-color: #b9dcdb;
+                    border: 2px solid #5d5d5d;
+                    border-radius: 15px;
+                    padding: 5px;
+                }
+                QLabel {
+                    color: #333333;
+                    font-size: 20px;
+                    background-color: #dff0ef;
+                    border-radius: 15px;
+                    border: 2px solid #accccb;
+                }
+            """)
+
+        # Etykieta sumy kosztów
+        self.label_suma_kosztow = QtWidgets.QLabel(self.widget_suma_kosztow)
+        self.label_suma_kosztow.setGeometry(QtCore.QRect(10, 10, 260, 40))
+        self.label_suma_kosztow.setAlignment(Qt.AlignCenter)
+        self.label_suma_kosztow.setText("Suma kosztów: 0.00 zł")
+
         self.horizontalLayout_bottom_buttons.addWidget(self.button_dodaj)
+        self.horizontalLayout_bottom_buttons.addWidget(self.widget_suma_kosztow)
         self.horizontalLayout_bottom_buttons.addWidget(self.button_raport)
 
         """
@@ -332,29 +360,6 @@ class SerwisFrame(QtWidgets.QFrame):
                         }
                         """)
 
-
-        # Widget wyświetlający sumę kosztów
-        self.widget_suma_kosztow = QtWidgets.QWidget(self)
-        self.widget_suma_kosztow.setGeometry(QtCore.QRect(self.width - 300, self.height - 120, 280, 60))
-        self.widget_suma_kosztow.setStyleSheet("""
-                QWidget {
-                    background-color: #accccb;
-                    border: 2px solid #5d5d5d;
-                    border-radius: 15px;
-                    padding: 5px;
-                }
-                QLabel {
-                    font-size: 18px;
-                    font-weight: bold;
-                    color: #333;
-                }
-            """)
-
-        # Etykieta sumy kosztów
-        self.label_suma_kosztow = QtWidgets.QLabel(self.widget_suma_kosztow)
-        self.label_suma_kosztow.setGeometry(QtCore.QRect(10, 10, 260, 40))
-        self.label_suma_kosztow.setAlignment(Qt.AlignCenter)
-        self.label_suma_kosztow.setText("Suma kosztów: 0.00 zł")
 
     def update_suma_kosztow(self):
         suma_kosztow = 0.0
