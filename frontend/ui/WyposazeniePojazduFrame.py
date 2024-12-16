@@ -795,14 +795,14 @@ class WyposazenieFrame(QtWidgets.QFrame):
 
             # Ustawienie czcionki na DejaVuSans
             pdf.setFont("DejaVuSans", 16)  # Tytuł raportu, nieco mniejsza czcionka
-            pdf.drawString(50, 800, "Raport Części")
+            pdf.drawString(50, 800, "Raport Cześci")
             pdf.setFont("DejaVuSans", 8)  # Ogólny tekst
 
             draw_header()  # Rysowanie nagłówka na pierwszej stronie
 
             # Przygotowanie nagłówków tabeli
-            headers = ["Pojazd", "Opis", "Ilość"]
-            column_widths = [170, 200, 60]  # Poprawiona szerokość kolumn
+            headers = ["Nr", "Pojazd", "Opis", "Ilość"]
+            column_widths = [30, 140, 200, 60]  # Poprawiona szerokość kolumn
 
             column_spacing = 35  # Dodaj odstęp między kolumnami
 
@@ -823,18 +823,20 @@ class WyposazenieFrame(QtWidgets.QFrame):
             # Dodaj dane do tabeli
             pdf.setFont("DejaVuSans", 6)  # Zmniejszona czcionka danych tabeli
             for row in range(self.model_pojazd.rowCount()):
+                # Numer wiersza
+                row_number = str(row + 1)
+
                 # Pobierz dane z modelu
-                # id_czesc = self.model_pojazd.item(row, 0).text()
                 typ_serwisu = self.model_pojazd.item(row, 1).text()
                 nazwa_elementu = self.model_pojazd.item(row, 2).text()
                 ilosc = self.model_pojazd.item(row, 3).text()
 
                 # Podziel zawartość kolumn na linie, jeśli tekst jest za długi
                 wrapped_data = [
-                    # textwrap.wrap(id_czesc, width=int(column_widths[0] / 5)),
-                    textwrap.wrap(typ_serwisu, width=int(column_widths[0] / 5)),
-                    textwrap.wrap(nazwa_elementu, width=int(column_widths[1] / 5)),
-                    textwrap.wrap(ilosc, width=int(column_widths[2] / 5))
+                    [row_number],  # Numer wiersza nie wymaga łamania tekstu
+                    textwrap.wrap(typ_serwisu, width=int(column_widths[1] / 5)),
+                    textwrap.wrap(nazwa_elementu, width=int(column_widths[2] / 5)),
+                    textwrap.wrap(ilosc, width=int(column_widths[3] / 5))
                 ]
 
                 # Oblicz maksymalną liczbę linii w tym wierszu
