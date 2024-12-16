@@ -117,15 +117,56 @@ def edytuj_typserwis(id):
 
 
 
+# @typserwis_bp.route('/typserwis/show/alltochoice', methods=['GET'])
+# def pobierz_wszystkie_typyserwisu_do_okna_wyboru():
+#     try:
+#         typySerwisu = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
+#         wynik = []
+#         for typSerwisu in typySerwisu:
+#             if typSerwisu.rodzajSerwisu != 'Wyposażenie':
+#                 data = {'ID': typSerwisu.idTypSerwisu, 'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
+#                 wynik.append(data)
+#         return jsonify(wynik), 200
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+#
+# @typserwis_bp.route('/typserwis/show/alltochoice', methods=['GET'])
+# def pobierz_wszystkie_typyserwisu_do_okna_wyboru():
+#     try:
+#         typySerwisu = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
+#         wynik = []
+#         for typSerwisu in typySerwisu:
+#             if typSerwisu.rodzajSerwisu == 'Wyposażenie':
+#                 data = {'ID': typSerwisu.idTypSerwisu,
+#                         'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
+#                 wynik.append(data)
+#         return jsonify(wynik), 200
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+
 @typserwis_bp.route('/typserwis/show/alltochoice', methods=['GET'])
 def pobierz_wszystkie_typyserwisu_do_okna_wyboru():
     try:
+        # Pobieranie parametru from query string
+        with_wyposażenie = request.args.get('withWyposażenie', 'false').lower() == 'true'
+
+        # Pobieramy wszystkie typy serwisów z bazy danych, posortowane po typie pojazdu i rodzaju serwisu
         typySerwisu = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
+
         wynik = []
         for typSerwisu in typySerwisu:
-            if typSerwisu.rodzajSerwisu != 'Wyposażenie':
-                data = {'ID': typSerwisu.idTypSerwisu, 'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
-                wynik.append(data)
+            if with_wyposażenie:
+                # Jeśli withWyposażenie jest True, dodajemy tylko rekordy z rodzajem serwisu 'Wyposażenie'
+                if typSerwisu.rodzajSerwisu == 'Wyposażenie':
+                    data = {'ID': typSerwisu.idTypSerwisu, 'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
+                    wynik.append(data)
+            else:
+                # Jeśli withWyposażenie jest False, dodajemy tylko rekordy, które nie mają rodzaju serwisu 'Wyposażenie'
+                if typSerwisu.rodzajSerwisu != 'Wyposażenie':
+                    data = {'ID': typSerwisu.idTypSerwisu, 'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
+                    wynik.append(data)
+
         return jsonify(wynik), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

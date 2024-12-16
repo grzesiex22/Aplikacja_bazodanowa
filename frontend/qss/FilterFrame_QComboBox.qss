@@ -9,7 +9,6 @@ QComboBox {
 }
 
 QComboBox QAbstractItemView {
-    selection-background-color: #d7d1f0;  /* Kolor zaznaczonego elementu */
     background-color: #d7d1f0;
     color: #333333;
     border: 2px solid #ac97e2;
@@ -45,7 +44,7 @@ QListView::item {
 }
 
 QListView::item:hover {
-    background-color: #cfb796;
+    background-color: #ac97e2;
 }
 
 

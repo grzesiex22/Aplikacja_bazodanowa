@@ -939,7 +939,7 @@ class Czesc(BaseModel):
             'friendly_name': 'Typ Serwisu',
             'editable': True,
             'input_type': 'list',
-            'inputs': 'typserwis/show/alltochoice2',
+            'inputs': 'typserwis/show/alltochoice',
         },
         'nazwaElementu': {
             'friendly_name': 'Nazwa elementu',

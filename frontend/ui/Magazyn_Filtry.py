@@ -3,7 +3,7 @@ import os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
-    QAbstractItemView, QComboBox, QSpinBox
+    QAbstractItemView, QComboBox, QSpinBox, QListView
 from Aplikacja_bazodanowa.frontend.ui.MultiSelectComboBox import MultiSelectComboBox
 
 from urllib.parse import urlparse
@@ -44,8 +44,8 @@ class FilterMagazineFrame(QFrame):
         self.columns = self.load_columns()
         self.columns = [col for col in self.columns if col.get('friendly_name') != 'Ilość']
         print(self.screen_type)
-        if self.screen_type == 2:
-            self.columns = [col for col in self.columns if col.get('friendly_name') != 'Dane Typ serwisu' and col.get('friendly_name') != 'idTypSerwisu']
+        # if self.screen_type == 2:
+        #     self.columns = [col for col in self.columns if col.get('friendly_name') != 'Dane Typ serwisu' and col.get('friendly_name') != 'idTypSerwisu']
         print(self.columns)
 
         # Do przesuwania oknem
@@ -241,34 +241,41 @@ class FilterMagazineFrame(QFrame):
             # Tworzymy rozwijaną listę (QComboBox) dla typu pojazdu
             #elif input_type == 'list' and isinstance(inputs, str):
             elif input_type == 'list' and isinstance(inputs, str):
-                if self.screen_type == 2:
-                    continue
+
                 combo_box = QComboBox()
                 combo_box.addItem("", "")  # Pusty element na początku
                 domian_url = urlparse(self.api_url).netloc  # sparsowanie domeny
-                # Dodajemy dane z API do combo box
-                self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
-                self.fields[column_name] = combo_box
 
-                # Stylizacja QComboBox
-                combo_box.setStyleSheet("""
-                                QComboBox {
-                                    background-color: #c4bbf0;
-                                    padding: 2px;
-                                    border-radius: 5px;
-                                    font-size: 14px;
-                                }
+                """ stylizaca """
+                combo_box.setStyleSheet(self.combobox_style)  # styl
+                combo_box.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
 
-                            """)
+                view = QListView(combo_box)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+                combo_box.setView(view)
+                combo_box.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
-                combo_box.setStyleSheet(self.combobox_style)
+                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
+                combo_box.setFixedHeight(30)
+                combo_box.setMaxVisibleItems(8)
+                """ koniec stylizaci """
 
                 name_to_connect = tmp['friendly_name'] #if tmp['input_type'] == column_name else "None"
+                # Dodajemy dane z API do combo box
+                if self.screen_type == 1:
+                    self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}?withWyposażenie=false")
+                elif self.screen_type == 2:
+                    self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}?withWyposażenie=true")
+
+                # self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
+                self.fields[column_name] = combo_box
 
                 self.gridLayout_add.addWidget(combo_box, row, 1)
+
                 # Aktualizacja pola ID przy wyborze z ComboBox
-                # combo_box.currentIndexChanged.connect(lambda idx, cb=combo_box: self.update_id_field(cb, column_name))
                 combo_box.currentIndexChanged.connect(partial(self.update_id_field, combo_box, name_to_connect))
+
             elif input_type == 'number':
                 # # Domyślnie używamy QSpinBox dla liczb całkowitych
                 # spin_box = QSpinBox()
@@ -304,14 +311,15 @@ class FilterMagazineFrame(QFrame):
         """
         Pobiera dane z API i ładuje do QComboBox.
         """
+
         try:
             response = requests.get(api_endpoint)
             if response.status_code == 200:
                 data = response.json()
                 for item in data:
                     display_text = item['data']
-                    if display_text != 'Wyposażenie':
-                        combo_box.addItem(display_text, item['ID'])
+                    # if display_text != 'Wyposażenie':
+                    combo_box.addItem(display_text, item['ID'])
 
             else:
                 print(f"API error: {response.status_code}")
