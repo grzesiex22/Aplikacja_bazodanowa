@@ -150,8 +150,11 @@ def validate_wyposazenie():
             return jsonify({'message': 'Ilość musi być liczbą całkowitą większą lub równą 0'}), 400
 
         # Walidacja ID pojazdu
-        if 'ID Pojazdu' not in data or not Pojazd.query.get(int(data['ID Pojazdu'])):
-            return jsonify({'message': 'Podano nieprawidłowe ID pojazdu'}), 400
+        if 'ID Pojazdu' not in data or not data['ID Pojazdu']:
+            return jsonify({'message': 'Musisz wybrać pojazd'}), 400
+
+        if not Pojazd.query.get(int(data['ID Pojazdu'])):
+            return jsonify({'message': 'Musisz wybrać pojazd'}), 400
 
         return jsonify({'message': 'Dane są poprawne'}), 200
     except Exception as e:
