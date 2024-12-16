@@ -611,9 +611,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         #         print(f"foreign_key: {foreign_key}")
         #         self.tableView_flota.setColumnWidth(foreign_key, 0)
 
-    def on_edit_button_click(self, row_idx):
-        """Obsługa edycji wiersza"""
-        print(f"Edit button clicked for row {row_idx}")
 
     def load_data(self, nazwa_elementu='', id_typ_serwisu=None, sort_by='', order=''):
         """
@@ -709,9 +706,15 @@ class WarehouseFrame(QtWidgets.QFrame):
         """
         Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
         """
-        # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
+
+        # Tworzymy nakładkę, która zablokuje interakcje w ramce
         self.overlay = OverlayWidget(self)
         self.overlay.show()
+
+        # Jeśli filter_dialog już istnieje, upewniamy się, że jest na wierzchu
+        if hasattr(self, 'filter_dialog') and self.filter_dialog is not None:
+            self.filter_dialog.raise_()  # Podnosimy istniejące okno na wierzch
+            self.filter_dialog.activateWindow()  # Ustawiamy fokus na okno dialogowe
 
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
@@ -730,7 +733,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.filter_dialog.finished.connect(self.remove_overlay)
 
     def load_data_filtered(self, filtr_parameteres_czesci=None, sort_by='', order=''):
-        self.remove_overlay()
         # Jeżeli filtry zostały przekazane, ustawiamy je lokalnie
         if filtr_parameteres_czesci is not None:
             self.filtr_parameteres_czesci = filtr_parameteres_czesci
@@ -823,7 +825,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
     def generate_raport(self, pdf_file):
 
-        self.remove_overlay()
+        # self.remove_overlay()
 
         # Upewnij się, że ścieżka katalogu istnieje
         output_dir = os.path.dirname(pdf_file)
@@ -931,3 +933,4 @@ class WarehouseFrame(QtWidgets.QFrame):
     def remove_overlay(self):
         # Usuwamy nakładkę po zamknięciu FilterFrame
         self.overlay.deleteLater()
+

@@ -381,7 +381,7 @@ class FilterMagazineFrame(QFrame):
         if self.refresh_callback:
             self.refresh_callback(self.filtr_parameteres_pojazd)
 
-        self.close()  # Zamykamy okno
+        self.close_window()  # Zamykamy okno
 
     def close_window(self):
         self.finished.emit()

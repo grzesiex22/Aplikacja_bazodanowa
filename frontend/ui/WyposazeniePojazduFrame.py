@@ -658,9 +658,13 @@ class WyposazenieFrame(QtWidgets.QFrame):
         Wyświetla okno dialogowe filtrów i przekazuje dane do funkcji filtrującej.
         """
 
-        if not hasattr(self, 'filter_dialog'):
-            self.overlay = OverlayWidget(self)
-            self.overlay.show()
+        self.overlay = OverlayWidget(self)
+        self.overlay.show()
+
+        # Jeśli filter_dialog już istnieje, upewniamy się, że jest na wierzchu
+        if hasattr(self, 'filter_dialog') and self.filter_dialog is not None:
+            self.filter_dialog.raise_()  # Podnosimy istniejące okno na wierzch
+            self.filter_dialog.activateWindow()  # Ustawiamy fokus na okno dialogowe
 
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
