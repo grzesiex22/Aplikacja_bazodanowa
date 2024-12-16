@@ -711,9 +711,9 @@ class WarehouseFrame(QtWidgets.QFrame):
         """
         # Tworzymy nakładkę, która zablokuje interakcje w FleetFrame
         self.overlay = OverlayWidget(self)
-        self.overlay.show()
 
         if self.filters_set == False:
+            self.overlay.show()
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
             self.filter_dialog = FilterMagazineFrame(
                 class_name="czesc",
