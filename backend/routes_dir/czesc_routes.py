@@ -176,15 +176,23 @@ def dodaj_czesc():
     try:
         # Tworzenie obiektu Czesc na podstawie danych
         id_typ_serwisu = int(data['idTypSerwisu'])
-        # Tworzenie obiektu Czesc na podstawie danych
-        nowa_czesc = Czesc(
-            idTypSerwisu=id_typ_serwisu,
-            nazwaElementu=data['Nazwa elementu'],
-            ilosc=data['Ilość']
-        )
+        nazwa_elementu = data['Nazwa elementu']
+        ilosc = int(data['Ilość'])
 
-        # Dodawanie nowej części do bazy danych
-        db.session.add(nowa_czesc)
+        # Sprawdzenie, czy część już istnieje w tabeli
+        istnieje_czesc = Czesc.query.filter_by(idTypSerwisu=id_typ_serwisu, nazwaElementu=nazwa_elementu).first()
+
+        if istnieje_czesc:
+            # Jeśli część istnieje, zwiększamy wartość pola 'ilosc'
+            istnieje_czesc.ilosc += ilosc
+        else:
+            # Jeśli część nie istnieje, tworzymy nową
+            nowa_czesc = Czesc(
+                idTypSerwisu=id_typ_serwisu,
+                nazwaElementu=nazwa_elementu,
+                ilosc=ilosc
+            )
+            db.session.add(nowa_czesc)
         db.session.commit()
 
         return jsonify({'message': 'Część dodana pomyślnie'}), 201
