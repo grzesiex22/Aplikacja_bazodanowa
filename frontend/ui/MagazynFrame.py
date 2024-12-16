@@ -872,8 +872,8 @@ class WarehouseFrame(QtWidgets.QFrame):
             draw_header()  # Rysowanie nagłówka na pierwszej stronie
 
             # Przygotowanie nagłówków tabeli
-            headers = ["ID Części", "Typ Serwisu", "Nazwa Elementu", "Ilość"]
-            column_widths = [80, 120, 210, 50]  # Ustalona szerokość kolumn
+            headers = ["Nr", "Typ Serwisu", "Nazwa Elementu", "Ilość"]
+            column_widths = [40, 120, 210, 50]  # Ustalona szerokość kolumn
 
             x_offsets = [50]  # Start od X=50
             for width in column_widths[:-1]:
@@ -891,8 +891,8 @@ class WarehouseFrame(QtWidgets.QFrame):
             # Dodaj dane do tabeli
             pdf.setFont("DejaVuSans", 10)
             for row in range(self.model_pojazd.rowCount()):
-                # Pobierz dane z modelu
-                id_czesc = self.model_pojazd.item(row, 0).text()
+                # Numeracja wierszy
+                row_number = str(row + 1)
                 typ_serwisu = self.model_pojazd.item(row, 1).text()
                 nazwa_elementu = self.model_pojazd.item(row, 2).text()
                 ilosc = self.model_pojazd.item(row, 3).text()
@@ -913,7 +913,7 @@ class WarehouseFrame(QtWidgets.QFrame):
                     pdf.setFont("DejaVuSans", 10)
 
                 # Rysuj dane w tabeli
-                pdf.drawString(x_offsets[0], y_position, id_czesc)
+                pdf.drawString(x_offsets[0], y_position, row_number)
                 pdf.drawString(x_offsets[1], y_position, typ_serwisu)
                 for i, line in enumerate(wrapped_name):
                     pdf.drawString(x_offsets[2], y_position - (i * line_height), line)
