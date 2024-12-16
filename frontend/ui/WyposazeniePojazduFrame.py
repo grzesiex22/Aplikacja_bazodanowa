@@ -759,7 +759,6 @@ class WyposazenieFrame(QtWidgets.QFrame):
         self.raport_dialog.finished.connect(self.remove_overlay)
 
     def generate_raport(self, pdf_file):
-
         self.remove_overlay()
 
         # Upewnij się, że ścieżka katalogu istnieje
@@ -803,11 +802,14 @@ class WyposazenieFrame(QtWidgets.QFrame):
 
             # Przygotowanie nagłówków tabeli
             headers = ["ID Wyposażenia Pojazdu", "Pojazd", "Opis", "Ilość"]
-            column_widths = [80, 120, 210, 50]  # Ustalona szerokość kolumn
+            column_widths = [80, 140, 160, 50]  # Poprawiona szerokość kolumn
 
+            column_spacing = 30  # Dodaj odstęp między kolumnami
+
+            # Oblicz przesunięcia X kolumn, uwzględniając odstępy
             x_offsets = [50]  # Start od X=50
             for width in column_widths[:-1]:
-                x_offsets.append(x_offsets[-1] + width)
+                x_offsets.append(x_offsets[-1] + width + column_spacing)
 
             y_position = 750  # Pozycja Y początkowa
             line_height = 12  # Zmniejszona wysokość wierszy
@@ -827,28 +829,35 @@ class WyposazenieFrame(QtWidgets.QFrame):
                 nazwa_elementu = self.model_pojazd.item(row, 2).text()
                 ilosc = self.model_pojazd.item(row, 3).text()
 
-                # Podziel nazwę elementu na linie
-                wrapped_name = textwrap.wrap(nazwa_elementu, width=int(column_widths[2] / 5))  # Dopasowanie szerokości
-                row_height = line_height * len(wrapped_name)  # Wysokość wiersza zależna od liczby linii
+                # Podziel zawartość kolumn na linie, jeśli tekst jest za długi
+                wrapped_data = [
+                    textwrap.wrap(id_czesc, width=int(column_widths[0] / 5)),
+                    textwrap.wrap(typ_serwisu, width=int(column_widths[1] / 5)),
+                    textwrap.wrap(nazwa_elementu, width=int(column_widths[2] / 5)),
+                    textwrap.wrap(ilosc, width=int(column_widths[3] / 5))
+                ]
+
+                # Oblicz maksymalną liczbę linii w tym wierszu
+                max_lines = max(len(data) for data in wrapped_data)
+                row_height = line_height * max_lines
 
                 # Sprawdź miejsce na stronie
                 if y_position - row_height < 50:
                     pdf.showPage()
                     draw_header()  # Nagłówek na nowej stronie
                     y_position = 800
-                    pdf.setFont("DejaVuSans", 6)  # Zmniejszenie czcionki nagłówków
+                    pdf.setFont("DejaVuSans", 6)  # Zmniejszona czcionka nagłówków
                     for i, header in enumerate(headers):
                         pdf.drawString(x_offsets[i], y_position, header)
                     y_position -= line_height
                     pdf.setFont("DejaVuSans", 6)
 
                 # Rysuj dane w tabeli
-                pdf.drawString(x_offsets[0], y_position, id_czesc)
-                pdf.drawString(x_offsets[1], y_position, typ_serwisu)
-                for i, line in enumerate(wrapped_name):
-                    pdf.drawString(x_offsets[2], y_position - (i * line_height), line)
-                pdf.drawString(x_offsets[3], y_position, ilosc)
-                y_position -= row_height
+                for line_idx in range(max_lines):
+                    for col_idx, data in enumerate(wrapped_data):
+                        if line_idx < len(data):
+                            pdf.drawString(x_offsets[col_idx], y_position, data[line_idx])
+                    y_position -= line_height
 
             # Zapisz plik PDF
             pdf.save()
