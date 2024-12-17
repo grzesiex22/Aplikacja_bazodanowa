@@ -4,13 +4,13 @@ from fileinput import close
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QTableView, QFrame, QLineEdit, QVBoxLayout, QMessageBox, QGridLayout, QLabel, QPushButton, \
-    QAbstractItemView, QComboBox, QSpinBox, QDialog
+    QAbstractItemView, QComboBox, QSpinBox, QDialog, QListView
 from urllib.parse import urlparse
 import requests
 from functools import partial
 
 
-class JakiPojazd(QFrame):
+class AssignmentVehicleFrame(QFrame):
     finished = pyqtSignal()
 
     def __init__(self, api_url, parent=None, header_title="title", refresh_callback=None):
@@ -21,7 +21,7 @@ class JakiPojazd(QFrame):
         self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
 
         # Styl dla QComboBox
-        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FilterFrame_QComboBox.qss')
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'AssignmentVehicleFrame_QComboBox.qss')
         with open(file_path, "r") as file:
             self.combobox_style = file.read()
         self.combobox_style = self.combobox_style.replace('url(icons/', f'url({self.icon_path}/')
@@ -65,8 +65,8 @@ class JakiPojazd(QFrame):
         self.frame.setGeometry(0, 0, self.width, self.height)
         self.frame.setStyleSheet("""
             QFrame {
-                background-color: #c4bbf0;
-                border: 2px solid #ac97e2;
+                background-color: #86b9dc;
+                border: 2px solid #5e9ac1;
                 border-radius: 10px;
             }
             QLabel {
@@ -86,7 +86,19 @@ class JakiPojazd(QFrame):
 
         # Dodanie QComboBox
         self.vehicle_combobox = QComboBox()  # Tworzymy QComboBox
-        self.vehicle_combobox.setStyleSheet(self.combobox_style)
+        """ stylizaca """
+        self.vehicle_combobox.setStyleSheet(self.combobox_style)  # styl
+        self.vehicle_combobox.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
+
+        view = QListView(self.vehicle_combobox)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+        self.vehicle_combobox.setView(view)
+        self.vehicle_combobox.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+        view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        self.vehicle_combobox.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
+        self.vehicle_combobox.setFixedHeight(30)
+        self.vehicle_combobox.setMaxVisibleItems(8)
+        """ koniec stylizaci """
         self.gridLayout_add.addWidget(self.vehicle_combobox, 0, 0)
 
         # Przycisk wyczyszczenia zmian
@@ -118,7 +130,7 @@ class JakiPojazd(QFrame):
         self.widget_header.setGeometry(QtCore.QRect(0, 0, self.width, 40))
         self.widget_header.setStyleSheet("""
             QWidget {
-                background: #ac97e2;
+                background: #5e9ac1;
                 border-radius: 10px;
             }
         """)

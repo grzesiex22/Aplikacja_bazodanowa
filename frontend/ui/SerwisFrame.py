@@ -9,7 +9,7 @@ from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
 from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
-from Aplikacja_bazodanowa.frontend.ui.Raport_Frame import SimpleGenerateRaport
+from Aplikacja_bazodanowa.frontend.ui.RaportFrame import RaportFrame
 import os
 from enum import Enum, auto
 import requests
@@ -666,7 +666,7 @@ class SerwisFrame(QtWidgets.QFrame):
         self.overlay = OverlayWidget(self)
         self.overlay.show()
 
-        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport serwisów")
+        self.raport_dialog = RaportFrame(parent=self, save_callback=self.generate_raport, header_title="Raport serwisów")
         self.raport_dialog.show()
 
         # Po zamknięciu okna dialogowego, przywrócenie interakcji

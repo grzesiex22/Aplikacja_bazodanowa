@@ -11,13 +11,13 @@ import requests
 from functools import partial
 
 from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
-from Aplikacja_bazodanowa.frontend.ui.DoJakiegoPojazdu import JakiPojazd
+from Aplikacja_bazodanowa.frontend.ui.AssignmentVehicleFrame import AssignmentVehicleFrame
 
 
 class EditFrameCzesci(QFrame):
     finished = pyqtSignal()  # Sygnał do informowania o zakończeniu pracy okna
 
-    def __init__(self, class_name, data, api_url, parent=None, header_title="title", refresh_callback=None):
+    def __init__(self, class_name, data, api_url, parent=None, header_title="title", screen_type=1, refresh_callback=None):
         super().__init__(parent)
         # Pełna ścieżka do folderu z ikonami
         self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'icons')).replace('\\', '/')
@@ -26,6 +26,7 @@ class EditFrameCzesci(QFrame):
         self.class_name = class_name
         self.api_url = api_url
         self.refresh_callback = refresh_callback  # Przechowujemy funkcję odświeżania
+        self.screen_type = screen_type
 
         self.vehicle_data = {}
 
@@ -55,7 +56,7 @@ class EditFrameCzesci(QFrame):
 
         self.fields = {}
         self.columns = self.load_columns()
-        self.driver_id = None
+        self.main_id = None
 
         self.app_width = 0
         self.app_height = 0
@@ -248,7 +249,7 @@ class EditFrameCzesci(QFrame):
             editable = column.get('editable')
 
             if column['primary_key'] == True:
-                self.driver_id = column_value  # Przypisanie klucza głównego
+                self.main_id = column_value  # Przypisanie klucza głównego
                 continue
 
             # Etykieta dla kolumny
@@ -301,13 +302,26 @@ class EditFrameCzesci(QFrame):
                 combo_box = QComboBox()
                 combo_box.addItem("", "")  # Dodaj pusty element na początek
                 domian_url = urlparse(self.api_url).netloc  # Parsujemy domenę
-                self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
 
-                # Stylizacja i konfiguracja
-                combo_box.setStyleSheet(self.combobox_style)
-                combo_box.setCurrentIndex(0)
+                # Dodajemy dane z API do combo box
+                if self.screen_type == 1:
+                    self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}?withWyposażenie=false")
+                elif self.screen_type == 2:
+                    self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}?withWyposażenie=true")
+
+                """ stylizaca """
+                combo_box.setStyleSheet(self.combobox_style)  # styl
+                combo_box.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
+
+                view = QListView(combo_box)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+                combo_box.setView(view)
+                combo_box.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
                 combo_box.setFixedHeight(30)
                 combo_box.setMaxVisibleItems(8)
+                """ koniec stylizaci """
 
                 # Debugowanie opcji przed ustawieniem wartości
                 print(f"Opcje w QComboBox przed ustawieniem wartości dla '{column_name}':")
@@ -326,8 +340,6 @@ class EditFrameCzesci(QFrame):
 
                 self.gridLayout_edit.addWidget(combo_box, row, 1)
                 self.fields[column_name] = combo_box
-
-                """ koniec stylizaci """
 
                 name_to_connect = tmp['friendly_name']
 
@@ -504,7 +516,7 @@ class EditFrameCzesci(QFrame):
         # Użyj requests do wysłania zapytania PUT
         try:
             print(f"Data to update: {data}")
-            response = requests.put(f'{self.api_url}/edit/{self.driver_id}', json=data)
+            response = requests.put(f'{self.api_url}/edit/{self.main_id}', json=data)
 
             if response.status_code == 200:
                 # Jeśli zapis się powiódł, zamknij okno
@@ -526,7 +538,7 @@ class EditFrameCzesci(QFrame):
 
         # Wywołanie API DELETE do usunięcia
         try:
-            response = requests.delete(f'{self.api_url}/delete/{self.driver_id}')
+            response = requests.delete(f'{self.api_url}/delete/{self.main_id}')
             if response.status_code == 200:
                 self.close_window()  # Zamknij po usunięciu
             else:
@@ -557,7 +569,7 @@ class EditFrameCzesci(QFrame):
         print(f'Printuje self.api_url2: {self.api_url2}')
 
         try:
-            response = requests.get(f'{self.api_url2}/czesc/{self.driver_id}')
+            response = requests.get(f'{self.api_url2}/czesc/{self.main_id}')
             if response.status_code == 200:
                 # Pobieramy odpowiedź z API
                 dane_z_bazy = response.json()
@@ -669,7 +681,7 @@ class EditFrameCzesci(QFrame):
                 # Użyj requests do wysłania zapytania PUT
                 try:
                     print(f"Data to update: {data}")
-                    response = requests.put(f'{self.api_url}/edit/{self.driver_id}', json=dane_po_odlozeniu)
+                    response = requests.put(f'{self.api_url}/edit/{self.main_id}', json=dane_po_odlozeniu)
 
                     if response.status_code == 200:
                         # Jeśli zapis się powiódł, zamknij okno
@@ -748,7 +760,7 @@ class EditFrameCzesci(QFrame):
         print("API URL:", self.api_url2)
 
         # Utworzenie instancji okna JakiPojazd
-        jaki_pojazd_frame = JakiPojazd(
+        jaki_pojazd_frame = AssignmentVehicleFrame(
             api_url=self.api_url2,  # Poprawiony URL
             parent=self,  # Przekazujemy rodzica
             header_title="Wybierz pojazd",

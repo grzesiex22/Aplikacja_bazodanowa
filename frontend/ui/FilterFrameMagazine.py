@@ -11,7 +11,7 @@ import requests
 from functools import partial
 
 
-class FilterMagazineFrame(QFrame):
+class FilterFrameMagazine(QFrame):
     finished = pyqtSignal()
 
     def __init__(self, class_name, api_url, parent=None, header_title="title", screen_type=1, refresh_callback=None):
@@ -44,8 +44,6 @@ class FilterMagazineFrame(QFrame):
         self.columns = self.load_columns()
         self.columns = [col for col in self.columns if col.get('friendly_name') != 'Ilość']
         print(self.screen_type)
-        # if self.screen_type == 2:
-        #     self.columns = [col for col in self.columns if col.get('friendly_name') != 'Dane Typ serwisu' and col.get('friendly_name') != 'idTypSerwisu']
         print(self.columns)
 
         # Do przesuwania oknem
@@ -261,7 +259,7 @@ class FilterMagazineFrame(QFrame):
                 combo_box.setMaxVisibleItems(8)
                 """ koniec stylizaci """
 
-                name_to_connect = tmp['friendly_name'] #if tmp['input_type'] == column_name else "None"
+                name_to_connect = tmp['friendly_name']
                 # Dodajemy dane z API do combo box
                 if self.screen_type == 1:
                     self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}?withWyposażenie=false")

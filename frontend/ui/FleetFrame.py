@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt, QTimer
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
 from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
-from Aplikacja_bazodanowa.frontend.ui.Raport_Frame import SimpleGenerateRaport
+from Aplikacja_bazodanowa.frontend.ui.RaportFrame import RaportFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu
 import os
 from enum import Enum, auto
@@ -824,7 +824,7 @@ class FleetFrame(QtWidgets.QFrame):
             header = "Raport ciągników"
         if self.screen_type == ScreenType.NACZEPY:
             header = "Raport naczep"
-        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title=header)
+        self.raport_dialog = RaportFrame(parent=self, save_callback=self.generate_raport, header_title=header)
         self.raport_dialog.show()
 
         # Po zamknięciu okna dialogowego, przywrócenie interakcji

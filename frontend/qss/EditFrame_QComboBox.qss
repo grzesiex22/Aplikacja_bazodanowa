@@ -17,6 +17,23 @@ QComboBox QAbstractItemView {
     outline: none;
 }
 
+
+
+/* Stylizacja elementu na liście rozwijanej (który jest wybrany) */
+QComboBox QAbstractItemView::item:selected {
+    background-color: transparent;
+    color: #333333;
+}
+
+/* Stylizacja elementu na liście rozwijanej, na który najeżdża myszka */
+QComboBox QAbstractItemView::item:hover {
+    background-color: #cfb796;
+    color: #333333;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+
 QComboBox::drop-down {
     subcontrol-origin: margin;
     subcontrol-position: top right;
@@ -35,16 +52,6 @@ QComboBox::down-arrow {
 QListView {
     background-color: transparent;
     font-size: 14px;
-
-}
-
-QListView::item {
-    background-color: transparent;
-    border-radius: 5px;
-}
-
-QListView::item:hover {
-    background-color: #cfb796;
 }
 
 

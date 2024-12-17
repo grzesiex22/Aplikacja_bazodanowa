@@ -5,10 +5,10 @@ from PyQt5.QtCore import QTimer, QDateTime, Qt
 from PyQt5.QtWidgets import QMainWindow
 
 from Aplikacja_bazodanowa.backend.models import WyposazeniePojazdu
-from Aplikacja_bazodanowa.frontend.ui.FleetFramev2 import FleetFrame
+from Aplikacja_bazodanowa.frontend.ui.FleetFrame import FleetFrame
 from Aplikacja_bazodanowa.frontend.ui.MagazynFrame import WarehouseFrame
 from Aplikacja_bazodanowa.frontend.ui.SerwisFrame import SerwisFrame
-from Aplikacja_bazodanowa.frontend.ui.WyposazeniePojazduFrame import WyposazenieFrame
+from Aplikacja_bazodanowa.frontend.ui.EquipmentFrame import EquipmentFrame
 
 class MainWindow(QMainWindow):
     def __init__(self, api_url):
@@ -64,7 +64,7 @@ class Ui_MainWindow(object):
         self.flota_window = FleetFrame(MainWindow, self.api_url)
         self.magazyn_window = WarehouseFrame(MainWindow, self.api_url)
         self.serwis_window = SerwisFrame(MainWindow, self.api_url)
-        self.wyposazenie_window = WyposazenieFrame(MainWindow, self.api_url)
+        self.wyposazenie_window = EquipmentFrame(MainWindow, self.api_url)
 
         # Ustawienie głównego widgetu
         self.centralwidget = QtWidgets.QWidget(MainWindow)

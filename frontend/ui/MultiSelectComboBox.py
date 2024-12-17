@@ -89,7 +89,7 @@ class MultiSelectComboBox(QComboBox):
         # Dostosowanie wysokości listy
         item_height = self.list_widget.sizeHintForRow(0)  # Wysokość pojedynczego elementu
         visible_count = min(len(self.items), self.max_visible_items)  # Widoczna liczba elementów
-        list_height = item_height * visible_count + 8  # +8 na obramowanie/padding
+        list_height = item_height * visible_count + 6  # +8 na obramowanie/padding
 
         # Ustawienia rozmiaru menu
         self.menu.setFixedWidth(self.width_box)  # Dopasowanie szerokości menu

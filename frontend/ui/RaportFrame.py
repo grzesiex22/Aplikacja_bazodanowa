@@ -3,7 +3,8 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QPushButton, QLabel, QFileDialog, QVBoxLayout, QHBoxLayout, QLineEdit
 
-class SimpleGenerateRaport(QFrame):
+
+class RaportFrame(QFrame):
     finished = pyqtSignal()  #
 
     def __init__(self, parent=None, header_title="title", save_callback=None):

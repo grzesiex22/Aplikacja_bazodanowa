@@ -1,34 +1,31 @@
-
-
-QWidget {    /* wokół pasków przewijania */
-    border: 0px solid #fccccb;
-    border-radius: 10px;
-    background-color: transparent;
-}
-
 /* Styl dla QComboBox */
 QComboBox {
-    border: 2px solid #ac97e2;
+    border: 2px solid #5e9ac1;
     border-radius: 5px;
     padding: 2px;
-    background-color: #c4bbf0;
+    background-color: #86b9dc;
     color: #333333;
     font-size: 14px;
 }
 
 QComboBox QAbstractItemView {
-    selection-background-color: #d7d1f0;  /* Kolor zaznaczonego elementu */
-    background-color: #d7d1f0;
+    background-color: #badaef;
     color: #333333;
-    border: 2px solid #ac97e2;
+    border: 2px solid #5e9ac1;
     border-radius: 5px;
     margin: 2px 0px 0px 0px; /* top right bottom left */
     outline: none;
 }
 
+/* Stylizacja elementu na liście rozwijanej (który jest wybrany) */
+QComboBox QAbstractItemView::item:selected {
+    background-color: transparent;
+    color: #333333;
+}
+
 /* Stylizacja elementu na liście rozwijanej, na który najeżdża myszka */
 QComboBox QAbstractItemView::item:hover {
-    background-color: #c4bbf0;
+    background-color: #86b9dc;
     color: #333333;
     border-radius: 5px;
     padding: 5px;
@@ -38,7 +35,7 @@ QComboBox::drop-down {
     subcontrol-origin: margin;
     subcontrol-position: top right;
     width: 30px;
-    border-left: 1px solid #ac97e2;
+    border-left: 1px solid #5e9ac1;
 }
 
 QComboBox::down-arrow {
@@ -49,57 +46,30 @@ QComboBox::down-arrow {
     height: 20px; /* Możesz dostosować wysokość */
 }
 
-/* Styl dla QListWidget */
-QListWidget {
-    background-color: #transparent;
-    border: none;
-    color: #dff0ef;
-    border-radius: 10px;
-    outline: none;
-    font-size: 14px;
-}
-QListWidget::item {
-    padding: 2px;
-    background-color: transparent;  /* Ustawienie przezroczystego tła dla elementów */
-    border-radius: 10px;
-    border: none;
-    margin: 0px 0px 0px 0px; /* top right bottom left */
-
-}
-QListWidget::item:selected:active {
-    background-color: transparent;
-    color: green;
-    border: none;
-}
-
-QListWidget::item:focus {
-    outline: none;
-}
-
 
 /* PASKI PRZEWIJANIA */
 QAbstractScrollArea::corner {
     border-radius: 10px;
-    background-color: #ac97e2;
+    background-color: #5e9ac1;
     margin: 2px;
 }
 
 /* PASEK PRZEWIJANIA PIONOWY */
 QScrollBar:vertical {
-    border: 2px solid #ac97e2;
-    background: #c4bbf0;
+    border: 2px solid #5e9ac1;
+    background: #86b9dc;
     width: 30px;
     margin: 28px 2px 28px 4px; /* top right bottom left */
     border-radius: None;
 }
 QScrollBar::handle:vertical {
-    background: #c4bbf0;
-    border: 1px solid #ac97e2;
+    background: #86b9dc;
+    border: 1px solid #5e9ac1;
     min-height: 10px;
     border-radius: None;
 }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {     /* Przewijanie */
-    background: #ac97e2;
+    background: #5e9ac1;
     height: 24px;
     width: 24px;
     border-radius: 8px;
@@ -139,20 +109,20 @@ QScrollBar::down-arrow:vertical {
 
 /* PASEK PRZEWIJANIA POZIOMY */
 QScrollBar:horizontal  {
-    border: 2px solid #ac97e2;
-    background: #c4bbf0;
+    border: 2px solid #5e9ac1;
+    background: #86b9dc;
     height: 30px;
     margin: 4px 28px 2px 28px; /* top right bottom left */
     border-radius: 0px;
 }
 QScrollBar::handle:horizontal {
-    background: #c4bbf0;
-    border: 1px solid #ac97e2;
+    background: #86b9dc;
+    border: 1px solid #5e9ac1;
     min-width: 10px;
 
 }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-    background: #ac97e2;
+    background: #5e9ac1;
     height: 24px;
     width: 24px;
     border-radius: 6px;

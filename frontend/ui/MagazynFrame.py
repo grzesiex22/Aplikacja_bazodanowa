@@ -18,8 +18,8 @@ from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.EditFrameCzesci import EditFrameCzesci
 from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
 from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
-from Aplikacja_bazodanowa.frontend.ui.Magazyn_Filtry import FilterMagazineFrame
-from Aplikacja_bazodanowa.frontend.ui.Raport_Frame import SimpleGenerateRaport
+from Aplikacja_bazodanowa.frontend.ui.FilterFrameMagazine import FilterFrameMagazine
+from Aplikacja_bazodanowa.frontend.ui.RaportFrame import RaportFrame
 from Aplikacja_bazodanowa.backend.models import TypPojazdu, Czesc
 
 import os
@@ -132,7 +132,7 @@ class WarehouseFrame(QtWidgets.QFrame):
                                                 "    border-radius: 15px;"
                                                 "}"
                                                "QLabel {"
-                                               "    color: #5d5d5d;  /* Kolor tekstu dla etykiet */"
+                                               "    color: #333333;;  /* Kolor tekstu dla etykiet */"
                                                "    background-color: transparent;  /* Przezroczyste tło dla etykiet */"
                                                "    border: none;  /* Brak ramki dla etykiet */"
                                                "    font-size: 20px;  /* Rozmiar czcionki */"
@@ -550,25 +550,23 @@ class WarehouseFrame(QtWidgets.QFrame):
                     self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
                                                 api_url=f"{self.api_url}/czesc",
                                                 parent=self, header_title="Edycja części",
-                                                # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
                                                 refresh_callback=self.load_data_filtered)
                 elif self.filters_set and self.screen_type == ScreenType.WYPOSAZENIE:
                     self.edit_frame = EditFrameCzesci(class_name="czesc", data=czesc_data,
                                                 api_url=f"{self.api_url}/czesc",
                                                 parent=self, header_title="Edycja części",
-                                                # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
+                                                screen_type=2,
                                                 refresh_callback=self.load_data_filtered)
                 elif not self.filters_set and self.screen_type == ScreenType.CZESCI:
                     self.edit_frame = EditFrame(class_name="czesc", data=czesc_data,
                                                 api_url=f"{self.api_url}/czesc",
                                                 parent=self, header_title="Edycja części",
-                                                # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
                                                 refresh_callback=self.load_data_filtered)
                 else:
                     self.edit_frame = EditFrameCzesci(class_name="czesc", data=czesc_data,
                                             api_url=f"{self.api_url}/czesc",
                                             parent=self, header_title="Edycja części",
-                                            # filtr_parameteres_pojazd=self.filtr_parameteres_pojazd,
+                                            screen_type=2,
                                             refresh_callback=self.load_data)
                 self.edit_frame.show()
             else:
@@ -718,7 +716,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
         if self.filters_set == False:
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
-            self.filter_dialog = FilterMagazineFrame(
+            self.filter_dialog = FilterFrameMagazine(
                 class_name="czesc",
                 api_url=f"{self.api_url}/czesci",
                 parent=self,
@@ -817,7 +815,7 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.overlay = OverlayWidget(self)
         self.overlay.show()
 
-        self.raport_dialog = SimpleGenerateRaport(parent=self, save_callback=self.generate_raport, header_title="Raport części")
+        self.raport_dialog = RaportFrame(parent=self, save_callback=self.generate_raport, header_title="Raport części")
         self.raport_dialog.show()
 
         # Po zamknięciu okna dialogowego, przywrócenie interakcji

@@ -299,11 +299,19 @@ class EditFrameWyposazenie(QFrame):
                 domian_url = urlparse(self.api_url).netloc  # Parsujemy domenę
                 self.populate_combo_box_from_api(combo_box, f"http://{domian_url}/{inputs}")
 
-                # Stylizacja i konfiguracja
-                combo_box.setStyleSheet(self.combobox_style)
-                combo_box.setCurrentIndex(0)
+                """ stylizaca """
+                combo_box.setStyleSheet(self.combobox_style)  # styl
+                combo_box.findChild(QFrame).setWindowFlags(Qt.Popup | Qt.NoDropShadowWindowHint)  # brak cienia
+
+                view = QListView(combo_box)  # ustawienie widoku QcomboBox aby wyłączyć skracanie tekstu
+                combo_box.setView(view)
+                combo_box.view().setAutoScroll(False)  # Wyłącza autoscroll gdy myszka poza Qcombobox
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+                combo_box.setCurrentIndex(0)  # Indeks 0 odpowiada pierwszemu elementowi (pustemu)
                 combo_box.setFixedHeight(30)
                 combo_box.setMaxVisibleItems(8)
+                """ koniec stylizaci """
 
                 # Debugowanie opcji przed ustawieniem wartości
                 print(f"Opcje w QComboBox przed ustawieniem wartości dla '{column_name}':")
