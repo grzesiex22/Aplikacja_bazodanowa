@@ -19,7 +19,9 @@ class MainWindow(QMainWindow):
         # Ustawienie flag okna
 
         self.setWindowFlags(Qt.FramelessWindowHint)
-
+        self.setStyleSheet("""QMainWindow {
+                                           background-color: #83a5f0;
+                                       }""")
 
 class Ui_MainWindow(object):
     def __init__(self, main_window, api_url):
@@ -49,16 +51,6 @@ class Ui_MainWindow(object):
         # Konfiguracja głównego okna
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
-
-        # Ustawienie palety kolorów
-        palette = QtGui.QPalette()
-        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, brush)
-        brush = QtGui.QBrush(QtGui.QColor(131, 165, 240))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, brush)
-        MainWindow.setPalette(palette)
 
         # Inicjalizacja ramki floty
         self.flota_window = FleetFrame(MainWindow, self.api_url)

@@ -205,7 +205,6 @@ class AssignmentVehicleFrame(QFrame):
         }
 
         if selected_id:
-            # QMessageBox.information(self, "Wybrano pojazd", f"Wybrano: {selected_text}\nID: {selected_id}")
             if self.refresh_callback:
                 self.refresh_callback(self.vehicle_data)  # Przekazanie vehicle_data do callbacku
             self.close_window()
@@ -215,6 +214,7 @@ class AssignmentVehicleFrame(QFrame):
             QMessageBox.warning(self, "Błąd", "Nie wybrano żadnego pojazdu.")
 
     def close_window(self):
+
         self.finished.emit()
         self.close()
 

@@ -14,6 +14,16 @@ from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
 from Aplikacja_bazodanowa.frontend.ui.AssignmentVehicleFrame import AssignmentVehicleFrame
 
 
+class OverlayWidget(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setGeometry(parent.geometry())
+        self.setStyleSheet("background-color: rgba(0, 0, 0, 120);")  # Semi-transparent black
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)  # To block mouse events
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setCursor(Qt.WaitCursor)  # Ustawienie kursora oczekiwania na czas blokad
+
+
 class EditFrameCzesci(QFrame):
     finished = pyqtSignal()  # Sygnał do informowania o zakończeniu pracy okna
 
@@ -554,6 +564,7 @@ class EditFrameCzesci(QFrame):
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
     def store_item(self, vehicle_data):
+
         self.vehicle_data = vehicle_data
 
         if 'Ciągnik' in self.vehicle_data['name']:
@@ -759,16 +770,21 @@ class EditFrameCzesci(QFrame):
         self.api_url2 = self.api_url.replace("/czesc", "")  # Poprawienie self.api_url2
         print("API URL:", self.api_url2)
 
+        self.overlay = OverlayWidget(parent=self.parent())
+        self.overlay.show()
+
         # Utworzenie instancji okna JakiPojazd
-        jaki_pojazd_frame = AssignmentVehicleFrame(
+        self.jaki_pojazd_frame = AssignmentVehicleFrame(
             api_url=self.api_url2,  # Poprawiony URL
             parent=self,  # Przekazujemy rodzica
             header_title="Wybierz pojazd",
             refresh_callback=self.store_item
         )
         # Pokazanie okna
-        jaki_pojazd_frame.show()
+        self.jaki_pojazd_frame.show()
 
+        # Po zamknięciu okna dialogowego, przywrócenie interakcji
+        self.jaki_pojazd_frame.finished.connect(self.remove_overlay)
 
     def close_window(self):
         if self.refresh_callback:
@@ -797,3 +813,7 @@ class EditFrameCzesci(QFrame):
 
     def mouseReleaseEvent(self, event):
         self.is_moving = False
+
+    def remove_overlay(self):
+        # Usuwamy nakładkę po zamknięciu FilterFrame
+        self.overlay.deleteLater()
