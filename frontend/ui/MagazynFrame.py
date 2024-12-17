@@ -709,6 +709,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
         # Tworzymy nakładkę, która zablokuje interakcje w ramce
         self.overlay = OverlayWidget(self)
+        self.overlay.show()
 
         # Jeśli filter_dialog już istnieje, upewniamy się, że jest na wierzchu
         if hasattr(self, 'filter_dialog') and self.filter_dialog is not None:
@@ -716,7 +717,6 @@ class WarehouseFrame(QtWidgets.QFrame):
             self.filter_dialog.activateWindow()  # Ustawiamy fokus na okno dialogowe
 
         if self.filters_set == False:
-            self.overlay.show()
             # Tworzymy nowy dialog tylko jeśli nie istnieje lub flaga wskazuje na brak ustawionych filtrów
             self.filter_dialog = FilterMagazineFrame(
                 class_name="czesc",
