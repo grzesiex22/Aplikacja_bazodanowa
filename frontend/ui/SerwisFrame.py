@@ -236,8 +236,8 @@ class SerwisFrame(QtWidgets.QFrame):
 
         # Widget wyświetlający sumę kosztów
         self.widget_suma_kosztow = QtWidgets.QWidget(self)
-        # self.widget_suma_kosztow.setGeometry(QtCore.QRect(self.width - 300, self.height - 120, 280, 60))
-        self.widget_suma_kosztow.setFixedWidth(280)
+        self.widget_suma_kosztow.setGeometry(QtCore.QRect(self.width - 370, self.height - 130, 340, 60))
+        self.widget_suma_kosztow.setFixedWidth(340)
         self.widget_suma_kosztow.setFixedHeight(60)
         self.widget_suma_kosztow.setStyleSheet("""
                 QWidget {
@@ -257,12 +257,14 @@ class SerwisFrame(QtWidgets.QFrame):
 
         # Etykieta sumy kosztów
         self.label_suma_kosztow = QtWidgets.QLabel(self.widget_suma_kosztow)
-        self.label_suma_kosztow.setGeometry(QtCore.QRect(10, 10, 260, 40))
+        self.label_suma_kosztow.setGeometry(QtCore.QRect(10, 10, 320, 40))
         self.label_suma_kosztow.setAlignment(Qt.AlignCenter)
         self.label_suma_kosztow.setText("Suma kosztów: 0.00 zł")
 
+
+
         self.horizontalLayout_bottom_buttons.addWidget(self.button_dodaj)
-        self.horizontalLayout_bottom_buttons.addWidget(self.widget_suma_kosztow)
+        # self.horizontalLayout_bottom_buttons.addWidget(self.widget_suma_kosztow)
         self.horizontalLayout_bottom_buttons.addWidget(self.button_raport)
 
         """
@@ -362,7 +364,6 @@ class SerwisFrame(QtWidgets.QFrame):
                         }
                         """)
 
-
     def update_suma_kosztow(self):
         suma_kosztow = 0.0
 
@@ -393,7 +394,6 @@ class SerwisFrame(QtWidgets.QFrame):
                     continue
 
         # Aktualizowanie etykiety z sumą
-        self.suma_kosztow = suma_kosztow
         self.label_suma_kosztow.setText(f"Suma kosztów: {suma_kosztow:.2f} zł")
 
 
