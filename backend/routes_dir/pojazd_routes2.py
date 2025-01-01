@@ -15,15 +15,19 @@ pojazd_bp = Blueprint('pojazd', __name__)
 
 @pojazd_bp.route('/pojazd/show/<int:id>', methods=['GET'])
 def pobierz_pojazd(id):
-    """ Endpoint do pobierania szczegółowych informacji o pojeździe na podstawie jego unikalnego identyfikatora.
+    """
+    Endpoint do pobierania szczegółowych informacji o pojeździe na podstawie jego unikalnego identyfikatora.
 
-    Args:
-        id (int) : ID pojazdu, który chcemy pobrać
+    Parametry:
+        id (int) : ID pojazdu, którego szczegóły chcemy pobrać.
 
     Returns:
-        Tuple[Response, int]: Krotka zawierająca:
-            - Response: JSON zawierający zserializowane dane pojazdu, jeśli pojazd istnieje.
-            - int: Kod statusu HTTP, np. 200 dla sukcesu lub 404, jeśli pojazd nie istnieje.
+        Response (JSON):
+            - Zserializowane dane pojazdu w formacie JSON, jeśli pojazd istnieje.
+        HTTP status (int):
+            - 200: Sukces, pojazd został znaleziony.
+            - 404: Pojazd o podanym ID nie istnieje.
+            - 500: W przypadku błędu serwera.
     """
     print(f"pojazd/show/{id}")
     try:
@@ -48,15 +52,17 @@ def pobierz_pojazd(id):
 @pojazd_bp.route('/pojazd/show/all', methods=['GET'])
 def pobierz_pojazdy():
     """
-    Endpoint do pobierania listy pojazdów z możliwością filtrowania według typu pojazdu.
+    Endpoint do pobierania listy pojazdów z opcjonalnym filtrowaniem według typu pojazdu.
 
     Parametry zapytania HTTP:
-        typPojazdu (str, opcjonalny): Jeśli podany, filtruje wyniki tylko do pojazdów danego typu.
+        typPojazdu (str, opcjonalny): Jeśli podany, zwraca tylko pojazdy danego typu.
 
     Returns:
-        Tuple[Response, int]: Krotka zawierająca:
-            - Response: JSON zawierający listę zserializowanych danych pojazdów, jeśli znaleziono pojazdy.
-            - int: Kod statusu HTTP, np. 200 dla sukcesu lub 500, jeśli wystąpił błąd serwera.
+        Response (JSON):
+            - Lista pojazdów w formacie JSON. Każdy pojazd jest zserializowany do słownika.
+        HTTP status:
+            - 200: Jeśli operacja się powiedzie.
+            - 500: W przypadku błędu serwera.
     """
     # Pobieramy parametr 'typPojazdu' z zapytania, aby filtrować wyniki (opcjonalnie)
     typ_pojazdu = request.args.get('typPojazdu')
@@ -87,19 +93,25 @@ def pobierz_pojazdy():
 @pojazd_bp.route('/pojazd/filtry', methods=['GET'])
 def jakie_filtry_dla_pojazdy():
     """
-    Endpoint do pobierania dostępnych filtrów dla pojazdów z możliwością filtrowania według rodzaju pojazdu
+    Endpoint do pobierania dostępnych filtrów dla pojazdów, z możliwością filtrowania według rodzaju pojazdu
     oraz według innych kryteriów, takich jak dane kierowcy.
 
-    W przyupadku "Dane kierowcy" zwraca JSON którego elementy to słowniki: {'ID': ... , 'data': ....}
+    Specjalne funkcje:
+        - Dla filtru "Dane kierowcy", zwraca listę słowników w formacie: {'ID': ..., 'data': ...},
+          umożliwiających identyfikację kierowców przypisanych do pojazdów.
 
     Parametry zapytania:
-        Typ pojazdu (str, opcjonalny): Typ pojazdu, według którego chcemy filtrować wyniki. (domyślnie: None)
+        Typ pojazdu (str, opcjonalny): Typ pojazdu, według którego chcemy filtrować wyniki (domyślnie: brak filtru).
         filtr (str): Przyjazna nazwa filtru określająca, według której kolumny chcemy filtrować.
 
     Returns:
-        Tuple[Response, int]: Krotka zawierająca:
-            - Response (JSON) : zawiera listę zserializowanych danych pojazdów, jeśli znaleziono pojazdy.
-            - Code (int) : Kod statusu HTTP, np. 200 dla sukcesu lub 500, jeśli wystąpił błąd serwera.
+        Response (JSON):
+            - Dla "Dane kierowcy": Lista słowników reprezentujących kierowców.
+            - Dla pozostałych filtrów: Lista unikalnych wartości w wybranej kolumnie.
+        HTTP status:
+            - 200: W przypadku sukcesu.
+            - 400: Jeśli wystąpi błąd związany z niewłaściwą nazwą kolumny lub innymi parametrami.
+            - 500: Jeśli wystąpi błąd serwera.
     """
     # Pobranie parametrów zapytania z URL (opcjonalnie: typ pojazdu i typ filtru)
     rodzaj_pojazdu = request.args.get('Typ pojazdu', None)  # (opcjonalne)
@@ -204,16 +216,24 @@ def jakie_filtry_dla_pojazdy():
 def pobierz_i_sortuj_pojazdy():
     """
     Endpoint do pobierania i sortowania pojazdów z możliwością filtrowania według różnych kryteriów.
-    Specjalnie obsługuje 'Dane kierowcy' - potrzebuje liste map {'ID': idkierowca, 'data': dane} i filtruje po wybranych ID
 
+    Specjalne funkcje:
+        - Obsługuje 'Dane kierowcy': umożliwia filtrowanie pojazdów na podstawie listy map zawierających ID kierowcy
+          oraz dodatkowe dane (np. {'ID': idKierowca, 'data': dane}). Filtr obejmuje również pojazdy bez przypisanego kierowcy.
+        - Umożliwia filtrowanie albo po przesłanych listach filtrów danego, typu albo po znakach
     Parametry zapytania:
-        filter_by (str): Filtr do zastosowania w zapytaniu, przekazany jako słownik JSON (domyślnie '{}').
-        sort_by (str): Nazwa kolumny, po której pojazdy mają zostać posortowane (domyślnie 'ID pojazdu').
-        order (str): Kierunek sortowania - 'asc' dla rosnącego, 'desc' dla malejącego (domyślnie 'asc').
+        filter_by (str): Filtr w formacie JSON, definiujący kryteria filtrowania (domyślnie '{}').
+                         Przykład: {'Marka': ['iveco', 'mercedes-benz']}
+        sort_by (str): Kolumna używana do sortowania wyników (domyślnie 'ID pojazdu').
+                       Możliwe wartości: 'Dane kierowcy' lub nazwy przyjazne kolumn.
+        order (str): Kierunek sortowania, 'asc' dla rosnącego, 'desc' dla malejącego (domyślnie 'asc').
 
     Returns:
-        Response: Lista pojazdów w formacie JSON, posortowana i przefiltrowana zgodnie z parametrami zapytania.
-        int: Kod statusu HTTP, 200 w przypadku sukcesu, 500 w przypadku błędu.
+        Response:
+            - Lista pojazdów w formacie JSON, posortowana i przefiltrowana zgodnie z parametrami zapytania.
+        HTTP status:
+            - 200 w przypadku sukcesu.
+            - 500 w przypadku błędu serwera.
     """
 
     # Pobieranie parametrów zapytania z URL jako słownik
@@ -339,6 +359,32 @@ def pobierz_i_sortuj_pojazdy():
 # Pobieranie listy wszystkich kierowców
 @pojazd_bp.route('/pojazd/show/alltochoice', methods=['GET'])
 def pobierz_wszystkie_pojazdy_do_okna_wyboru():
+    """
+    Endpoint do pobierania listy wszystkich pojazdów w formacie dostosowanym do okna wyboru.
+
+    Dane w odpowiedzi:
+        Zwracane pojazdy są posortowane w kolejności rosnącej według:
+        1. Typu pojazdu
+        2. Marki
+        3. Modelu
+
+        Format danych w odpowiedzi:
+        [
+            {
+                "ID": <idPojazdu>,
+                "data": "<typPojazdu>, <marka>, <model>, nr rej. <nrRejestracyjny>"
+            },
+            ...
+        ]
+
+    Returns:
+        Response:
+            - Jeśli operacja zakończy się sukcesem: Zwraca listę pojazdów w formacie JSON
+            - W przypadku błędu: Zwraca szczegóły błędu w formacie JSON.
+        HTTP status:
+            - 200: sukces.
+            - 500: błąd.
+    """
     try:
         pojazdy = Pojazd.query.order_by(Pojazd.typPojazdu.asc(), Pojazd.marka.asc(), Pojazd.model.asc()).all()
         wynik = []
@@ -356,9 +402,25 @@ def dodaj_pojazd():
     """
     Endpoint do dodawania nowego pojazdu do bazy danych.
 
+    Parametry żądania (JSON w body):
+        Dane pojazdu do dodania, przekazane jako obiekt JSON.
+        Przykład:
+        {
+            "idKierowca": 5,
+            "typPojazdu": "Ciągnik",
+            "marka": "Toyota",
+            "model": "Corolla",
+            "nrRejestracyjny": "XYZ 12345",
+            "dodatkoweInf": "Kolor czerwony"
+        }
+
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP, 201 dla sukcesu (dodanie pojazdu), 500 w przypadku błędu.
+        Response:
+            - Zwraca komunikat o sukcesie w formacie JSON, jeśli dodanie pojazdu zakończy się sukcesem.
+            - W przypadku błędu: Zwraca szczegóły błędu w formacie JSON.
+        HTTP status (int):
+            - 201: sukces.
+            - 500: błąd.
     """
     data = request.get_json()  # Pobieramy dane wejściowe w formacie JSON
 
@@ -384,12 +446,14 @@ def usun_pojazd(id):
     """
     Endpoint do usuwania pojazdu z bazy danych na podstawie jego ID.
 
-    Parametry:
-        id (int): ID pojazdu do usunięcia.
+    Parametry URL:
+        id (int): ID pojazdu, który ma zostać usunięty.
 
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP, 200 w przypadku sukcesu (usunięcie pojazdu), 404, jeśli pojazd nie znaleziony, 500 w przypadku błędu.
+        Response:
+            - Jeśli usunięcie zakończy się sukcesem: Zwraca komunikat o sukcesie w formacie JSON oraz kod statusu 200.
+            - Jeśli pojazd o podanym ID nie istnieje: Zwraca komunikat o błędzie w formacie JSON oraz kod statusu 404.
+            - W przypadku błędu: Zwraca szczegóły błędu w formacie JSON oraz kod statusu 500.
     """
     try:
         # Pobranie pojazdu na podstawie ID
@@ -412,12 +476,26 @@ def edytuj_pojazd(id):
     """
     Endpoint do edytowania danych pojazdu na podstawie jego ID.
 
-    Parametry:
+    Parametry URL:
         id (int): ID pojazdu, który ma zostać edytowany.
 
+    Parametry żądania (JSON w body):
+        Dane pojazdu do zaktualizowania, przekazane jako obiekt JSON.
+        Przykład:
+        {
+            "idKierowca": 5,
+            "typPojazdu": "Ciągnik",
+            "marka": "Toyota",
+            "model": "Corolla",
+            "nrRejestracyjny": "XYZ 12345",
+            "dodatkoweInf": "Kolor czerwony"
+        }
+
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP, 200 w przypadku sukcesu (aktualizacja pojazdu), 404, jeśli pojazd nie znaleziony, 500 w przypadku błędu.
+        Response:
+            - Jeśli aktualizacja się powiedzie: Zwraca komunikat o sukcesie w formacie JSON oraz kod statusu 200.
+            - Jeśli pojazd o podanym ID nie istnieje: Zwraca komunikat o błędzie w formacie JSON oraz kod statusu 404.
+            - W przypadku błędu: Zwraca szczegóły błędu w formacie JSON oraz kod statusu 500.
     """
     data = request.get_json()  # Pobieramy dane wejściowe w formacie JSON
 
@@ -429,6 +507,7 @@ def edytuj_pojazd(id):
         # Pobranie pojazdu na podstawie ID
         pojazd = Pojazd.query.get(id)
         if pojazd is None:
+            # Jeśli pojazd o podanym ID nie został znaleziony
             return jsonify({'message': 'Pojazd nie znaleziony'}), 404  # Jeśli pojazd nie istnieje, zwróć błąd 404
 
         # Aktualizacja pól pojazdu na podstawie deserializowanych danych
@@ -444,7 +523,8 @@ def edytuj_pojazd(id):
         return jsonify({'message': 'Dane pojazdu zaktualizowane pomyślnie'}), 200  # Zwracamy komunikat o sukcesie
 
     except Exception as e:
-        db.session.rollback()  # W przypadku błędu anulujemy sesję
+        # W przypadku błędu anulujemy zmiany w bieżącej sesji
+        db.session.rollback()
         print(f"Błąd: {str(e)}")
         print(traceback.format_exc())  # Wypisanie szczegółów błędu
         return jsonify({'error': 'Wystąpił problem z aktualizacją danych. Spróbuj ponownie później.'}), 500  # Komunikat o błędzie
@@ -455,9 +535,22 @@ def validate_pojazd():
     """
     Endpoint do walidacji danych pojazdu przed dodaniem lub edytowaniem.
 
+    Parametry żądania (JSON w body):
+        Dane pojazdu do walidacji, przekazane jako obiekt JSON.
+        Przykład:
+        {
+            "idKierowca": 5,
+            "typPojazdu": "Ciągnik",
+            "marka": "Toyota",
+            "model": "Corolla",
+            "nrRejestracyjny": "XYZ 12345",
+            "dodatkoweInf": "Kolor czerwony"
+        }
+
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o błędzie, jeśli dane są niepoprawne, lub potwierdzeniem poprawności danych.
-        int: Kod statusu HTTP 200, jeśli dane są poprawne, 400, jeśli dane są błędne.
+        Response:
+            - Jeśli dane są błędne: Zwraca komunikat o błędzie w formacie JSON oraz kod statusu 400.
+            - Jeśli dane są poprawne: Zwraca potwierdzenie poprawności w formacie JSON oraz kod statusu 200.
     """
     data = request.get_json()  # Pobieramy dane wejściowe w formacie JSON
     print(f"Data in validation api: {data}")
@@ -473,6 +566,18 @@ def validate_pojazd():
 
 @pojazd_bp.route('/pojazd/typpojazdu/<int:id>', methods=['GET'])
 def jaki_typ_pojazdu(id):
+    """
+    Endpoint do pobierania typu pojazdu na podstawie jego ID.
+
+    Parametry URL:
+        id (int): ID pojazdu, którego typ ma zostać pobrany.
+
+    Returns:
+        Response:
+            - Jeśli pojazd istnieje: Zwraca typ pojazdu w formacie JSON oraz kod statusu 200.
+            - Jeśli pojazd nie istnieje: Zwraca komunikat o błędzie w formacie JSON oraz kod statusu 404.
+            - W przypadku błędu: Zwraca szczegóły błędu w formacie JSON oraz kod statusu 500.
+    """
     try:
         # Pobranie pojazdu z bazy danych na podstawie podanego ID
         pojazd = Pojazd.query.get(id)
@@ -481,6 +586,7 @@ def jaki_typ_pojazdu(id):
         if pojazd is None:
             return jsonify({'message': 'Pojazd nie znaleziony'}), 404
 
+        # Pobranie typu pojazdu z obiektu 'Pojazd'
         typ_pojazdu = pojazd.typPojazdu.value
         print(typ_pojazdu)
         return jsonify({'typ_pojazdu': typ_pojazdu}), 200
