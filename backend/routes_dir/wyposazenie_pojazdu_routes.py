@@ -54,13 +54,12 @@ def pobierz_wszystkie_wyposazenie():
             query = query.filter(WyposazeniePojazdu.idPojazd == int(id_pojazd))
 
         # Sortowanie wyników
+        kierunek_sortowania = asc if order == 'asc' else desc
+
         if sort_by in ['opis', 'ilosc']:
             sort_column = getattr(WyposazeniePojazdu, sort_by, WyposazeniePojazdu.opis)
-            query = query.order_by(sort_column.desc() if order == 'desc' else sort_column)
-        if sort_by == "idPojazd":
-            print("sort_by idPojazd")
-            kierunek_sortowania = asc if order == 'asc' else desc  # Ustalanie kierunku sortowania
-            # Sortowanie po imieniu i nazwisku kierowcy
+            query = query.order_by(kierunek_sortowania(sort_column))
+        elif sort_by == 'idPojazd':
             query = query.join(Pojazd, WyposazeniePojazdu.idPojazd == Pojazd.idPojazd, isouter=True)
             query = query.order_by(
                 kierunek_sortowania(Pojazd.typPojazdu),
