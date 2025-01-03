@@ -404,8 +404,8 @@ class EquipmentFrame(QtWidgets.QFrame):
         column_name = self.tableView_flota.model().headerData(column_index, Qt.Horizontal)
         print(f"Sorting by {column_name}...")
 
-        if column_name == 'Pojazd':
-            return
+        # if column_name == 'Pojazd':
+        #     return
 
         # Jeśli ta sama kolumna była wcześniej posortowana
         if self.current_sorted_column_czesci == column_index:
@@ -430,6 +430,8 @@ class EquipmentFrame(QtWidgets.QFrame):
             column_name = 'opis'
         if column_name == 'Ilość':
             column_name = 'ilosc'
+        if column_name == 'Pojazd':
+            column_name = 'idPojazd'
 
         print(self.sort_parameteres_czesci_order, self.sort_parameteres_czesci_sort_by)
 

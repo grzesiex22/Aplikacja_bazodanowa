@@ -1,4 +1,6 @@
 from flask import Blueprint, request, jsonify
+from sqlalchemy import asc, desc
+
 from Aplikacja_bazodanowa.backend.database import db
 from Aplikacja_bazodanowa.backend.models import WyposazeniePojazdu, Pojazd
 
@@ -55,6 +57,17 @@ def pobierz_wszystkie_wyposazenie():
         if sort_by in ['opis', 'ilosc']:
             sort_column = getattr(WyposazeniePojazdu, sort_by, WyposazeniePojazdu.opis)
             query = query.order_by(sort_column.desc() if order == 'desc' else sort_column)
+        if sort_by == "idPojazd":
+            print("sort_by idPojazd")
+            kierunek_sortowania = asc if order == 'asc' else desc  # Ustalanie kierunku sortowania
+            # Sortowanie po imieniu i nazwisku kierowcy
+            query = query.join(Pojazd, WyposazeniePojazdu.idPojazd == Pojazd.idPojazd, isouter=True)
+            query = query.order_by(
+                kierunek_sortowania(Pojazd.typPojazdu),
+                kierunek_sortowania(Pojazd.marka),
+                kierunek_sortowania(Pojazd.model),
+                kierunek_sortowania(Pojazd.nrRejestracyjny)
+            )
 
         # Pobieranie wyników
         wyposazenie_list = query.all()
