@@ -118,17 +118,31 @@ def pobierz_wszystkie_czesci():
             if include_ids:
                 query = query.filter(Czesc.idTypSerwisu.in_(include_ids))
 
-        # Dodaj sortowanie
+        # # Dodaj sortowanie
+        # if sort_by in ['Typ Serwisu', 'nazwaElementu', 'ilosc']:
+        #     if sort_by == 'Typ Serwisu':
+        #         query = query.join(TypSerwisu, Czesc.idTypSerwisu == TypSerwisu.idTypSerwisu)
+        #         sort_column = [TypSerwisu.typPojazdu, TypSerwisu.rodzajSerwisu]
+        #     else:
+        #         sort_column = getattr(Czesc, sort_by, Czesc.nazwaElementu)
+        #
+        #     if order == 'desc':
+        #         sort_column = sort_column.desc()
+        #     query = query.order_by(sort_column)
         if sort_by in ['Typ Serwisu', 'nazwaElementu', 'ilosc']:
             if sort_by == 'Typ Serwisu':
                 query = query.join(TypSerwisu, Czesc.idTypSerwisu == TypSerwisu.idTypSerwisu)
-                sort_column = TypSerwisu.rodzajSerwisu
+                # Dodaj sortowanie po dwóch kolumnach
+                sort_columns = [TypSerwisu.typPojazdu, TypSerwisu.rodzajSerwisu]
             else:
-                sort_column = getattr(Czesc, sort_by, Czesc.nazwaElementu)
+                sort_columns = [getattr(Czesc, sort_by, Czesc.nazwaElementu)]
 
             if order == 'desc':
-                sort_column = sort_column.desc()
-            query = query.order_by(sort_column)
+                # Zastosuj odwrotne sortowanie dla wszystkich kolumn
+                sort_columns = [col.desc() for col in sort_columns]
+
+            # Przekaż wszystkie kolumny do order_by
+            query = query.order_by(*sort_columns)
 
         # Pobierz wyniki zapytania
         czesci = query.all()
