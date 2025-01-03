@@ -119,9 +119,13 @@ def pobierz_wszystkie_czesci():
                 query = query.filter(Czesc.idTypSerwisu.in_(include_ids))
 
         # Dodaj sortowanie
-        if sort_by in ['nazwaElementu', 'ilosc']:
-            # Sortowanie po dozwolonych kolumnach
-            sort_column = getattr(Czesc, sort_by, Czesc.nazwaElementu)
+        if sort_by in ['Typ Serwisu', 'nazwaElementu', 'ilosc']:
+            if sort_by == 'Typ Serwisu':
+                query = query.join(TypSerwisu, Czesc.idTypSerwisu == TypSerwisu.idTypSerwisu)
+                sort_column = TypSerwisu.rodzajSerwisu
+            else:
+                sort_column = getattr(Czesc, sort_by, Czesc.nazwaElementu)
+
             if order == 'desc':
                 sort_column = sort_column.desc()
             query = query.order_by(sort_column)
