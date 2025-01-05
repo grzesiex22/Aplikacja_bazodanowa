@@ -19,7 +19,7 @@
 8. [Endpointy API](#endpointy-api)
 9. [Twórcy](#twórcy)
 
-## Opis projektu  
+# Opis projektu  
 
 Ten program został stworzony, aby pomóc użytkownikom w zarządzaniu flotą pojazdów poprzez prowadzenie dzienników serwisowych. Dzięki temu użytkownicy mogą:  
 
