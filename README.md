@@ -1,5 +1,24 @@
 # Aplikacja_bazodanowa
 
+# Spis Treści
+1. [Opis projektu](#opis-projektu)
+2. [Technologie](#technologie)
+3. [Wymagania wstępne](#wymagania-wstępne)
+    1. [Serwer MySQL](#11-serwer-mysql)
+    2. [Instalacja zależności](#12-instalacja-zależności)
+        - [Backend](#backend)
+        - [Frontend](#frontend)
+    3. [Instalacja dodatkowych zależności Python](#13-instalacja-dodatkowych-zależności-python)
+4. [Konfiguracja aplikacji](#konfiguracja-aplikacji)
+    1. [Plik konfiguracyjny](#21-plik-konfiguracyjny)
+    2. [Zmiana poświadczeń](#22-zmiana-poświadczeń)
+    3. [Pobieranie bazy danych z GitHub](#23-pobieranie-bazy-danych-z-github)
+5. [Uruchomienie aplikacji](#uruchomienie-aplikacji)
+6. [Backend Aplikacji Zarządzania Flotą](#backend-aplikacji-zarządzania-flotą)
+7. [Frontend Aplikacji Zarządzania Flotą](#frontend-aplikacji-zarządzania-flotą)
+8. [Endpointy API](#endpointy-api)
+9. [Twórcy](#twórcy)
+
 ## Opis projektu  
 
 Ten program został stworzony, aby pomóc użytkownikom w zarządzaniu flotą pojazdów poprzez prowadzenie dzienników serwisowych. Dzięki temu użytkownicy mogą:  
