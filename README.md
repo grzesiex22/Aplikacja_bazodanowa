@@ -48,51 +48,11 @@ Frontend został napisany z użyciem następujących technologii i bibliotek:
 - **PyMySQL** – klient MySQL dla Pythona
 - **requests** –  biblioteka do wykonywania zapytań HTTP.
 
-# Wymagania wstępne
-
-Przed uruchomieniem aplikacji, upewnij się, że spełniasz poniższe wymagania:
-
-## 1.1. Serwer MySQL
-Aplikacja wymaga działającego serwera MySQL. Upewnij się, że masz uruchomiony serwer i dostęp do bazy danych.
-
-- **MySQL Version**: [Podaj wymaganą wersję MySQL, np. 8.0]
-- Serwer MySQL musi być dostępny na porcie 3306.
-
-## 1.2. Instalacja zależności
-
-### Backend
-Aplikacja backendowa wymaga kilku zależności, które znajdują się w pliku `requirements_backend.txt`. Aby je zainstalować, uruchom poniższą komendę:
-
-```bash
-pip install -r requirements_backend.txt
-```
-
-### Frontend
-Aplikacja frontendowa wymaga kilku zależności, które znajdują się w pliku `requirements_frontend.txt`. Aby je zainstalować, uruchom poniższą komendę:
-
-```bash
-pip install -r requirements_frontend.txt
-```
-
-## 1.3. Instalacja dodatkowych zależności Python
-
-Upewnij się, że masz zainstalowane poniższe zależności Python:
-
-- `mysql-connector-python`
-- `Flask`
-- `Flask-SQLAlchemy`
-
-Możesz je zainstalować za pomocą pip:
-
-```bash
-pip install mysql-connector-python Flask Flask-SQLAlchemy
-```
-
 # Konfiguracja aplikacji
 
 Aplikacja używa pliku konfiguracyjnego `config.py` do ustawienia połączenia z bazą danych MySQL.
 
-## 2.1. Plik konfiguracyjny
+## Plik konfiguracyjny
 
 Skopiuj poniższy fragment do swojego pliku `config.py`, aby ustawić odpowiednią konfigurację bazy danych:
 
@@ -106,7 +66,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 ```
 
-## 2.2. Zmiana poświadczeń
+## Zmiana poświadczeń
 
 Jeśli chcesz używać innych poświadczeń dla bazy danych, zaktualizuj wartości w konfiguracji:
 
@@ -115,7 +75,7 @@ Jeśli chcesz używać innych poświadczeń dla bazy danych, zaktualizuj wartoś
 - **`localhost:3306`** - adres serwera i port bazy danych (domyślnie port 3306)
 - **`TransportManager2DB`** - nazwa bazy danych
 
-## 2.3. Pobieranie bazy danych z GitHub
+## Pobieranie bazy danych z GitHub
 
 Baza danych jest dostępna w pliku SQL na GitHubie. Aby ją zaimportować:
 
