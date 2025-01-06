@@ -9,9 +9,27 @@ from Aplikacja_bazodanowa.backend.models import WyposazeniePojazdu, Pojazd, Czes
 wyposazenie_bp = Blueprint('wyposazenie', __name__)
 
 
-# Pobieranie szczegółowych informacji o wyposażeniu pojazdu
 @wyposazenie_bp.route('/wyposazenie/show/<int:id>', methods=['GET'])
 def pobierz_wyposazenie(id):
+    """
+    Funkcja obsługuje żądanie GET pod adresem /wyposazenie/show/<int:id>.
+    Pobiera szczegółowe informacje o wyposażeniu pojazdu na podstawie podanego identyfikatora `id`.
+
+    Parametry wejściowe:
+        - id (int): Identyfikator wyposażenia pojazdu przekazany w URL.
+
+    Returns:
+        Response:
+        - 200 OK: Jeśli wyposażenie zostało znalezione, zwraca szczegółowe dane w formacie JSON:
+            - ID Wyposażenia Pojazdu: Identyfikator wyposażenia.
+            - ID Pojazdu: Identyfikator pojazdu, do którego należy wyposażenie (może być `None`).
+            - Pojazd: Opis pojazdu w formacie "typ, marka, model, nr rej." lub "Brak pojazdu", jeśli brak powiązanego pojazdu.
+            - Opis: Szczegółowy opis wyposażenia.
+            - Ilość: Liczba sztuk wyposażenia.
+        - 404 Not Found: Jeśli wyposażenie o podanym identyfikatorze nie istnieje.
+        - 500 Internal Server Error: Jeśli wystąpi błąd serwera.
+    """
+
     try:
         wyposazenie = WyposazeniePojazdu.query.get(id)
         if wyposazenie is None:
@@ -33,9 +51,35 @@ def pobierz_wyposazenie(id):
         return jsonify({'error': str(e)}), 500
 
 
-# Pobieranie listy wyposażenia pojazdu z możliwością filtrowania i sortowania
 @wyposazenie_bp.route('/wyposazenie/show/all', methods=['GET'])
 def pobierz_wszystkie_wyposazenie():
+    """
+    Funkcja obsługuje żądanie GET pod adresem /wyposazenie/show/all.
+    Pobiera listę wyposażenia pojazdów z możliwością filtrowania i sortowania wyników.
+
+    Parametry wejściowe:
+        - opis (str, opcjonalne): Filtrowanie po fragmencie opisu wyposażenia (ignoruje wielkość liter).
+        - idPojazd (int, opcjonalne): Filtrowanie po identyfikatorze pojazdu.
+        - sort_by (str, opcjonalne): Pole do sortowania (domyślnie 'opis'). Możliwe wartości:
+            - 'opis': Sortowanie po opisie wyposażenia.
+            - 'ilosc': Sortowanie po liczbie sztuk wyposażenia.
+            - 'pojazd': Sortowanie po typie, marce, modelu i numerze rejestracyjnym pojazdu.
+        - order (str, opcjonalne): Kierunek sortowania:
+            - 'asc': Rosnąco (domyślnie).
+            - 'desc': Malejąco.
+
+    Returns:
+        Response:
+        - 200 OK: Jeśli zapytanie zostanie wykonane poprawnie, zwraca listę wyposażenia w formacie JSON:
+            - ID Wyposażenia Pojazdu: Identyfikator wyposażenia.
+            - ID Pojazdu: Identyfikator pojazdu, do którego należy wyposażenie (może być `None`).
+            - Pojazd: Opis pojazdu w formacie "typ, marka, model, nr rej." lub "Brak pojazdu".
+            - Opis: Szczegółowy opis wyposażenia.
+            - Ilość: Liczba sztuk wyposażenia.
+        - 500 Internal Server Error: Jeśli wystąpi błąd serwera.
+
+
+    """
     try:
         # Pobieranie parametrów zapytania
         opis = request.args.get('opis', '').strip()
@@ -43,10 +87,10 @@ def pobierz_wszystkie_wyposazenie():
         sort_by = request.args.get('sort_by', 'opis')  # Domyślnie sortowanie po opisie
         order = request.args.get('order', 'asc')  # Domyślnie sortowanie rosnące
 
-        # Tworzenie zapytania
+        # Tworzenie zapytania bazowego
         query = WyposazeniePojazdu.query
 
-        # Filtracja po opisie
+        # Filtracja po opisie wyposażenia
         if opis:
             query = query.filter(WyposazeniePojazdu.opis.ilike(f'%{opis}%'))
 
@@ -54,14 +98,15 @@ def pobierz_wszystkie_wyposazenie():
         if id_pojazd:
             query = query.filter(WyposazeniePojazdu.idPojazd == int(id_pojazd))
 
-        # Sortowanie wyników
+        # Określenie kierunku sortowania
         kierunek_sortowania = asc if order == 'asc' else desc
 
+        # Sortowanie wyników na podstawie wybranego pola
         if sort_by in ['opis', 'ilosc']:
             sort_column = getattr(WyposazeniePojazdu, sort_by, WyposazeniePojazdu.opis)
             query = query.order_by(kierunek_sortowania(sort_column))
         elif sort_by == 'pojazd':
-            # query = query.join(Pojazd, WyposazeniePojazdu.idPojazd == Pojazd.idPojazd, isouter=True)
+            # Sortowanie według danych pojazdu (typ, marka, model, nr rejestracyjny)
             query = query.order_by(
                 kierunek_sortowania(Pojazd.typPojazdu),
                 kierunek_sortowania(Pojazd.marka),
@@ -69,14 +114,17 @@ def pobierz_wszystkie_wyposazenie():
                 kierunek_sortowania(Pojazd.nrRejestracyjny)
             )
 
-        # Pobieranie wyników
+        # Pobieranie wyników z bazy danych
         wyposazenie_list = query.all()
 
-        # Tworzenie listy wyników
+        # Tworzenie listy wyników w formacie JSON
         wynik = []
         for wyposazenie in wyposazenie_list:
             pojazd = Pojazd.query.get(wyposazenie.idPojazd) if wyposazenie.idPojazd else None
-            pojazd_opis = f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}" if pojazd else "Brak pojazdu"
+            pojazd_opis = (
+                f"{pojazd.typPojazdu.value}, {pojazd.marka}, {pojazd.model}, nr rej. {pojazd.nrRejestracyjny}"
+                if pojazd else "Brak pojazdu"
+            )
             wynik.append({
                 'ID Wyposażenia Pojazdu': wyposazenie.idWyposazeniePojazdu,
                 'ID Pojazdu': wyposazenie.idPojazd,
@@ -87,27 +135,43 @@ def pobierz_wszystkie_wyposazenie():
 
         return jsonify(wynik), 200
     except Exception as e:
+        # Obsługa błędów serwera
         return jsonify({'error': str(e)}), 500
 
 
 @wyposazenie_bp.route('/wyposazenie/add', methods=['POST'])
 def dodaj_wyposazenie():
+    """
+    Funkcja obsługuje żądanie POST pod adresem /wyposazenie/add.
+    Dodaje nowe wyposażenie pojazdu lub aktualizuje istniejące, jeśli wyposażenie o podanym ID pojazdu i opisie już istnieje.
+
+    Parametry wejściowe w formacie JSON (wymagane):
+        - ID Pojazdu (int): Identyfikator pojazdu, do którego należy wyposażenie.
+        - Opis (str): Szczegółowy opis wyposażenia pojazdu.
+        - Ilość (int): Liczba sztuk wyposażenia.
+
+    Returns:
+        Response:
+        - 201 Created: Jeśli wyposażenie zostało dodane lub zaktualizowane pomyślnie.
+        - 500 Internal Server Error: Jeśli wystąpił błąd serwera, zwraca szczegóły błędu.
+    """
     try:
+        # Pobieranie danych z żądania JSON
         data = request.get_json()
 
-        # Tworzenie obiektu WyposazeniePojazdu na podstawie danych
+        # Walidacja i przypisanie danych wejściowych
         id_pojazd = int(data['ID Pojazdu'])
         opis = data['Opis']
         ilosc = int(data['Ilość'])
 
-        # Sprawdzenie, czy wyposażenie już istnieje w tabeli
+        # Sprawdzanie, czy wyposażenie już istnieje
         istnieje_wyposazenie = WyposazeniePojazdu.query.filter_by(idPojazd=id_pojazd, opis=opis).first()
 
         if istnieje_wyposazenie:
-            # Jeśli wyposażenie istnieje, zwiększamy wartość pola 'ilosc'
+            # Aktualizacja ilości wyposażenia
             istnieje_wyposazenie.ilosc += ilosc
         else:
-            # Jeśli wyposażenie nie istnieje, tworzymy nowe
+            # Tworzenie nowego wpisu
             nowe_wyposazenie = WyposazeniePojazdu(
                 idPojazd=id_pojazd,
                 opis=opis,
@@ -115,18 +179,36 @@ def dodaj_wyposazenie():
             )
             db.session.add(nowe_wyposazenie)
 
-        # Zapisujemy zmiany w bazie danych
+        # Zapis zmian w bazie danych
         db.session.commit()
 
+        # Zwrot odpowiedzi sukcesu
         return jsonify({'message': 'Wyposażenie pojazdu zostało dodane lub zaktualizowane pomyślnie'}), 201
     except Exception as e:
+        # Wycofanie transakcji w przypadku błędu
         db.session.rollback()
+        # Zwrot odpowiedzi z błędem
         return jsonify({'error': str(e)}), 500
 
 
-# Walidacja danych wejściowych
 @wyposazenie_bp.route('/wyposazenie/validate', methods=['POST'])
 def validate_wyposazenie():
+    """
+    Funkcja obsługuje żądanie POST pod adresem /wyposazenie/validate.
+    Waliduje dane wejściowe dla nowego wyposażenia pojazdu, sprawdzając ich poprawność i zgodność z założeniami.
+
+    Parametry wejściowe (w formacie JSON):
+        - Opis (str): Opis wyposażenia, który musi być niepustym ciągiem znaków o długości maksymalnie 100 znaków.
+        - Ilość (int): Ilość wyposażenia, która musi być liczbą całkowitą większą lub równą 0.
+        - ID Pojazdu (int): Identyfikator pojazdu, który musi istnieć w bazie danych.
+
+    Returns:
+        Response:
+        - 200 OK: Jeśli wszystkie dane wejściowe są poprawne.
+        - 400 Bad Request: Jeśli dane są niepoprawne (np. brakujące lub nieprawidłowe wartości).
+        - 500 Internal Server Error: Jeśli wystąpił błąd serwera, zwraca szczegóły błędu.
+    """
+
     try:
         data = request.get_json()
 
@@ -150,9 +232,25 @@ def validate_wyposazenie():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Walidacja danych wejściowych
+
 @wyposazenie_bp.route('/wyposazenie/edit/validate', methods=['POST'])
 def validate_wyposazenie_edit():
+    """
+    Funkcja obsługuje żądanie POST pod adresem /wyposazenie/validate.
+    Waliduje dane wejściowe dla nowego wyposażenia pojazdu, sprawdzając ich poprawność i zgodność z założeniami.
+
+    Parametry wejściowe (w formacie JSON):
+        - Opis (str): Opis wyposażenia, który musi być niepustym ciągiem znaków o długości maksymalnie 100 znaków.
+        - Ilość (int): Ilość wyposażenia, która musi być liczbą całkowitą większą lub równą 0.
+        - ID Pojazdu (int): Identyfikator pojazdu, który musi istnieć w bazie danych.
+
+    Returns:
+        Response:
+        - 200 OK: Jeśli wszystkie dane wejściowe są poprawne.
+        - 400 Bad Request: Jeśli dane są niepoprawne (np. brakujące lub nieprawidłowe wartości).
+        - 500 Internal Server Error: Jeśli wystąpił błąd serwera, zwraca szczegóły błędu.
+    """
+
     try:
         data = request.get_json()
 
@@ -176,9 +274,23 @@ def validate_wyposazenie_edit():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Usuwanie wyposażenia pojazdu
+
 @wyposazenie_bp.route('/wyposazenie/delete/<int:id>', methods=['DELETE'])
 def usun_wyposazenie(id):
+    """
+    Funkcja obsługuje żądanie DELETE pod adresem /wyposazenie/delete/<int:id>.
+    Usuwa wyposażenie pojazdu na podstawie podanego identyfikatora `id`.
+
+    Parametry URL:
+        - `id` (int): Identyfikator wyposażenia pojazdu przekazany w URL.
+
+    Returns:
+        Response:
+        - 200 OK: Jeśli wyposażenie zostało pomyślnie usunięte.
+        - 404 Not Found: Jeśli wyposażenie o podanym identyfikatorze nie istnieje w bazie danych.
+        - 500 Internal Server Error: W przypadku błędu serwera.
+    """
+
     try:
         wyposazenie = WyposazeniePojazdu.query.get(id)
         if wyposazenie is None:
@@ -193,9 +305,24 @@ def usun_wyposazenie(id):
         return jsonify({'error': str(e)}), 500
 
 
-# Edytowanie wyposażenia pojazdu
 @wyposazenie_bp.route('/wyposazenie/edit/<int:id>', methods=['PUT'])
 def edytuj_wyposazenie(id):
+    """
+    Edytuje dane wyposażenia pojazdu na podstawie identyfikatora `id`.
+
+    Parametry URL:
+        - `id` (int): Identyfikator wyposażenia pojazdu w URL.
+
+    Parametry w formacie JSON:
+        - `ID Pojazdu` (int): Identyfikator pojazdu (opcjonalne, domyślnie pozostaje niezmieniony).
+        - `Opis` (str): Opis wyposażenia (opcjonalne, domyślnie pozostaje niezmieniony).
+        - `Ilość` (int): Ilość wyposażenia (opcjonalne, domyślnie pozostaje niezmieniona).
+
+    Odpowiedzi:
+        - **200 OK**: Jeśli wyposażenie zostało zaktualizowane.
+        - **404 Not Found**: Jeśli wyposażenie o podanym identyfikatorze nie zostało znalezione.
+        - **500 Internal Server Error**: W przypadku błędu serwera.
+    """
     try:
         data = request.get_json()
 
@@ -217,8 +344,22 @@ def edytuj_wyposazenie(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+
 @wyposazenie_bp.route('/wyposazenie/check', methods=['POST'])
 def sprawdz_wyposazenie():
+    """
+    Sprawdza, czy wyposażenie o podanym opisie i ID pojazdu istnieje w bazie danych.
+
+    Parametry w formacie JSON:
+        - `Opis` (str): Opis wyposażenia (wymagany).
+        - `ID Pojazdu` (int): Identyfikator pojazdu (wymagany).
+
+    Odpowiedzi:
+        - **200 OK**: Zwraca `idWyposazeniePojazdu`, jeśli wyposażenie istnieje, lub `null`, jeśli nie istnieje.
+        - **404 Not Found**: Jeśli pojazd o podanym ID nie istnieje.
+        - **400 Bad Request**: Jeśli w danych wejściowych brakuje wymaganych pól (Opis lub ID Pojazdu).
+        - **500 Internal Server Error**: W przypadku błędu serwera.
+    """
     try:
         data = request.get_json()
 
@@ -248,11 +389,26 @@ def sprawdz_wyposazenie():
 
 
 
+
 @wyposazenie_bp.route('/store_item', methods=['POST'])
 def store_item():
     """
-    Zapisuje dane o części i wyposażeniu pojazdu w jednym bloku transakcyjnym.
-    Jeśli operacja się nie powiedzie, wszystkie zmiany są wycofywane.
+    Endpoint umożliwia zapisanie danych o części oraz aktualizację wyposażenia pojazdu w jednym bloku transakcyjnym.
+    Operacja jest atomowa — w przypadku błędu, wszystkie zmiany są wycofywane
+
+    Parametry w formacie JSON (wymagane):
+        - `czesc` (dict): Dane o części, w tym:
+            - `idTypSerwisu` (int): Identyfikator typu serwisu.
+            - `ilosc` (int): Ilość części.
+        - `wyposazenie` (dict): Dane o wyposażeniu pojazdu, w tym:
+            - `idPojazd` (int): Identyfikator pojazdu.
+            - `opis` (str): Opis wyposażenia.
+            - `ilosc` (int): Ilość wyposażenia.
+
+    Odpowiedzi:
+        - **200 OK**: Część i wyposażenie zostały zapisane pomyślnie.
+        - **400 Bad Request**: Brak wymaganych danych wejściowych.
+        - **500 Internal Server Error**: W przypadku błędu serwera.
     """
 
     try:

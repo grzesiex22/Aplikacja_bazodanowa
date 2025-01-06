@@ -134,7 +134,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /czesc/<int:id>`
 - **Opis**: Pobiera szczegóły części na podstawie jej identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator części w URL.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca dane części, w tym:
@@ -150,7 +150,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /czesci`
 - **Opis**: Pobiera listę części z możliwością filtrowania i sortowania.
-- **Parametry w formacie json**:
+- **Parametry**:
   - `nazwaElementu` (string, opcjonalny): Nazwa elementu do wyszukiwania.
   - `idTypSerwisu` (int, opcjonalny): ID typu serwisu, do którego przypisana jest część.
   - `includeTypSerwisu` (string, opcjonalny): Uwzględnienie tylko części z określonym typem serwisu.
@@ -194,7 +194,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `DELETE /czesc/delete/<int:id>`
 - **Opis**: Usuwa część na podstawie jej identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator części w URL.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli część została pomyślnie usunięta.
@@ -205,7 +205,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `PUT /czesc/edit/<int:id>`
 - **Opis**: Edytuje dane istniejącej części na podstawie jej identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator części w URL.
 - **Parametry w formacie json**:
   - `Nazwa elementu` (string, opcjonalny): Nowa nazwa części.
@@ -245,12 +245,13 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - **400 Bad Request**: Jeśli brakujące są wymagane dane w zapytaniu (np. ID Pojazdu, czesc, wyposazenie).
   - **401 Bad Request**: Jeśli brak części w magazynie.
   - **500 Internal Server Error**: W przypadku błędu serwera lub bazy danych.
+
   
 ## Endpointy API dla Kierowców
 
 ### `GET /kierowca/show/<int:id>`
 - **Opis**: Pobiera dane pojedynczego kierowcy na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator kierowcy w URL.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca dane kierowcy, w tym:
@@ -270,7 +271,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
     - `ID kierowcy`
     - `Imię`
     - `Nazwisko`
-    - `Numer telefonu`
+    - `Nr telefonu`
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
@@ -288,7 +289,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /kierowca/show`
 - **Opis**: Pobiera i sortuje kierowców na podstawie parametrów zapytania. Możliwość filtrowania, sortowania oraz wyboru kierunku sortowania.
-- **Parametry w formacie json (opcjonalnie)**:
+- **Parametry (opcjonalnie)**:
   - `filter_by` (string): Filtry w formacie JSON. Domyślnie `{}`.
   - `sort_by` (string): Kolumna do sortowania. Domyślnie "ID kierowcy".
   - `order` (string): Kierunek sortowania: "asc" lub "desc". Domyślnie "asc".
@@ -297,7 +298,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
     - `ID kierowcy`
     - `Imię`
     - `Nazwisko`
-    - `Numer telefonu`.
+    - `Nr telefonu`.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
@@ -324,7 +325,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `DELETE /kierowca/delete/<int:id>`
 - **Opis**: Usuwa kierowcę z bazy danych na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator kierowcy, którego chcesz usunąć.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli kierowca został pomyślnie usunięty.
@@ -335,7 +336,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `PUT /kierowca/edit/<int:id>`
 - **Opis**: Edytuje dane istniejącego kierowcy na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator kierowcy w URL.
 - **Parametry w formacie json**: 
   - `imie` (string, opcjonalny): Nowe imię kierowcy.
@@ -362,7 +363,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /kierowca/sort`
 - **Opis**: Sortuje kierowców na podstawie wybranej kolumny i kierunku sortowania.
-- **Parametry w formacie json**:
+- **Parametry**:
   - `sort_by` (string): Kolumna do sortowania. Domyślnie "ID kierowcy".
   - `order` (string): Kierunek sortowania: "asc" lub "desc". Domyślnie "asc".
 - **Odpowiedzi**:
@@ -372,7 +373,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /pojazd/show/<int:id>`
 - **Opis**: Pobiera dane pojedynczego pojazdu na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator pojazdu w URL.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca dane pojazdu, w tym:
@@ -380,7 +381,10 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
     - `Marka`
     - `Model`
     - `Numer rejestracyjny`
-    - `Rok produkcji`
+    - `Typ pojazdu`
+    - `Dodatkowe informacje`
+    - `ID kierowca`
+    - `Dane kierowcy`
   - **404 Not Found**: Jeśli pojazd o podanym identyfikatorze nie został znaleziony.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
@@ -388,13 +392,18 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /pojazd/show/all`
 - **Opis**: Pobiera listę wszystkich pojazdów z bazy danych.
+- **Parametry**:
+  - `typPojazdu` (str, opcjonalny): Typ pojazdu, według którego chcemy filtrować wyniki (domyślnie: brak filtru).
 - **Odpowiedzi**:
   - **200 OK**: Zwraca listę pojazdów z poniższymi polami:
     - `ID pojazdu`
     - `Marka`
     - `Model`
     - `Numer rejestracyjny`
-    - `Rok produkcji`
+    - `Typ pojazdu`
+    - `Dodatkowe informacje`
+    - `ID kierowca`
+    - `Dane kierowcy`
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
@@ -402,10 +411,12 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 ### `GET /pojazd/filtry`
 - **Opis**: Pobiera unikalne wartości dla kolumny pojazdów, na podstawie której można filtrować dane.
 - **Parametry**:
-  - `filtr` (string): Typ filtru, który określa kolumnę w tabeli do filtrowania.
+  - `Typ pojazdu` (str, opcjonalny): Typ pojazdu, według którego chcemy filtrować wyniki (domyślnie: brak filtru).
+  - `filtr` (str, wymagany): Typ filtru, który określa kolumnę w tabeli do filtrowania.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca posortowaną listę unikalnych wartości w formacie JSON.
   - **400 Bad Request**: Jeśli kolumna o podanej nazwie nie istnieje.
+  - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
 
@@ -416,31 +427,66 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - `sort_by` (string): Kolumna do sortowania. Domyślnie "ID pojazdu".
   - `order` (string): Kierunek sortowania: "asc" lub "desc". Domyślnie "asc".
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca posortowaną listę pojazdów w formacie JSON.
+  - **200 OK**: Zwraca listę pojazdów z poniższymi polami:
+    - `ID pojazdu`
+    - `Marka`
+    - `Model`
+    - `Numer rejestracyjny`
+    - `Typ pojazdu`
+    - `Dodatkowe informacje`
+    - `ID kierowca`
+    - `Dane kierowcy`
+  - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
+
+### `GET /pojazd/show/alltochoice`
+- **Opis**: Pobiera listę pojazdów w formacie przydatnym do wyświetlania w oknie wyboru (ID, marka, model, numer rejestracyjny).
+- **Odpowiedzi**:
+  - **200 OK**: Zwraca listę pojazdów z ID, marką, modelem i numerem rejestracyjnym w formacie JSON.
+    - `ID`: id pojazdu
+    - `data`: typPojazdu, marka, model, nr rej. 
+  - **500 Internal Server Error**: W przypadku błędu przy aktualizacji danych.
 
 ---
 
 ### `POST /pojazd/add`
 - **Opis**: Dodaje nowy pojazd do bazy danych. Oczekuje danych w formacie JSON.
-- **Parametry**:
-  - `marka` (string): Marka pojazdu.
-  - `model` (string): Model pojazdu.
-  - `nrRej` (string): Numer rejestracyjny pojazdu.
-  - `rokProdukcji` (int): Rok produkcji pojazdu.
+- **Parametry w formacie JSON**:
+  - `ID kierowca` (int, opcjonalny): ID kierowcy.
+  - `Typ pojazdu` (string, wymagane): Typ Pojazdu (Ciągnik/Naczepa)
+  - `Marka` (string, wymagane): Marka pojazdu.
+  - `Model` (string, wymagane): Model pojazdu.
+  - `Numer rejestracyjny` (string, wymagane): Numer rejestracyjny pojazdu.
+  - `Dodatkowe informacje` (string, opcjonalne): Dodatkowe informacje.
 - **Odpowiedzi**:
   - **201 Created**: Jeśli pojazd został pomyślnie dodany.
   - **500 Internal Server Error**: W przypadku błędu przy dodawaniu pojazdu.
 
 ---
 
+### `DELETE /pojazd/delete/<int:id>`
+- **Opis**: Usuwa pojazd z bazy danych na podstawie jego identyfikatora `id`.
+- **Parametry URL**:
+  - `id` (int): Identyfikator pojazdu, którego chcesz usunąć.
+- **Odpowiedzi**:
+  - **200 OK**: Jeśli pojazd został pomyślnie usunięty.
+  - **404 Not Found**: Jeśli pojazd o podanym identyfikatorze nie został znaleziony.
+  - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
+
 ### `PUT /pojazd/edit/<int:id>`
 - **Opis**: Edytuje dane istniejącego pojazdu na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator pojazdu w URL.
-  - `marka` (string, opcjonalny): Nowa marka pojazdu.
-  - `model` (string, opcjonalny): Nowy model pojazdu.
-  - `nrRej` (string, opcjonalny): Nowy numer rejestracyjny pojazdu.
-  - `rokProdukcji` (int, opcjonalny): Nowy rok produkcji pojazdu.
+- **Parametry**:
+  - `ID kierowca` (int, opcjonalny): ID kierowcy.
+  - `Typ pojazdu` (string, opcjonalny): Nowy typ pojazdu (Ciągnik/Naczepa).
+  - `Marka` (string, opcjonalny): Nowa marka pojazdu.
+  - `Model` (string, opcjonalny): Nowy model pojazdu.
+  - `Numer rejestracyjny` (string, opcjonalny): Nowy numer rejestracyjny pojazdu.
+  - `Dodatkowe informacje` (int, opcjonalny): Nowe dodatkowe informacje.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli dane pojazdu zostały pomyślnie zaktualizowane.
   - **404 Not Found**: Jeśli pojazd o podanym identyfikatorze nie został znaleziony.
@@ -451,55 +497,25 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 ### `POST /pojazd/validate`
 - **Opis**: Sprawdza poprawność danych pojazdu (np. numer rejestracyjny).
 - **Parametry**:
-  - `marka` (string): Marka pojazdu.
-  - `model` (string): Model pojazdu.
-  - `nrRej` (string): Numer rejestracyjny pojazdu.
+  - `ID kierowca` (int, opcjonalny): ID kierowcy.
+  - `Typ pojazdu` (string, wymagane): Typ Pojazdu (Ciągnik/Naczepa)
+  - `Marka` (string, wymagane): Marka pojazdu.
+  - `Model` (string, wymagane): Model pojazdu.
+  - `Numer rejestracyjny` (string, wymagane): Numer rejestracyjny pojazdu.
+  - `Dodatkowe informacje` (string, opcjonalne): Dodatkowe informacje.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli dane są poprawne.
   - **400 Bad Request**: Jeśli dane są niepoprawne (np. zły format numeru rejestracyjnego).
 
 ---
 
-### `GET /pojazd/show/alltochoice`
-- **Opis**: Pobiera listę pojazdów w formacie przydatnym do wyświetlania w oknie wyboru (ID, marka, model, numer rejestracyjny).
-- **Odpowiedzi**:
-  - **200 OK**: Zwraca listę pojazdów z ID, marką, modelem i numerem rejestracyjnym w formacie JSON.
-
----
-
-### `DELETE /pojazd/delete/<int:id>`
-- **Opis**: Usuwa pojazd z bazy danych na podstawie jego identyfikatora `id`.
-- **Parametry**:
-  - `id` (int): Identyfikator pojazdu, którego chcesz usunąć.
-- **Odpowiedzi**:
-  - **200 OK**: Jeśli pojazd został pomyślnie usunięty.
-  - **404 Not Found**: Jeśli pojazd o podanym identyfikatorze nie został znaleziony.
-  - **500 Internal Server Error**: W przypadku błędu serwera.
-
----
-
-### `GET /pojazd/sort`
-- **Opis**: Sortuje pojazdy na podstawie wybranej kolumny i kierunku sortowania.
-- **Parametry**:
-  - `sort_by` (string): Kolumna do sortowania. Domyślnie "ID pojazdu".
-  - `order` (string): Kierunek sortowania: "asc" lub "desc". Domyślnie "asc".
-- **Odpowiedzi**:
-  - **200 OK**: Zwraca posortowaną listę pojazdów w formacie JSON.
-
----
-
-
 ### `GET /pojazd/typpojazdu/<int:id>`
 - **Opis**: Pobiera typ pojazdu na podstawie jego ID.
 - **Parametry URL**:
   - `id` (int): ID pojazdu, którego typ ma zostać pobrany.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca typ pojazdu w formacie JSON, np.:
-    ```json
-    {
-      "typ_pojazdu": "Ciągnik"
-    }
-    ```
+  - **200 OK**: Zwraca typ pojazdu w formacie JSON:
+    - `typ_pojazdu`
   - **404 Not Found**: Jeśli pojazd o podanym ID nie istnieje.
   - **500 Internal Server Error**: Jeśli wystąpił błąd podczas pobierania typu pojazdu.
 
@@ -507,7 +523,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /serwis/show/<int:id>`
 - **Opis**: Pobiera szczegóły serwisu na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator serwisu w URL.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca dane serwisu.
@@ -518,7 +534,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /serwiswidok/show/<int:id>`
 - **Opis**: Pobiera szczegóły serwisu widoku na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator serwisu widoku w URL.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca dane serwisu widoku.
@@ -548,7 +564,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `DELETE /serwis/delete/<int:id>`
 - **Opis**: Usuwa serwis z bazy danych na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator serwisu w URL.
 - **Odpowiedzi**:
   - **200 OK**: Serwis został pomyślnie usunięty.
@@ -559,7 +575,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `PUT /serwis/edit/<int:id>`
 - **Opis**: Edytuje dane serwisu na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator serwisu w URL.
   - Dane serwisu w formacie JSON.
 - **Odpowiedzi**:
@@ -589,6 +605,8 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - **200 OK**: Zwraca przefiltrowane i posortowane serwisy.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
+---
+
 ### `POST /serwis/validate`
 - **Opis**: Waliduje dane serwisu przed dodaniem lub edytowaniem.
 - **Parametry**: Dane serwisu w formacie JSON.
@@ -600,7 +618,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /typserwis/<int:id>`
 - **Opis**: Pobiera szczegóły typu serwisu na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator typu serwisu w URL.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca dane typu serwisu.
@@ -637,7 +655,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `DELETE /typserwis/<int:id>`
 - **Opis**: Usuwa typ serwisu z bazy danych na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator typu serwisu w URL.
 - **Odpowiedzi**:
   - **200 OK**: Typ serwisu został pomyślnie usunięty.
@@ -648,7 +666,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `PUT /typserwis/<int:id>`
 - **Opis**: Edytuje dane typu serwisu na podstawie jego identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator typu serwisu w URL.
   - Dane typu serwisu w formacie JSON.
 - **Odpowiedzi**:
@@ -682,27 +700,44 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /wyposazenie/show/<int:id>`
 - **Opis**: Pobiera szczegóły wyposażenia pojazdu na podstawie identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator wyposażenia pojazdu w URL.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca dane wyposażenia pojazdu, w tym opis i ilość.
+  - **200 OK**: Zwraca dane wyposażenia:
+    - `ID pojazdu`
+    - `ID Wyposażenia Pojazdu`
+    - `Ilość`
+    - `Opis`
+    - `Pojazd` - Typ pojazdu, Marka, Model, nr rejestracyjny
   - **404 Not Found**: Jeśli wyposażenie o podanym identyfikatorze nie zostało znalezione.
   - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
 
 ### `GET /wyposazenie/show/all`
 - **Opis**: Pobiera listę wszystkich wyposażenia pojazdów z możliwością filtrowania i sortowania.
 - **Parametry**:
   - `opis` (str): (opcjonalne) Filtrowanie po opisie wyposażenia.
   - `idPojazd` (int): (opcjonalne) Filtrowanie po identyfikatorze pojazdu.
-  - `sort_by` (str): (opcjonalne) Określa pole, po którym mają być posortowane wyniki (domyślnie `opis`).
+  - `sort_by` (str): (opcjonalne) Określa pole, po którym mają być posortowane wyniki (domyślnie `opis`) Możliwe wartości:
+    - `opis`: Sortowanie po opisie wyposażenia.
+    - `ilosc`: Sortowanie po liczbie sztuk wyposażenia.
+    - `pojazd`: Sortowanie po typie, marce, modelu i numerze rejestracyjnym pojazdu.
   - `order` (str): (opcjonalne) Określa kierunek sortowania (`asc` lub `desc`, domyślnie `asc`).
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca listę wyposażenia pojazdów.
+  - **200 OK**: Zwraca listę wyposażenia pojazdów:
+    - `ID pojazdu`
+    - `ID Wyposażenia Pojazdu`
+    - `Ilość`
+    - `Opis`
+    - `Pojazd` - Typ pojazdu, Marka, Model, nr rejestracyjny
   - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
 
 ### `POST /wyposazenie/add`
 - **Opis**: Dodaje nowe wyposażenie pojazdu lub aktualizuje istniejące (jeśli wyposażenie o podanym opisie i ID pojazdu już istnieje).
-- **Parametry**:
+- **Parametry w formacie JSON (wymagane)**:
   - `ID Pojazdu` (int): Identyfikator pojazdu.
   - `Opis` (str): Opis wyposażenia pojazdu.
   - `Ilość` (int): Ilość wyposażenia.
@@ -710,39 +745,50 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - **201 Created**: Jeśli wyposażenie zostało dodane lub zaktualizowane.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
+---
+
 ### `POST /wyposazenie/validate`
 - **Opis**: Waliduje dane wejściowe dla nowego wyposażenia pojazdu.
-- **Parametry**:
+- **Parametry w formacie JSON**:
   - `Opis` (str): Opis wyposażenia.
   - `Ilość` (int): Ilość wyposażenia (musi być liczbą całkowitą większą lub równą 0).
   - `ID Pojazdu` (int): Identyfikator pojazdu.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli dane są poprawne.
   - **400 Bad Request**: Jeśli dane są niepoprawne (np. pusty opis, nieprawidłowa ilość, brak pojazdu).
+  - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
 
 ### `POST /wyposazenie/edit/validate`
 - **Opis**: Waliduje dane wejściowe dla edycji wyposażenia pojazdu.
-- **Parametry**:
+- **Parametry w formacie JSON**:
   - `Opis` (str): Opis wyposażenia.
   - `Ilość` (int): Ilość wyposażenia (musi być liczbą całkowitą większą lub równą 0).
   - `ID Pojazdu` (int): Identyfikator pojazdu.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli dane są poprawne.
   - **400 Bad Request**: Jeśli dane są niepoprawne (np. pusty opis, nieprawidłowa ilość, brak pojazdu).
+  - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
 
 ### `DELETE /wyposazenie/delete/<int:id>`
 - **Opis**: Usuwa wyposażenie pojazdu na podstawie identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator wyposażenia pojazdu w URL.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli wyposażenie zostało usunięte.
   - **404 Not Found**: Jeśli wyposażenie o podanym identyfikatorze nie zostało znalezione.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
+---
+
 ### `PUT /wyposazenie/edit/<int:id>`
 - **Opis**: Edytuje dane wyposażenia pojazdu na podstawie identyfikatora `id`.
-- **Parametry**:
+- **Parametry URL**:
   - `id` (int): Identyfikator wyposażenia pojazdu w URL.
+- **Parametry w formacie JSON**:
   - `ID Pojazdu` (int): Identyfikator pojazdu.
   - `Opis` (str): Opis wyposażenia.
   - `Ilość` (int): Ilość wyposażenia.
@@ -751,11 +797,31 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - **404 Not Found**: Jeśli wyposażenie o podanym identyfikatorze nie zostało znalezione.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
+---
+
 ### `POST /wyposazenie/check`
 - **Opis**: Sprawdza, czy wyposażenie o podanym opisie i ID pojazdu istnieje w bazie danych.
-- **Parametry**:
+- **Parametry w formacie JSON**:
   - `Opis` (str): Opis wyposażenia.
   - `ID Pojazdu` (int): Identyfikator pojazdu.
+- **Odpowiedzi**:
+  - **200 OK**: Zwraca ID wyposażenia, jeśli istnieje, lub `null`, jeśli wyposażenie nie zostało znalezione.
+  - **404 Not Found**: Jeśli pojazd o podanym ID nie istnieje.
+  - **400 Bad Request**: Jeśli brakuje opisu lub ID pojazdu.
+  - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
+
+### `POST /wyposazenie/store_item`
+- **Opis**: Endpoint umożliwia zapisanie danych o części oraz aktualizację wyposażenia pojazdu w jednym bloku transakcyjnym. Operacja jest atomowa — w przypadku błędu, wszystkie zmiany są wycofywane.
+- **Parametry w formacie JSON (wymagane)**:
+  - `czesc` (dict):
+    - `idTypSerwisu` (int): Identyfikator typu serwisu, z którym związana jest część.
+    - `ilosc` (int): Liczba części do dodania (jeśli część istnieje, zwiększa jej ilość).
+  - `wyposazenie` (dict):
+    - `idPojazd` (int): Identyfikator pojazdu.
+    - `opis` (str): Opis wyposażenia pojazdu.
+    - `ilosc` (int): Nowa ilość wyposażenia (jeśli ilosc <= 0, wyposażenie zostanie usunięte).
 - **Odpowiedzi**:
   - **200 OK**: Zwraca ID wyposażenia, jeśli istnieje, lub `null`, jeśli wyposażenie nie zostało znalezione.
   - **404 Not Found**: Jeśli pojazd o podanym ID nie istnieje.

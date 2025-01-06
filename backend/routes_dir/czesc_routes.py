@@ -13,7 +13,7 @@ def pobierz_czesc(id):
     Funkcja obsługuje żądanie GET pod adresem /czesc/<int:id>.
     Pobiera szczegóły części na podstawie jej identyfikatora.
 
-    Parametr wejściowy:
+    Parametr URL:
         - id (int): Identyfikator części przekazany w URL.
 
     Returns:
@@ -60,7 +60,7 @@ def pobierz_wszystkie_czesci():
     Funkcja obsługuje żądanie GET pod adresem /czesci.
     Umożliwia pobranie listy części z możliwością wyszukiwania, filtrowania i sortowania.
 
-    Parametry wejściowe w formacie JSON (opcjonalne):
+    Parametry wejściowe (opcjonalne):
         - nazwaElementu (string): Nazwa elementu do wyszukiwania.
         - idTypSerwisu (int): ID typu serwisu, do którego przypisana jest część.
         - includeTypSerwisu (string): Uwzględnienie tylko części z określonym typem serwisu.
@@ -291,7 +291,7 @@ def edytuj_czesc(id):
     Funkcja obsługuje żądanie PUT pod adresem /czesc/edit/<int:id>.
     Umożliwia edycję danych istniejącej części w bazie na podstawie podanego identyfikatora.
 
-    Parametry wejściowe:
+    Parametry URL:
         - id (int, wymagany): Identyfikator części przekazany w URL.
     Parametry wejściowe (w formacie JSON):
         - Nazwa elementu (string, opcjonalny): Nowa nazwa części (jeśli podana).

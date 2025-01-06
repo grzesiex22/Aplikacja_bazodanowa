@@ -16,7 +16,7 @@ def pobierz_kierowce(id):
     Funkcja obsługuje żądanie GET pod adresem /kierowca/show/<int:id>.
     Umożliwia pobranie danych pojedynczego kierowcy na podstawie jego identyfikatora.
 
-    Parametry wejściowe:
+    Parametry URL:
         - id (int, wymagany): Identyfikator kierowcy przekazany w URL.
 
     Returns:
@@ -25,7 +25,7 @@ def pobierz_kierowce(id):
             - ID kierowcy
             - Imię
             - Nazwisko
-            - Numer telefonu
+            - Nr telefonu
         - 404 Not Found: Jeśli kierowca o podanym identyfikatorze nie został znaleziony.
         - 500 Internal Server Error: W przypadku błędu serwera.
     """
@@ -126,7 +126,7 @@ def pobierz_i_sortuj_kierowcow():
     Umożliwia pobranie i sortowanie listy kierowców na podstawie parametrów zapytania.
     Obsługuje filtrowanie, wybór kolumny do sortowania oraz kierunek sortowania.
 
-    Parametry wejściowe w formacie json:
+    Parametry wejściowe:
         - filter_by (string, opcjonalny): Filtry w formacie JSON. Domyślnie `{}` (brak filtrów).
         - sort_by (string, opcjonalny): Kolumna, według której ma nastąpić sortowanie. Domyślnie "ID kierowcy".
         - order (string, opcjonalny): Kierunek sortowania. Możliwe wartości to "asc" (rosnąco) lub "desc" (malejąco). Domyślnie "asc".
@@ -227,8 +227,6 @@ def pobierz_i_sortuj_kierowcow():
         return jsonify({'error': str(e)}), 500
 
 
-
-
 @kierowca_bp.route('/kierowca/show/alltochoice', methods=['GET'])
 def pobierz_wszystkich_kierowcow_do_okna_wyboru():
     """
@@ -257,7 +255,6 @@ def pobierz_wszystkich_kierowcow_do_okna_wyboru():
     except Exception as e:
         # W przypadku błędu serwera
         return jsonify({'error': str(e)}), 500
-
 
 
 @kierowca_bp.route('/kierowca/add', methods=['POST'])
@@ -294,15 +291,13 @@ def dodaj_kierowce():
         return jsonify({'error': str(e)}), 500
 
 
-
-
 @kierowca_bp.route('/kierowca/delete/<int:id>', methods=['DELETE'])
 def usun_kierowce(id):
     """
     Funkcja obsługuje żądanie DELETE pod adresem /kierowca/delete/<int:id>.
     Umożliwia usunięcie kierowcy z bazy danych na podstawie jego identyfikatora.
 
-    Parametry:
+    Parametry URL:
         - id (int): Identyfikator kierowcy, którego chcesz usunąć.
 
     Returns:
@@ -336,7 +331,7 @@ def edytuj_kierowce(id):
     Funkcja obsługuje żądanie PUT pod adresem /kierowca/edit/<int:id>.
     Umożliwia edytowanie danych istniejącego kierowcy na podstawie jego identyfikatora.
 
-    Parametry:
+    Parametry URL:
         - id (int): Identyfikator kierowcy, którego dane mają być zaktualizowane.
 
     Parametry w formacie JSON:
