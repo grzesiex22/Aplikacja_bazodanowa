@@ -415,7 +415,6 @@ def update_part_and_equipment():
             czesc = Czesc.query.filter_by(idCzesc=czesc_data['id']).first()
             if czesc:
                 if czesc_data['ilosc'] > 0:
-                    czesc.nazwa = czesc_data['nazwa']
                     czesc.ilosc = czesc_data['ilosc']
                 else:
                     db.session.delete(czesc)

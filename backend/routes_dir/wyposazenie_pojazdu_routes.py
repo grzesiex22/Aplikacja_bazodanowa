@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy import asc, desc
+from sqlalchemy.exc import SQLAlchemyError
 
 from Aplikacja_bazodanowa.backend.database import db
-from Aplikacja_bazodanowa.backend.models import WyposazeniePojazdu, Pojazd
+from Aplikacja_bazodanowa.backend.models import WyposazeniePojazdu, Pojazd, Czesc
 
 # Blueprint dla Wyposażenia Pojazdu
 wyposazenie_bp = Blueprint('wyposazenie', __name__)
@@ -87,29 +88,6 @@ def pobierz_wszystkie_wyposazenie():
         return jsonify(wynik), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-
-# Dodawanie nowego wyposażenia pojazdu
-# @wyposazenie_bp.route('/wyposazenie/add', methods=['POST'])
-# def dodaj_wyposazenie():
-#     try:
-#         data = request.get_json()
-#
-#         # Tworzenie obiektu WyposazeniePojazdu na podstawie danych
-#         nowe_wyposazenie = WyposazeniePojazdu(
-#             idPojazd=int(data['ID Pojazdu']),
-#             opis=data['Opis'],
-#             ilosc=int(data['Ilość'])
-#         )
-#
-#         # Dodanie do bazy danych
-#         db.session.add(nowe_wyposazenie)
-#         db.session.commit()
-#
-#         return jsonify({'message': 'Wyposażenie pojazdu dodane pomyślnie'}), 201
-#     except Exception as e:
-#         db.session.rollback()
-#         return jsonify({'error': str(e)}), 500
 
 
 @wyposazenie_bp.route('/wyposazenie/add', methods=['POST'])
@@ -267,3 +245,65 @@ def sprawdz_wyposazenie():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+
+@wyposazenie_bp.route('/store_item', methods=['POST'])
+def store_item():
+    """
+    Zapisuje dane o części i wyposażeniu pojazdu w jednym bloku transakcyjnym.
+    Jeśli operacja się nie powiedzie, wszystkie zmiany są wycofywane.
+    """
+
+    try:
+        data = request.get_json()
+        czesc_data = data.get('czesc')  # Informacje o części
+        wyposazenie_data = data.get('wyposazenie')  # Informacje o wyposażeniu pojazdu
+
+        if not czesc_data or not wyposazenie_data:
+            return jsonify({"error": "Brak wymaganych danych"}), 400
+
+        # Rozpoczynamy transakcję
+        with db.session.begin():  # Rozpoczynamy transakcję
+            # Sprawdzamy, czy pojazd wyposażenie istnieje
+            wyposazenie = WyposazeniePojazdu.query.filter_by(idPojazd=wyposazenie_data['idPojazd'], opis=wyposazenie_data['opis']).first()
+
+            if wyposazenie:
+                if wyposazenie_data['ilosc'] > 0:
+                    wyposazenie.ilosc = wyposazenie_data['ilosc']
+                else:
+                    db.session.delete(wyposazenie)
+            else:
+                return jsonify({"error": "Brak takiego wyposażenia"}), 401
+
+            pojazd = Pojazd.query.get(wyposazenie.idPojazd)
+
+            # Sprawdzanie czy część już istnieje
+            czesc = Czesc.query.filter_by(nazwaElementu=wyposazenie_data['opis'],
+                                          idTypSerwisu=czesc_data['idTypSerwisu']).first()
+
+            if czesc:
+                # Jeśli część już istnieje, edytujemy jej ilość
+                czesc.ilosc = czesc.ilosc + czesc_data['ilosc']
+                print(f"Zaktualizowano część {czesc.nazwaElementu}, nowa ilość: {czesc.ilosc}")
+            else:
+                # Jeśli część nie istnieje, dodajemy nową część
+                czesc = Czesc(nazwaElementu=wyposazenie_data['opis'],
+                              idTypSerwisu=czesc_data['idTypSerwisu'],
+                              ilosc=czesc_data['ilosc'])
+                db.session.add(czesc)
+                print(f"Dodano nową część: {czesc.nazwaElementu}")
+
+            # Na końcu, jeśli wszystko przebiegło pomyślnie, zatwierdzamy transakcję
+            db.session.commit()
+
+        return jsonify({"message": "Część i wyposażenie zostały zapisane pomyślnie."}), 200
+
+    except SQLAlchemyError as e:
+        # Jeśli wystąpił błąd związany z bazą danych, wycofujemy zmiany
+        db.session.rollback()
+        return jsonify({"error": f"Wystąpił błąd bazy danych: {str(e)}"}), 500
+
+    except Exception as e:
+        # Obsługuje inne rodzaje wyjątków
+        return jsonify({"error": f"Wystąpił nieoczekiwany błąd: {str(e)}"}), 500

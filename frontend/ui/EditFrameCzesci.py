@@ -621,11 +621,48 @@ class EditFrameCzesci(QFrame):
 
         dane_po_odlozeniu = copy.deepcopy(dane_z_bazy)
         dane_po_odlozeniu['Ilość'] = dane_z_bazy['Ilość'] - data['Ilość']
-        print(f"Dane jakie powinny być w magazynie części PO ODŁOŻENIU", dane_po_odlozeniu)
+        print(f"Dane jakie powinny być w magazynie części po przypisaniu", dane_po_odlozeniu)
 
         # Wykonaj transakcję w jednym żądaniu
         if dane_po_odlozeniu['Ilość'] >= 0 and self.typpojazdu == self.typpojazdu2:
-            # self.delete_item()
+
+            # WALIDACJA DANYCH WYPOSAŻENIA ZA POMOCĄ API
+            try:
+                val_payload = {
+                    'ID Pojazdu': vehicle_data.get('id'),
+                    'Opis': dane_po_odlozeniu['Nazwa elementu'],
+                    'Ilość': data['Ilość']
+                }
+                # Wywołanie endpointu walidacji
+                response = requests.post(f"{self.api_url2}/wyposazenie/validate", json=val_payload)
+                if response.status_code != 200:
+                    # Jeżeli odpowiedź to błąd walidacji
+                    error_message = response.json().get('message', 'Wystąpił błąd walidacji')
+                    QMessageBox.warning(self, "Błąd walidacji", f"{error_message}")
+                    return  # Zatrzymujemy dalsze zapisywanie, bo dane są niepoprawne
+
+            except Exception as e:
+                print(f"Błąd połączenia z serwerem podczas walidacji: {e}")
+                # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+                return
+
+            # WALIDACJA DANYCH CZĘŚCI ZA POMOCĄ API
+            try:
+                # Wywołanie endpointu walidacji
+                response = requests.post(f"{self.api_url}/validate", json=dane_po_odlozeniu)
+                if response.status_code != 200:
+                    # Jeżeli odpowiedź to błąd walidacji
+                    error_message = response.json().get('message', 'Wystąpił błąd walidacji')
+                    QMessageBox.warning(self, "Błąd walidacji", f"{error_message}")
+                    return  # Zatrzymujemy dalsze zapisywanie, bo dane są niepoprawne
+
+            except Exception as e:
+                print(f"Błąd połączenia z serwerem podczas walidacji: {e}")
+                # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+                return
+
             try:
                 print(f"Data to update: {data}")
 
@@ -647,6 +684,9 @@ class EditFrameCzesci(QFrame):
 
                 if response.status_code == 200:
                     print("Część oraz wyposażenie pojazdu zostały zaktualizowane pomyślnie.")
+                    QMessageBox.information(self, "Sukces", "Część oraz wyposażenie pojazdu zostały zaktualizowane pomyślnie.")
+                    self.finished.emit()  # Emitowanie sygnału zakończenia
+                    self.close()
                 else:
                     print(f"Błąd zapytania: {response.status_code}")
                     error_message = response.json().get('error', 'Wystąpił błąd')

@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 
@@ -545,9 +546,185 @@ class EditFrameWyposazenie(QFrame):
             # Obsłuż błędy połączenia (np. brak dostępu do serwera)
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
-
-
     def store_item(self):
+
+        data = {}
+        dane_z_bazy = {}
+        dane_z_bazy_czesci = {}
+        self.api_url2 = self.api_url.replace("/wyposazenie", "")
+
+        print(f'Printuje self.api_url2: {self.api_url2}')
+
+        try:
+            response = requests.get(f'{self.api_url}/show/{self.driver_id}')
+            if response.status_code == 200:
+                # Pobieramy odpowiedź z API
+                dane_z_bazy = response.json()
+            else:
+                print(f"Błąd zapytania: {response.status_code}")
+
+        except Exception as e:
+            print(f"Błąd połączenia z serwerem: {str(e)}")
+
+        print(f"Wyposażenie edytowane: {dane_z_bazy}")
+
+        # Iterujemy przez wszystkie pola w formularzu
+        for field_name, field in self.fields.items():
+            # Sprawdzamy, czy pole jest typu QLineEdit oraz czy zawiera tekst
+            if isinstance(field, QLineEdit):
+                field_value = field.text().strip()
+                print(f"Pole {field_name} ma wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy dane z pola do słownika
+            elif isinstance(field, QComboBox):
+                field_value = field.currentText().strip()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QComboBox do słownika
+            elif isinstance(field, QLabel):
+                field_value = field.text().strip()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QLabel do słownika
+            elif isinstance(field, QSpinBox):
+                field_value = field.value()  # Pobieramy aktualnie wybraną wartość
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")  # Debugowanie
+                data[field_name] = field_value  # Dodajemy wartość z QSpinBox do słownika
+
+        # Zapisz dane w zmiennej instancyjnej
+        self.form_data = data
+        print(f"Dane do odpisania: {self.form_data}")
+        id_pojazdu = data.get('ID Pojazdu')
+        print(f"ID Pojazdu: {id_pojazdu}")
+
+        # Jeśli ID pojazdu zostało podane, wykonaj zapytanie GET do API, aby uzyskać typ pojazdu
+        if id_pojazdu:
+            try:
+                response = requests.get(f'{self.api_url2}/pojazd/typpojazdu/{id_pojazdu}')
+                if response.status_code == 200:
+                    # Pobieramy odpowiedź z API
+                    typ_pojazdu_info = response.json()
+                    typ_pojazdu = typ_pojazdu_info.get('typ_pojazdu')
+                    filtry = {'Typ pojazdu': typ_pojazdu, 'Rodzaj serwisu': 'Wyposażenie'}
+                    params = {
+                        "filter_by": json.dumps(filtry),  # Przekształcamy filtr na JSON
+                        "sort_by": None,  # Dodajemy wartość sortowania
+                        "order": None,  # Dodajemy wartość kierunku sortowania
+                    }
+                    try:
+                        # Wykonanie żądania HTTP GET do API
+                        response = requests.get(f"{self.api_url2}/typserwis/show", params=params)
+                        if response.status_code == 200:
+                            typpojazdu_data = response.json()  # Pobranie danych w formacie JSON
+                            print(f"Response from typserwis/show with filters: {params} !: {typpojazdu_data}")
+                            id_typ_serwisu = int(typpojazdu_data[0]['ID typu serwisu'])
+                            print(f"ID typu serwisu: {id_typ_serwisu}")
+                        else:
+                            QMessageBox.critical(self, "Błąd", f"Błąd API: {response.status_code}")
+                            print(f"Błąd API: {response.status_code}")
+                    except Exception as e:
+                        QMessageBox.critical(self, "Błąd", f"Błąd przy ładowaniu danych: {str(e)}")
+                        print(f"Błąd przy ładowaniu danych: {str(e)}")
+
+                else:
+                    QMessageBox.critical(self, "Błąd", f"Błąd zapytania: {response.status_code}")
+                    print(f"Błąd zapytania: {response.status_code}")
+                    id_typ_serwisu = None
+
+            except Exception as e:
+                QMessageBox.critical(self, "Błąd", f"Błąd połączenia z serwerem: {str(e)}")
+                print(f"Błąd połączenia z serwerem: {str(e)}")
+                id_typ_serwisu = None
+        else:
+            QMessageBox.critical(self, "Błąd", f"Brak ID pojazdu")
+            print("Brak ID pojazdu.")
+            id_typ_serwisu = None
+
+
+        dane_po_odlozeniu = copy.deepcopy(dane_z_bazy)
+        dane_po_odlozeniu['Ilość'] = dane_z_bazy['Ilość'] - data['Ilość']
+        print(f"Dane jakie powinny być w spisie wyposażenia po odłożeniu", dane_po_odlozeniu)
+
+        # Wykonaj transakcję w jednym żądaniu
+        if dane_po_odlozeniu['Ilość'] >= 0:
+
+            # WALIDACJA DANYCH WYPOSAŻENIA ZA POMOCĄ API
+            try:
+                # Wywołanie endpointu walidacji
+                response = requests.post(f"{self.api_url}/validate", json=dane_po_odlozeniu)
+                if response.status_code != 200:
+                    # Jeżeli odpowiedź to błąd walidacji
+                    error_message = response.json().get('message', 'Wystąpił błąd walidacji')
+                    QMessageBox.warning(self, "Błąd walidacji", f"{error_message}")
+                    return  # Zatrzymujemy dalsze zapisywanie, bo dane są niepoprawne
+
+            except Exception as e:
+                print(f"Błąd połączenia z serwerem podczas walidacji: {e}")
+                # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+                return
+
+            # WALIDACJA DANYCH CZĘŚCI ZA POMOCĄ API
+            try:
+                val_payload = {
+                    'idTypSerwisu': id_typ_serwisu,
+                    'Nazwa elementu': data['Opis'],
+                    'Ilość': data['Ilość']
+                }
+                # Wywołanie endpointu walidacji
+                response = requests.post(f"{self.api_url2}/czesc/validate", json=val_payload)
+                if response.status_code != 200:
+                    # Jeżeli odpowiedź to błąd walidacji
+                    error_message = response.json().get('message', 'Wystąpił błąd walidacji')
+                    QMessageBox.warning(self, "Błąd walidacji", f"{error_message}")
+                    return  # Zatrzymujemy dalsze zapisywanie, bo dane są niepoprawne
+
+            except Exception as e:
+                print(f"Błąd połączenia z serwerem podczas walidacji: {e}")
+                # Obsłuż błędy połączenia (np. brak dostępu do serwera)
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+                return
+
+            try:
+
+                # Wywołanie API w celu zaktualizowania części i wyposażenia pojazdu w jednej transakcji
+                transaction_payload = {
+                    'czesc': {
+                        'idTypSerwisu': id_typ_serwisu,
+                        'ilosc': data['Ilość']
+                    },
+                    'wyposazenie': {
+                        'idPojazd': id_pojazdu,
+                        'opis': dane_po_odlozeniu['Opis'],
+                        'ilosc': dane_po_odlozeniu['Ilość']
+                    }
+                }
+
+                # Wywołanie zapytania POST do serwera
+                response = requests.post(f'{self.api_url2}/store_item', json=transaction_payload)
+
+                if response.status_code == 200:
+                    print("Część oraz wyposażenie pojazdu zostały zaktualizowane pomyślnie.")
+                    QMessageBox.information(self, "Sukces", "Część oraz wyposażenie pojazdu zostały zaktualizowane pomyślnie.")
+                    self.finished.emit()  # Emitowanie sygnału zakończenia
+                    self.close()
+                else:
+                    print(f"Błąd zapytania: {response.status_code}")
+                    error_message = response.json().get('error', 'Wystąpił błąd')
+                    QMessageBox.warning(self, "Błąd", f"Błąd zapisu: {error_message}")
+            except requests.exceptions.RequestException as e:
+                print(f"Błąd połączenia z serwerem: {e}")
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+            except Exception as e:
+                print(f"Błąd połączenia z serwerem: {str(e)}")
+                QMessageBox.critical(self, "Błąd", f"Wystąpił nieoczekiwany błąd: {str(e)}")
+
+        elif dane_po_odlozeniu['Ilość'] < 0:
+            QMessageBox.critical(self, "Błąd",
+                                 f"Nie możesz odpisać więcej wyposażenia ({data['Ilość']}) niż istnieje "
+                                 f"({dane_z_bazy['Ilość']}).")
+        else:
+            QMessageBox.critical(self, "Błąd", f"Błąd zamknij okno i spróbuj przypisać ponownie!")
+
+
+    def store_item2(self):
 
         data = {}
         dane_z_bazy = {}
@@ -729,27 +906,6 @@ class EditFrameWyposazenie(QFrame):
                     # Obsłuż błędy połączenia (np. brak dostępu do serwera)
                     QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
-                # # Użyj requests dodania do magazynu
-                # try:
-                #     print(f"Data to update: {data}")
-                #     response = requests.post(f'{self.api_url2}/czesc/add', json=payload)
-                #     print(f'Printuje payload', payload)
-                #     if response.status_code == 200:
-                #         # Jeśli zapis się powiódł, zamknij okno
-                #         self.close_window()
-                #     else:
-                #         # Obsłuż błędy w odpowiedzi
-                #         error_message = response.json().get('message', 'Wystąpił błąd')
-                #         print(f"Błąd zapisu: {error_message}")
-                #         # Tutaj możesz np. pokazać użytkownikowi komunikat o błędzie
-                #         QMessageBox.information(self, "Sukces",
-                #                             f"Wyposażenie zostało przeniesione do magazynu!")
-                #
-                # except requests.exceptions.RequestException as e:
-                #     print(f"Błąd połączenia z serwerem: {e}")
-                #     # Obsłuż błędy połączenia (np. brak dostępu do serwera)
-                #     QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
-
                 try:
                     print(f"Data to update: {data}")
                     # Sprawdzenie, czy część już istnieje
@@ -787,15 +943,6 @@ class EditFrameWyposazenie(QFrame):
                         response = requests.post(f'{self.api_url2}/czesc/add', json=payload)
                         print('Dodaję nową część')
 
-                    # if response.status_code == 200:
-                    #     # Jeśli zapis lub edycja się powiodły, zamknij okno
-                    #     QMessageBox.information(self, "Sukces", "Wyposażenie zostało przeniesione do magazynu!")
-                    #     self.close_window()
-                    # else:
-                    #     # Obsłuż błędy w odpowiedzi
-                    #     error_message = response.json().get('message', 'Wystąpił błąd')
-                    #     print(f"Błąd operacji: {error_message}")
-                    #     QMessageBox.critical(self, "Błąd", f"Wystąpił błąd: {error_message}")
 
                 except requests.exceptions.RequestException as e:
                     print(f"Błąd połączenia z serwerem: {e}")
