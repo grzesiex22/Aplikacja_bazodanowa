@@ -545,6 +545,8 @@ class EditFrameWyposazenie(QFrame):
             # Obsłuż błędy połączenia (np. brak dostępu do serwera)
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
+
+
     def store_item(self):
 
         data = {}
@@ -590,9 +592,10 @@ class EditFrameWyposazenie(QFrame):
 
         # Zapisz dane w zmiennej instancyjnej
         self.form_data = data
-        print(f"Dane zapisane: {self.form_data}")
+        print(f"Dane do przypisania: {self.form_data}")
         id_pojazdu = data.get('ID Pojazdu')
 
+        print(f"ID Pojazdu: {id_pojazdu}")
         # Jeśli ID pojazdu zostało podane, wykonaj zapytanie GET do API, aby uzyskać typ pojazdu
         if id_pojazdu:
             try:
@@ -640,7 +643,7 @@ class EditFrameWyposazenie(QFrame):
 
         dane_po_odlozeniu = data
         dane_po_odlozeniu['Ilość']=dane_z_bazy['Ilość']-data['Ilość']
-        print(f"print DANEEEEEE PO ODŁOŻENIU", dane_po_odlozeniu)
+        print(f"print DANE PO ODŁOŻENIU", dane_po_odlozeniu)
         if dane_po_odlozeniu['Ilość'] == 0:
             self.delete_item()
             try:

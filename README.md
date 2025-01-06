@@ -227,7 +227,25 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - **200 OK**: Zwraca `idCzesc` jeśli część istnieje lub `None` jeśli nie istnieje.
   - **400 Bad Request**: Jeśli nie podano wymaganych parametrów.
   - **500 Internal Server Error**: W przypadku błędu serwera.
+  - 
+---
 
+### `POST /update_part_and_equipment`
+- **Opis**: Aktualizuje dane części w magazynie oraz wyposażenia pojazdu. Funkcja umożliwia edycję lub usunięcie części, a także dodanie lub zaktualizowanie ilości wyposażenia przypisanego do pojazdu.
+- **Parametry w formacie json**:
+  - `ID Pojazdu` (int, wymagany): ID pojazdu, do którego przypisane jest wyposażenie.
+  - `czesc` (dict, wymagany): Dane części do zaktualizowania:
+    - `id` (int, wymagany): ID części.
+    - `nazwa` (string, wymagany): Nazwa części.
+    - `ilosc` (int, wymagany): Ilość części, po przypisaniu.
+  - `wyposazenie` (dict, wymagany): Dane dotyczące wyposażenia pojazdu:
+    - `ilosc` (int, wymagany): Ilość wyposażenia do zaktualizowania lub dodania
+- **Odpowiedzi**:
+  - **200 OK**: Zwraca `idCzesc` jeśli część istnieje lub `None` jeśli nie istnieje.
+  - **400 Bad Request**: Jeśli brakujące są wymagane dane w zapytaniu (np. ID Pojazdu, czesc, wyposazenie).
+  - **401 Bad Request**: Jeśli brak części w magazynie.
+  - **500 Internal Server Error**: W przypadku błędu serwera lub bazy danych.
+  
 ## Endpointy API dla Kierowców
 
 ### `GET /kierowca/show/<int:id>`

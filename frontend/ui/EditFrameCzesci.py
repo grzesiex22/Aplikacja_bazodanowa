@@ -1,3 +1,4 @@
+import copy
 import os
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -563,7 +564,113 @@ class EditFrameCzesci(QFrame):
             # Obsłuż błędy połączenia (np. brak dostępu do serwera)
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
 
+
     def store_item(self, vehicle_data):
+        self.vehicle_data = vehicle_data
+
+        if 'Ciągnik' in self.vehicle_data['name']:
+            self.typpojazdu = 'Ciągnik'
+        elif 'Naczepa' in self.vehicle_data['name']:
+            self.typpojazdu = 'Naczepa'
+
+        data = {}
+        dane_z_bazy = {}
+        dane_z_bazy_czesci = {}
+        self.api_url2 = self.api_url.replace("/czesc", "")
+
+        print(f'Printuje self.api_url2: {self.api_url2}')
+
+        try:
+            response = requests.get(f'{self.api_url2}/czesc/{self.main_id}')
+            if response.status_code == 200:
+                dane_z_bazy = response.json()
+            else:
+                print(f"Błąd zapytania: {response.status_code}")
+        except Exception as e:
+            print(f"Błąd połączenia z serwerem: {str(e)}")
+
+        print(f"Część edytowana: {dane_z_bazy}")
+
+        if 'Ciągnik' in dane_z_bazy['Typ Serwisu']:
+            self.typpojazdu2 = 'Ciągnik'
+        elif 'Naczepa' in dane_z_bazy['Typ Serwisu']:
+            self.typpojazdu2 = 'Naczepa'
+
+        # Iterujemy przez wszystkie pola w formularzu
+        for field_name, field in self.fields.items():
+            # Sprawdzamy, czy pole jest typu QLineEdit oraz czy zawiera tekst
+            if isinstance(field, QLineEdit):
+                field_value = field.text().strip()
+                print(f"Pole {field_name} ma wartość: {field_value}")
+                data[field_name] = field_value
+            elif isinstance(field, QComboBox):
+                field_value = field.currentText().strip()
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")
+                data[field_name] = field_value
+            elif isinstance(field, QLabel):
+                field_value = field.text().strip()
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")
+                data[field_name] = field_value
+            elif isinstance(field, QSpinBox):
+                field_value = field.value()
+                print(f"Pole {field_name} ma wybraną wartość: {field_value}")
+                data[field_name] = field_value
+
+        self.form_data = data
+        print(f"Dane do przypisania: {self.form_data}")
+
+        dane_po_odlozeniu = copy.deepcopy(dane_z_bazy)
+        dane_po_odlozeniu['Ilość'] = dane_z_bazy['Ilość'] - data['Ilość']
+        print(f"Dane jakie powinny być w magazynie części PO ODŁOŻENIU", dane_po_odlozeniu)
+
+        # Wykonaj transakcję w jednym żądaniu
+        if dane_po_odlozeniu['Ilość'] >= 0 and self.typpojazdu == self.typpojazdu2:
+            # self.delete_item()
+            try:
+                print(f"Data to update: {data}")
+
+                # Wywołanie API w celu zaktualizowania części i wyposażenia pojazdu w jednej transakcji
+                transaction_payload = {
+                    'ID Pojazdu': vehicle_data.get('id'),
+                    'czesc': {
+                        'id': dane_z_bazy['ID części'],
+                        'nazwa': dane_po_odlozeniu['Nazwa elementu'],
+                        'ilosc': dane_po_odlozeniu['Ilość']
+                    },
+                    'wyposazenie': {
+                        'ilosc': data.get('Ilość')
+                    }
+                }
+
+                # Wywołanie zapytania POST do serwera
+                response = requests.post(f'{self.api_url2}/update_part_and_equipment', json=transaction_payload)
+
+                if response.status_code == 200:
+                    print("Część oraz wyposażenie pojazdu zostały zaktualizowane pomyślnie.")
+                else:
+                    print(f"Błąd zapytania: {response.status_code}")
+                    error_message = response.json().get('error', 'Wystąpił błąd')
+                    QMessageBox.warning(self, "Błąd", f"Błąd zapisu: {error_message}")
+            except requests.exceptions.RequestException as e:
+                print(f"Błąd połączenia z serwerem: {e}")
+                QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas połączenia z API: {str(e)}")
+            except Exception as e:
+                print(f"Błąd połączenia z serwerem: {str(e)}")
+                QMessageBox.critical(self, "Błąd", f"Wystąpił nieoczekiwany błąd: {str(e)}")
+
+        elif dane_po_odlozeniu['Ilość'] < 0:
+            QMessageBox.critical(self, "Błąd",
+                                 f"Nie możesz przypisać do pojazdu więcej części ({data['Ilość']}) niż posiadasz "
+                                 f"({dane_z_bazy['Ilość']}).")
+        elif self.typpojazdu != self.typpojazdu2:
+            QMessageBox.critical(self, "Błąd", f"Typ pojazdu przypisany do wyposażenia musi zgadzać się z typem "
+                                               f"pojazdu, do którego chcesz przypisać wyposażenie.")
+        else:
+            QMessageBox.critical(self, "Błąd", f"Błąd zamknij okno i spróbuj przypisać ponownie!")
+
+
+
+    def store_item2(self, vehicle_data):
 
         self.vehicle_data = vehicle_data
 
@@ -590,8 +697,7 @@ class EditFrameCzesci(QFrame):
         except Exception as e:
             print(f"Błąd połączenia z serwerem: {str(e)}")
 
-        print("printuje dane z bazy")
-        print(dane_z_bazy)
+        print(f"Wybrana część do przypisania: {dane_z_bazy}")
 
         if 'Ciągnik' in dane_z_bazy['Typ Serwisu']:
             self.typpojazdu2 = 'Ciągnik'

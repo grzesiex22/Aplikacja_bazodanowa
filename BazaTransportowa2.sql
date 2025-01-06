@@ -391,4 +391,4 @@ INSERT INTO `TransportManager2DB`.`Serwis` (`idSerwis`, `idPojazd`, `idTypSerwis
 (DEFAULT, 7, 13, '2024-05-11', 600, 500, 1100, 190000, 'Regeneracja resorów tylnej osi i wymiana tulei gumowych');
 
 COMMIT;
-część
+

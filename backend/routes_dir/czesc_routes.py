@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from Aplikacja_bazodanowa.backend.database import db
-from Aplikacja_bazodanowa.backend.models import Czesc, TypSerwisu
-import re
+from Aplikacja_bazodanowa.backend.models import Czesc, TypSerwisu, WyposazeniePojazdu
+from sqlalchemy.exc import SQLAlchemyError
 
 # Blueprint dla Części
 czesc_bp = Blueprint('czesc', __name__)
@@ -373,3 +373,72 @@ def sprawdz_czesc():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+
+@czesc_bp.route('/update_part_and_equipment', methods=['POST'])
+def update_part_and_equipment():
+    """
+    Funkcja obsługuje żądanie POST pod adresem /update_part_and_equipment.
+    Umożliwia jednoczesną edycję lub usunięcie części w magazynie oraz aktualizację wyposażenia pojazdu.
+
+    Parametry wejściowe (w formacie JSON):
+        - ID Pojazdu (int, wymagany): ID pojazdu, do którego przypisane jest wyposażenie.
+        - czesc (dict, wymagany): Słownik zawierający dane części, które mają zostać zaktualizowane:
+            - id (int, wymagany): ID części.
+            - nazwa (string, wymagany): Nazwa części.
+            - ilosc (int, wymagany): Ilość części jaka zostanie.
+        - wyposazenie (dict, wymagany): Słownik zawierający dane wyposażenia pojazdu:
+            - ilosc (int, wymagany): Ilość przypisaną do pojazdu.
+
+    Returns:
+        Response:
+        - 200 OK: Jeśli operacja zakończy się sukcesem, zwróci komunikat o pomyślnym zaktualizowaniu części i wyposażenia pojazdu.
+        - 400 Bad Request: Jeśli brakuje wymaganych parametrów w zapytaniu lub nie znaleziono części w magazynie.
+        - 401 Bad Request: Jeśli brak części w magazynie.
+        - 500 Internal Server Error: W przypadku błędu serwera.
+    """
+
+    try:
+        # Pobieranie danych z zapytania
+        data = request.get_json()
+
+        pojazd_id = data.get('ID Pojazdu')
+        czesc_data = data.get('czesc')  # Informacje o części
+        wyposazenie_data = data.get('wyposazenie')  # Informacje o wyposazeniuPojazdu
+
+        if not pojazd_id or not czesc_data or not wyposazenie_data:
+            return jsonify({"error": "Brak wymaganych danych"}), 400
+
+        # Rozpoczynamy transakcję
+        with db.session.begin():  # Rozpoczynamy transakcję
+            # Edycja/usuwanie części (Czesc)
+            czesc = Czesc.query.filter_by(idCzesc=czesc_data['id']).first()
+            if czesc:
+                if czesc_data['ilosc'] > 0:
+                    czesc.nazwa = czesc_data['nazwa']
+                    czesc.ilosc = czesc_data['ilosc']
+                else:
+                    db.session.delete(czesc)
+            else:
+                return jsonify({"error": "Brak części w magazynie"}), 401
+
+            # Edycja lub dodanie w WyposazeniePojazdu
+            wyposazenie = WyposazeniePojazdu.query.filter_by(idPojazd=pojazd_id, opis=czesc_data['nazwa']).first()
+            if wyposazenie:
+                wyposazenie.ilosc = wyposazenie.ilosc + wyposazenie_data['ilosc']
+            else:
+                wyposazenie = WyposazeniePojazdu(idPojazd=pojazd_id, opis=czesc_data['nazwa'], ilosc=wyposazenie_data['ilosc'])
+                db.session.add(wyposazenie)
+
+            # Po zakończeniu transakcji, wszystkie zmiany są zatwierdzane
+            db.session.commit()
+
+        return jsonify({"message": "Część oraz wyposażenie pojazdu zostały zaktualizowane pomyślnie."}), 200
+
+    except SQLAlchemyError as e:
+        # Jeśli wystąpił błąd w bazie danych, wycofujemy transakcję
+        db.session.rollback()
+        return jsonify({"error": f"Wystąpił błąd bazy danych: {str(e)}"}), 500
+    except Exception as e:
+        # Obsługa innych błędów
+        return jsonify({"error": f"Wystąpił nieoczekiwany błąd: {str(e)}"}), 500
