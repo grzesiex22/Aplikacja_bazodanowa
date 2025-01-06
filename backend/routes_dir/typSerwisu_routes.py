@@ -13,6 +13,22 @@ typserwis_bp = Blueprint('typserwis', __name__)
 # Pobieranie danych pojedynczego typu serwisu
 @typserwis_bp.route('/typserwis/<int:id>', methods=['GET'])
 def pobierz_typserwis(id):
+    """
+    Endpoint do pobierania szczegółowych informacji o jednym typie serwisu na podstawie jego ID.
+
+    Parametry URL:
+        - id (int): Identyfikator typu serwisu, który ma zostać pobrany.
+
+    Returns:
+        Response:
+            - 200 OK: Zwraca szczegóły typu serwisu:
+                  - idTypSerwisu (int): Identyfikator typu serwisu
+                  - rodzajSerwisu (string): Rodzaj serwisu
+                  - typPojazdu (string): Typ pojazdu
+            - 404 Not Found: Jeśli typ serwisu o podanym ID nie został znaleziony.
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
+
     try:
         typserwis = TypSerwisu.query.get(id)
         if typserwis is None:
@@ -28,6 +44,18 @@ def pobierz_typserwis(id):
 # Pobieranie listy wszystkich typów serwisów
 @typserwis_bp.route('/typserwisy', methods=['GET'])
 def pobierz_wszystkie_typy_serwisow():
+    """
+    Endpoint do pobierania szczegółowych informacji o wszystkich typach serwisów.
+
+    Returns:
+        Response:
+            - 200 OK: Zwraca listę typów serwisów:
+                  - idTypSerwisu (int): Identyfikator typu serwisu
+                  - rodzajSerwisu (string): Rodzaj serwisu
+                  - typPojazdu (string): Typ pojazdu
+            - 404 Not Found: Jeśli typ serwisu o podanym ID nie został znaleziony.
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
     try:
         typy_serwisow = TypSerwisu.query.all()
         wynik = []
@@ -41,22 +69,22 @@ def pobierz_wszystkie_typy_serwisow():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Pobieranie listy wszystkich kierowców
-@typserwis_bp.route('/typserwisu/show/alltochoice', methods=['GET'])
-def pobierz_wszystkich_kierowcow_do_okna_wyboru():
-    try:
-        typyserwisow = TypSerwisu.query.all()
-        wynik = []
-        for typserwisu in typyserwisow:
-            data = {'ID': typserwisu.idTypSerwisu, 'data': f"{typserwisu.rodzajSerwisu}"}
-            wynik.append(data)
-        return jsonify(wynik), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-# Dodawanie nowego typu serwisu
 @typserwis_bp.route('/typserwis', methods=['POST'])
 def dodaj_typserwis():
+    """
+    Endpoint do dodawania nowego typu serwisu.
+
+    Parametry wejściowe w formacie JSON:
+        - rodzajSerwisu (str, wymagany): Rodzaj serwisu.
+        - typPojazdu (str, wymagany): Typ pojazdu ("Ciągnik" lub "Naczepa").
+
+    Returns:
+        Response:
+            - 201 Created: Jeśli typ serwisu został dodany pomyślnie.
+            - 400 Bad Request: W przypadku błędnych danych wejściowych, np. brak wymaganych pól lub niewłaściwy typ pojazdu.
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
     data = request.get_json()
     try:
         # Walidacja danych wejściowych
@@ -76,9 +104,21 @@ def dodaj_typserwis():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-# Usuwanie typu serwisu
+
 @typserwis_bp.route('/typserwis/<int:id>', methods=['DELETE'])
 def usun_typserwis(id):
+    """
+    Endpoint do usuwania typu serwisu na podstawie identyfikatora.
+
+    Parametry URL:
+        - id (int): Identyfikator typu serwisu, który ma zostać usunięty.
+
+    Returns:
+        Response:
+            - 200 OK: Jeśli typ serwisu został usunięty pomyślnie.
+            - 404 Not Found: Jeśli typ serwisu o podanym identyfikatorze nie został znaleziony.
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
     try:
         typserwis = TypSerwisu.query.get(id)
         if typserwis is None:
@@ -90,9 +130,25 @@ def usun_typserwis(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-# Edytowanie danych typu serwisu
+
 @typserwis_bp.route('/typserwis/<int:id>', methods=['PUT'])
 def edytuj_typserwis(id):
+    """
+    Endpoint do usuwania typu serwisu na podstawie identyfikatora.
+
+    Parametry URL:
+        - id (int): Identyfikator typu serwisu, który ma zostać usunięty.
+    Parametry wejściowe w formacie JSON:
+        - rodzajSerwisu (str, opcjonalny): Rodzaj serwisu.
+        - typPojazdu (str, opcjonalny): Typ pojazdu ("Ciągnik" lub "Naczepa").
+
+    Returns:
+        Response:
+            - 200 OK: Jeśli typ serwisu został usunięty pomyślnie.
+            - 404 Not Found: Jeśli typ serwisu o podanym identyfikatorze nie został znaleziony.
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
+
     data = request.get_json()
     try:
         typserwis = TypSerwisu.query.get(id)
@@ -116,37 +172,22 @@ def edytuj_typserwis(id):
         return jsonify({'error': str(e)}), 500
 
 
-
-# @typserwis_bp.route('/typserwis/show/alltochoice', methods=['GET'])
-# def pobierz_wszystkie_typyserwisu_do_okna_wyboru():
-#     try:
-#         typySerwisu = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
-#         wynik = []
-#         for typSerwisu in typySerwisu:
-#             if typSerwisu.rodzajSerwisu != 'Wyposażenie':
-#                 data = {'ID': typSerwisu.idTypSerwisu, 'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
-#                 wynik.append(data)
-#         return jsonify(wynik), 200
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
-#
-# @typserwis_bp.route('/typserwis/show/alltochoice', methods=['GET'])
-# def pobierz_wszystkie_typyserwisu_do_okna_wyboru():
-#     try:
-#         typySerwisu = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
-#         wynik = []
-#         for typSerwisu in typySerwisu:
-#             if typSerwisu.rodzajSerwisu == 'Wyposażenie':
-#                 data = {'ID': typSerwisu.idTypSerwisu,
-#                         'data': f"{typSerwisu.typPojazdu}, {typSerwisu.rodzajSerwisu}"}
-#                 wynik.append(data)
-#         return jsonify(wynik), 200
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
-
-
 @typserwis_bp.route('/typserwis/show/alltochoice', methods=['GET'])
 def pobierz_wszystkie_typyserwisu_do_okna_wyboru():
+    """
+    Endpoint do pobierania listy typów serwisów przeznaczonej do wyboru, z możliwością filtrowania czy ma być tylko
+    rodzaj wyposażenie, czy wszystko oprócz niego.
+
+    Parametry wejściowe:
+        - withWyposażenie (bool, opcjonalny): Jeśli 'true', zwróci tylko rekordy z rodzajem serwisu 'Wyposażenie'. Domyślnie 'false'.
+
+    Returns:
+        Response:
+            - 200 OK: Zwraca listę typów serwisów:
+                - ID (int): Identyfikator typu serwisu
+                - data (string): Połączenie - Typ pojazdu, rodzaj serwisu
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
     try:
         # Pobieranie parametru from query string
         with_wyposażenie = request.args.get('withWyposażenie', 'false').lower() == 'true'
@@ -171,9 +212,18 @@ def pobierz_wszystkie_typyserwisu_do_okna_wyboru():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @typserwis_bp.route('/typserwis/show/alltochoice2', methods=['GET'])
 def pobierz_wszystkie_typyserwisu_do_okna_wyboru2():
+    """
+    Endpoint do pobierania listy typów serwisów przeznaczonej do wyboru.
+
+    Returns:
+        Response:
+            - 200 OK: Zwraca listę typów serwisów:
+                - ID (int): Identyfikator typu serwisu
+                - data (string): Połączenie - Typ pojazdu, rodzaj serwisu
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
     try:
         typySerwisu = TypSerwisu.query.order_by(TypSerwisu.typPojazdu.asc(), TypSerwisu.rodzajSerwisu.asc()).all()
         wynik = []
@@ -187,6 +237,23 @@ def pobierz_wszystkie_typyserwisu_do_okna_wyboru2():
 
 @typserwis_bp.route('/typserwis/show', methods=['GET'])
 def pobierz_i_sortuj_typy_serwisu():
+    """
+    Endpoint do pobierania i sortowania typów serwisów z możliwością filtrowania według różnych kryteriów.
+
+    Parametry zapytania:
+        - filter_by (json, opcjonalny): Parametr do filtrowania danych w formacie JSON.
+        - sort_by (string, opcjonalny): Kolumna, po której serwisy mają zostać posortowane (domyślnie 'ID typu serwisu').
+        - order (string, opcjonalny): Kierunek sortowania, 'asc' dla rosnącego, 'desc' dla malejącego (domyślnie 'asc').
+
+    Returns:
+        Response:
+            - 200 OK: Zwraca przefiltrowane i posortowane typy serwisów:
+                  - ID typu serwisu (int): Identyfikator typu serwisu
+                  - Rodzaj serwisu (string): Rodzaj serwisu
+                  - Typ pojazdu (string): Typ pojazdu
+            - 500 Internal Server Error: W przypadku błędu serwera.
+    """
+
     # Pobierz parametry zapytania
     filter_by = request.args.get('filter_by', '{}')  # Filtrowanie - jest to słownik
     sort_by = request.args.get('sort_by', 'ID typu serwisu')  # Sortowanie po `idTypSerwisu` domyślnie

@@ -16,6 +16,29 @@ serwis_bp = Blueprint('serwis', __name__)
 # Pobieranie pojedynczego serwisu
 @serwis_bp.route('/serwis/show/<int:id>', methods=['GET'])
 def pobierz_serwis(id):
+    """
+    Endpoint do pobierania szczegółowych informacji o serwisie na podstawie jego unikalnego identyfikatora.
+
+    Parametry URL:
+        - id (int): Identyfikator serwisu, którego szczegóły chcemy pobrać.
+
+    Returns:
+        Response:
+        - 200 OK: Zwraca dane serwisu, w tym:
+            - ID serwisu
+            - ID pojazdu
+            - ID typu serwisu
+            - Dane pojazdu (typ, marka, model, numer rejestracyjny)
+            - Typ serwisu (np. Ciągnik, Klimatyzacja)
+            - Data serwisu
+            - Przebieg
+            - Koszt robocizny
+            - Cena części netto
+            - Koszt całkowity netto
+            - Dodatkowe informacje
+        - 404 Not Found: Jeśli serwis o podanym identyfikatorze nie został znaleziony.
+        - 500 Internal Server Error: W przypadku błędu serwera.
+    """
     try:
         # Pobranie widoku serwisu z bazy danych na podstawie podanego ID
         serwis = Serwis.query.get(id)
@@ -38,6 +61,32 @@ def pobierz_serwis(id):
 # Pobieranie pojedynczego serwisu
 @serwis_bp.route('/serwiswidok/show/<int:id>', methods=['GET'])
 def pobierz_serwis_widok(id):
+    """
+    Endpoint do pobierania szczegółowych informacji o widoku serwisu na podstawie jego unikalnego identyfikatora.
+
+    Parametry URL:
+        - id (int): Identyfikator serwisu, którego szczegóły chcemy pobrać.
+
+    Returns:
+        Response:
+        - 200 OK: Zwraca dane serwisu, w tym:
+            - ID serwisu
+            - ID pojazdu
+            - Typ pojazdu (np. Ciągnik)
+            - Marka pojazdu (np. Volvo)
+            - Model pojazdu (np. FH16)
+            - Numer rejestracyjny (np. PO12345)
+            - Typ serwisu (np. Klimatyzacja)
+            - Data serwisu (np. 05-09-2024)
+            - Przebieg (np. 180000 km)
+            - Koszt robocizny (np. 300)
+            - Cena części netto (np. 750)
+            - Koszt całkowity netto (np. 1050)
+            - Dodatkowe informacje (np. Regeneracja sprężarki klimatyzacji)
+        - 404 Not Found: Jeśli serwis o podanym identyfikatorze nie został znaleziony.
+        - 500 Internal Server Error: W przypadku błędu serwera.
+
+    """
     try:
         # Pobranie widoku serwisu z bazy danych na podstawie podanego ID
         serwis = SerwisWidok.query.get(id)
@@ -56,9 +105,31 @@ def pobierz_serwis_widok(id):
         return jsonify({'error': str(e)}), 500
 
 
-# Pobieranie wszystkich serwisów z możliwością filtrowania
 @serwis_bp.route('/serwiswidok/show/all', methods=['GET'])
 def pobierz_serwisy_widok():
+    """
+    Endpoint do pobierania listy wszystkich serwisów w widoku.
+
+    Returns:
+        Response:
+        - 200 OK: Zwraca listę serwisów w formacie JSON, w tym dla każdego serwisu:
+            - ID serwisu
+            - ID pojazdu
+            - Typ pojazdu
+            - Marka
+            - Model
+            - Numer rejestracyjny
+            - Typ serwisu
+            - Data serwisu
+            - Przebieg
+            - Koszt robocizny
+            - Cena części netto
+            - Koszt całkowity netto
+            - Dodatkowe informacje
+        - 404 Not Found: Jeśli żaden serwis nie został znaleziony.
+        - 500 Internal Server Error: W przypadku błędu serwera.
+    """
+
     try:
         # Pobranie widoku serwisów z bazy danych na podstawie podanego ID
         serwisy = SerwisWidok.query.all()
@@ -80,9 +151,6 @@ def pobierz_serwisy_widok():
         return jsonify({'error': str(e)}), 500
 
 
-# @serwis_bp.route('/serwis/filtry', methods=['GET'])
-# def jakie_filtry_dla_serwisow():
-
 
 # Dodawanie nowego serwisu
 @serwis_bp.route('/serwis/add', methods=['POST'])
@@ -90,9 +158,22 @@ def dodaj_serwis():
     """
     Endpoint do dodawania nowego serwisu do bazy danych.
 
+    Parametry w formacie JSON:
+        - ID pojazdu (int, wymagane): ID pojazdu, którego dotyczy serwis.
+        - ID typu serwisu (int, wymagane): ID typu serwisu (np. Klimatyzacja, Silnik).
+        - Data serwisu (string, wymagane): Data wykonania serwisu w formacie 'dd-mm-yyyy'.
+        - Cena części netto (int, opcjonalny): Koszt części użytych w serwisie (w netto).
+        - Koszt robocizny (int, opcjonalny): Koszt robocizny w serwisie (w netto).
+        - Koszt całkowity netto (int, opcjonalny): Całkowity koszt serwisu (w netto).
+            - Jeśli nie podano, zostanie automatycznie obliczony na podstawie ceny części i kosztu robocizny.
+        - Przebieg (int, wymagane): Przebieg pojazdu w momencie serwisu.
+        - Dodatkowe informacje (string, opcjonalny): Dodatkowe szczegóły dotyczące serwisu.
+
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP, 201 dla sukcesu (dodanie serwisu), 500 w przypadku błędu.
+        Response:
+            - 201 Created: Serwis został pomyślnie dodany do bazy danych.
+            - 400 Bad Request: W przypadku błędu walidacji danych wejściowych.
+            - 500 Internal Server Error: W przypadku błędu systemowego podczas dodawania serwisu.
     """
 
     try:
@@ -122,12 +203,15 @@ def usun_serwis(id):
     """
     Endpoint do usuwania serwisu z bazy danych na podstawie jego ID.
 
-    Parametry:
+    Parametry URL:
         id (int): ID serwisu do usunięcia.
 
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP - 200 w przypadku sukcesu (usunięcie serwisu), 404, jeśli serwis nie znaleziony, 500 w przypadku błędu.
+        Response:
+          - 200 OK: Serwis został pomyślnie usunięty.
+          - 404 Not Found: Serwis o podanym identyfikatorze nie został znaleziony.
+          - 500 Internal Server Error: W przypadku błędu serwera.
+
     """
     try:
         # Pobranie serwisu na podstawie ID
@@ -150,13 +234,26 @@ def edytuj_serwis(id):
     """
     Endpoint do edytowania danych serwisu na podstawie jego ID.
 
-    Parametry:
-        id (int): ID serwisu, który ma zostać edytowany.
+    Parametry URL:
+        - id (int): ID serwisu, który ma zostać edytowany.
+
+    Parametry w formacie JSON:
+        - ID pojazdu (int, opcjonalny): ID pojazdu, którego dotyczy serwis.
+        - ID typu serwisu (int, opcjonalny): ID typu serwisu (np. Klimatyzacja, Silnik).
+        - Data serwisu (string, opcjonalny): Data wykonania serwisu w formacie `dd-mm-yyyy`.
+        - Cena części netto (int, opcjonalny): Koszt części użytych w serwisie (w netto).
+        - Koszt robocizny (int, opcjonalny): Koszt robocizny w serwisie (w netto).
+        - Koszt całkowity netto (int, opcjonalny): Całkowity koszt serwisu (w netto). Jeśli nie podano, zostanie obliczony automatycznie.
+        - Przebieg (int, opcjonalny): Przebieg pojazdu w momencie serwisu.
+        - Dodatkowe informacje (string, opcjonalny): Dodatkowe szczegóły dotyczące serwisu.
 
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o sukcesie lub błędzie.
-        int: Kod statusu HTTP, 200 w przypadku sukcesu (aktualizacja serwisu), 404, jeśli serwis nie znaleziony, 500 w przypadku błędu.
+        Response:
+            - 200 OK: Dane serwisu zostały pomyślnie zaktualizowane.
+            - 404 Not Found: Serwis o podanym identyfikatorze nie został znaleziony.
+            - 500 Internal Server Error: Wystąpił błąd podczas próby aktualizacji danych serwisu.
     """
+
     data = request.get_json()  # Pobieramy dane wejściowe w formacie JSON
 
     # Deserializacja danych wejściowych do obiektu
@@ -193,22 +290,20 @@ def edytuj_serwis(id):
 @serwis_bp.route('/serwiswidok/filtry', methods=['GET'])
 def jakie_filtry_dla_widoku_serwisu():
     """
-    Endpoint do pobierania dostępnych filtrów dla serwisów z możliwością filtrowania według rodzaju serwisu
-    oraz według innych kryteriów, takich jak dane kierowcy.
+    Endpoint do pobierania dostępnych unikalnych filtrów dla widoku serwisów dla podanej kolumny.
 
-    W przyupadku "Dane kierowcy" zwraca JSON którego elementy to słowniki: {'ID': ... , 'data': ....}
-
-    Parametry zapytania:
-        Typ serwisu (str, opcjonalny): Typ serwisu, według którego chcemy filtrować wyniki. (domyślnie: None)
-        filtr (str): Przyjazna nazwa filtru określająca, według której kolumny chcemy filtrować.
+    Parametry wejściowe:
+        - filtr (str, opcjonalny): Przyjazna nazwa filtru, według której kolumny chcemy filtrować (np. 'Typ serwisu', 'Dane pojazdu').
+          Jeśli parametr nie zostanie przekazany, zwróci wszystkie dostępne filtry.
 
     Returns:
-        Tuple[Response, int]: Krotka zawierająca:
-            - Response (JSON) : zawiera listę zserializowanych danych serwisów, jeśli znaleziono serwisy.
-            - Code (int) : Kod statusu HTTP, np. 200 dla sukcesu lub 500, jeśli wystąpił błąd serwera.
+        Response:
+            - 200 OK: Zwraca listę unikalnych wartości dla zadanego filtra (np. lista rodzajów serwisów, dane pojazdu).
+            - 400 Bad Request: Błąd, gdy nie udało się znaleźć kolumny do filtrowania w bazie danych (np. niepoprawna nazwa filtru).
+            - 500 Internal Server Error: Wystąpił błąd serwera przy przetwarzaniu zapytania.
     """
     # Pobranie parametrów zapytania z URL (typ filtru - kolumna)
-    typ_filtru = request.args.get('filtr')
+    typ_filtru = request.args.get('filtr', None)
 
     print(f"api: pobierz_filtry_dla_serwisy")
     print(f"Pobrany typ filtru {typ_filtru}")
@@ -271,20 +366,34 @@ def jakie_filtry_dla_widoku_serwisu():
         return jsonify({'error': str(e)}), 500
 
 
-
 @serwis_bp.route('/serwiswidok/show', methods=['GET'])
 def pobierz_i_sortuj_widok_serwisów():
     """
-    Endpoint do pobierania i sortowania serwisów z możliwością filtrowania według różnych kryteriów.
+    Endpoint do pobierania serwisów z możliwością filtrowania i sortowania według różnych kryteriów.
 
-    Parametry zapytania:
-        filter_by (str): Filtr do zastosowania w zapytaniu, przekazany jako słownik JSON (domyślnie '{}').
-        sort_by (str): Nazwa kolumny, po której serwisy mają zostać posortowane (domyślnie 'ID serwisu').
-        order (str): Kierunek sortowania - 'asc' dla rosnącego, 'desc' dla malejącego (domyślnie 'asc').
+    Parametry wejściowe:
+        - filter_by (str, opcjonalny): Filtr w formacie JSON, który pozwala na filtrowanie danych.
+          Przykładowy format: `{"Typ serwisu": ["Naprawa", "Przegląd"], "Data serwisu": {"Od": "01-01-2020", "Do": "31-12-2020"}}`.
+        - sort_by (str, opcjonalny): Kolumna, po której ma nastąpić sortowanie (domyślnie 'ID serwisu').
+        - order (str, opcjonalny): Kierunek sortowania - 'asc' dla rosnącego, 'desc' dla malejącego (domyślnie 'asc').
 
     Returns:
-        Response: Lista serwisów w formacie JSON, posortowana i przefiltrowana zgodnie z parametrami zapytania.
-        int: Kod statusu HTTP, 200 w przypadku sukcesu, 500 w przypadku błędu.
+        Response:
+            - 200 OK: Zwraca przefiltrowane i posortowane dane serwisów w formacie JSON:
+                - ID serwisu
+                - ID pojazdu
+                - Typ pojazdu
+                - Marka
+                - Model
+                - Numer rejestracyjny
+                - Typ serwisu
+                - Data serwisu
+                - Przebieg
+                - Koszt robocizny
+                - Cena części netto
+                - Koszt całkowity netto
+                - Dodatkowe informacje
+            - 500 Internal Server Error: Wystąpił błąd podczas przetwarzania zapytania.
     """
 
     # Pobieramy poszczególne parametry zapytania
@@ -407,10 +516,23 @@ def validate_serwis():
     """
     Endpoint do walidacji danych serwisu przed dodaniem lub edytowaniem.
 
+    Parametry w formacie JSON:
+        - ID pojazdu (int, opcjonalne): ID pojazdu, którego dotyczy serwis.
+        - ID typu serwisu (int, opcjonalne): ID typu serwisu (np. Klimatyzacja, Silnik).
+        - Data serwisu (string, opcjonalne): Data wykonania serwisu w formacie 'dd-mm-yyyy'.
+        - Cena części netto (int, opcjonalne): Koszt części użytych w serwisie (w netto).
+        - Koszt robocizny (int, opcjonalne): Koszt robocizny w serwisie (w netto).
+        - Koszt całkowity netto (int, opcjonalne): Całkowity koszt serwisu (w netto).
+            - Jeśli nie podano, zostanie automatycznie obliczony na podstawie ceny części i kosztu robocizny.
+        - Przebieg (int, opcjonalne): Przebieg pojazdu w momencie serwisu.
+        - Dodatkowe informacje (string, opcjonalne): Dodatkowe szczegóły dotyczące serwisu.
+
     Returns:
-        Response: Odpowiedź w formacie JSON z komunikatem o błędzie, jeśli dane są niepoprawne, lub potwierdzeniem poprawności danych.
-        int: Kod statusu HTTP - 200, jeśli dane są poprawne - 400, jeśli dane są błędne.
+        Response:
+            - 200 OK: Walidacja zakończona pomyślnie, dane są poprawne.
+            - 400 Bad Request: Błąd walidacji danych, zwrócone szczegóły błędu w formacie JSON.
     """
+
     data = request.get_json()  # Pobieramy dane wejściowe w formacie JSON
     print(f"Data in validation api: {data}")
 

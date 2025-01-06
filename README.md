@@ -526,7 +526,18 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Parametry URL**:
   - `id` (int): Identyfikator serwisu w URL.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca dane serwisu.
+  - **200 OK**: Zwraca dane serwisu:
+    - `ID serwisu`
+    - `ID pojazdu`
+    - `ID typu serwisu`
+    - `Dane pojazdu`
+    - `Typ serwisu`
+    - `Data serwisu`
+    - `Przebieg`
+    - `Koszt robocizny`
+    - `Cena części netto`
+    - `Koszt całkowity netto`
+    - `Dodatkowe informacje`
   - **404 Not Found**: Jeśli serwis o podanym identyfikatorze nie został znaleziony.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
@@ -537,7 +548,20 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Parametry URL**:
   - `id` (int): Identyfikator serwisu widoku w URL.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca dane serwisu widoku.
+  - **200 OK**: Zwraca dane serwisu:
+    - `ID serwisu`
+    - `ID pojazdu`
+    - `Typ pojazdu`
+    - `Marka pojazdu`
+    - `Model pojazdu`
+    - `Numer rejestracyjny`
+    - `Typ serwisu`
+    - `Data serwisu`
+    - `Przebieg`
+    - `Koszt robocizny`
+    - `Cena części netto`
+    - `Koszt całkowity netto`
+    - `Dodatkowe informacje`  
   - **404 Not Found**: Jeśli serwis widoku o podanym identyfikatorze nie został znaleziony.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
@@ -546,7 +570,20 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 ### `GET /serwiswidok/show/all`
 - **Opis**: Pobiera listę wszystkich serwisów widoków.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca listę serwisów widoków.
+  - **200 OK**: Zwraca listę serwisów widoków:
+    - `ID serwisu`
+    - `ID pojazdu`
+    - `Typ pojazdu`
+    - `Marka pojazdu`
+    - `Model pojazdu`
+    - `Numer rejestracyjny`
+    - `Typ serwisu`
+    - `Data serwisu`
+    - `Przebieg`
+    - `Koszt robocizny`
+    - `Cena części netto`
+    - `Koszt całkowity netto`
+    - `Dodatkowe informacje` 
   - **404 Not Found**: Brak serwisów widoków.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
@@ -554,7 +591,15 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `POST /serwis/add`
 - **Opis**: Dodaje nowy serwis do bazy danych.
-- **Parametry**: Dane serwisu w formacie JSON.
+- **Parametry w formacie JSON**: Dane serwisu:
+  - `ID pojazdu` (int, wymagane): ID pojazdu, którego dotyczy serwis.
+  - `ID typu serwisu` (int, wymagane): ID typu serwisu (np. Klimatyzacja, Silnik).
+  - `Data serwisu` (string, wymagane): Data wykonania serwisu w formacie dd-mm-yyyy.
+  - `Cena części netto` (int, opcjonalny): Koszt części użytych w serwisie (w netto).
+  - `Koszt robocizny` (int, opcjonalny): Koszt robocizny w serwisie (w netto).
+  - `Koszt całkowity` netto (int, opcjonalny): Całkowity koszt serwisu (w netto). Jeśli nie podano, zostanie automatycznie obliczony na podstawie ceny części i kosztu robocizny.
+  - `Przebieg` (int, wymagane): Przebieg pojazdu w momencie serwisu.
+  - `Dodatkowe informacje` (string, opcjonalny): Dodatkowe szczegóły dotyczące serwisu.
 - **Odpowiedzi**:
   - **201 Created**: Serwis został pomyślnie dodany.
   - **400 Bad Request**: Nieprawidłowy format danych.
@@ -577,7 +622,15 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Opis**: Edytuje dane serwisu na podstawie jego identyfikatora `id`.
 - **Parametry URL**:
   - `id` (int): Identyfikator serwisu w URL.
-  - Dane serwisu w formacie JSON.
+- **Parametry w formacie JSON**: Dane serwisu:
+  - `ID pojazdu` (int, opcjonalny): ID pojazdu, którego dotyczy serwis.
+  - `ID typu serwisu` (int, opcjonalny): ID typu serwisu (np. Klimatyzacja, Silnik).
+  - `Data serwisu` (string, opcjonalny): Data wykonania serwisu w formacie dd-mm-yyyy.
+  - `Cena części netto` (int, opcjonalny): Koszt części użytych w serwisie (w netto).
+  - `Koszt robocizny` (int, opcjonalny): Koszt robocizny w serwisie (w netto).
+  - `Koszt całkowity` netto (int, opcjonalny): Całkowity koszt serwisu (w netto). Jeśli nie podano, zostanie automatycznie obliczony na podstawie ceny części i kosztu robocizny.
+  - `Przebieg` (int, opcjonalny): Przebieg pojazdu w momencie serwisu.
+  - `Dodatkowe informacje` (string, opcjonalny): Dodatkowe szczegóły dotyczące serwisu.
 - **Odpowiedzi**:
   - **200 OK**: Serwis został zaktualizowany.
   - **404 Not Found**: Serwis o podanym identyfikatorze nie został znaleziony.
@@ -586,12 +639,13 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 ---
 
 ### `GET /serwiswidok/filtry`
-- **Opis**: Pobiera dostępne filtry dla serwisów widok.
+- **Opis**: Pobiera dostępne unikalne filtry dla serwisów widok dla podanej kolumny.
 - **Parametry**:
   - `filtr` (string, opcjonalny): Opcjonalny filtr do wyszukiwania po kolumnach.
 - **Odpowiedzi**:
   - **200 OK**: Zwraca dostępne filtry.
   - **400 Bad Request**: Błąd przy mapowaniu kolumny.
+  - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
 
@@ -602,14 +656,36 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - `sort_by` (string, opcjonalny): Kolumna do sortowania (domyślnie `ID serwisu`).
   - `order` (string, opcjonalny): Kierunek sortowania (`asc` lub `desc`).
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca przefiltrowane i posortowane serwisy.
+  - **200 OK**: Zwraca przefiltrowane i posortowane serwisy jako lista zawierająca słowniki:
+    - `ID serwisu`
+    - `ID pojazdu`
+    - `Typ pojazdu`
+    - `Marka pojazdu`
+    - `Model pojazdu`
+    - `Numer rejestracyjny`
+    - `Typ serwisu`
+    - `Data serwisu`
+    - `Przebieg`
+    - `Koszt robocizny`
+    - `Cena części netto`
+    - `Koszt całkowity netto`
+    - `Dodatkowe informacje` 
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
 
 ### `POST /serwis/validate`
 - **Opis**: Waliduje dane serwisu przed dodaniem lub edytowaniem.
-- **Parametry**: Dane serwisu w formacie JSON.
+- **Parametry w formacie JSON**: Dane serwisu w formacie JSON:
+  - `ID pojazdu` (int, opcjonalne): ID pojazdu, którego dotyczy serwis.
+  - `ID typu serwisu` (int, opcjonalne): ID typu serwisu (np. Klimatyzacja, Silnik).
+  - `Data serwisu` (string, opcjonalne): Data wykonania serwisu w formacie dd-mm-yyyy.
+  - `Cena części netto` (int, opcjonalne): Koszt części użytych w serwisie (w netto).
+  - `Koszt robocizny` (int, opcjonalne): Koszt robocizny w serwisie (w netto).
+  - `Koszt całkowity` netto (int, opcjonalne): Całkowity koszt serwisu (w netto). Jeśli nie podano, zostanie automatycznie obliczony na podstawie ceny części i kosztu robocizny.
+  - `Przebieg` (int, opcjonalne): Przebieg pojazdu w momencie serwisu.
+  - `Dodatkowe informacje` (string, opcjonalne): Dodatkowe szczegóły dotyczące serwisu.
+
 - **Odpowiedzi**:
   - **200 OK**: Walidacja zakończona pomyślnie.
   - **400 Bad Request**: Błąd walidacji danych (np. brak wymaga
@@ -621,7 +697,10 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Parametry URL**:
   - `id` (int): Identyfikator typu serwisu w URL.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca dane typu serwisu.
+  - **200 OK**: Zwraca dane typu serwisu:
+    - `idTypSerwisu` (int): Identyfikator typu serwisu
+    - `rodzajSerwisu` (string): Rodzaj serwisu
+    - `typPojazdu` (string): Typ pojazdu
   - **404 Not Found**: Jeśli typ serwisu o podanym identyfikatorze nie został znaleziony.
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
@@ -630,22 +709,19 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 ### `GET /typserwisy`
 - **Opis**: Pobiera listę wszystkich typów serwisów.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca listę wszystkich typów serwisów.
-  - **500 Internal Server Error**: W przypadku błędu serwera.
-
----
-
-### `GET /typserwis/show/alltochoice`
-- **Opis**: Pobiera listę wszystkich typów serwisów w formacie przeznaczonym do wyboru (z ID i nazwą serwisu).
-- **Odpowiedzi**:
-  - **200 OK**: Zwraca listę typów serwisów.
+  - **200 OK**: Zwraca listę wszystkich typów serwisów:
+    - `idTypSerwisu` (int): Identyfikator typu serwisu
+    - `rodzajSerwisu` (string): Rodzaj serwisu
+    - `typPojazdu` (string): Typ pojazdu
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
 
 ### `POST /typserwis`
 - **Opis**: Dodaje nowy typ serwisu do bazy danych.
-- **Parametry**: Dane typu serwisu w formacie JSON.
+- **Parametry w formacie JSON**: Dane typu serwisu:
+    - `rodzajSerwisu` (str, wymagany): Rodzaj serwisu.
+    - `typPojazdu` (str, wymagany): Typ pojazdu ("Ciągnik" lub "Naczepa").
 - **Odpowiedzi**:
   - **201 Created**: Typ serwisu został pomyślnie dodany.
   - **400 Bad Request**: Nieprawidłowy format danych (np. brak `rodzajSerwisu` lub nieprawidłowy `typPojazdu`).
@@ -668,7 +744,9 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Opis**: Edytuje dane typu serwisu na podstawie jego identyfikatora `id`.
 - **Parametry URL**:
   - `id` (int): Identyfikator typu serwisu w URL.
-  - Dane typu serwisu w formacie JSON.
+- **Parametry w formacie JSON**: Dane typu serwisu:
+    - `rodzajSerwisu` (str, opcjonalny): Rodzaj serwisu.
+    - `typPojazdu` (str, opcjonalny): Typ pojazdu ("Ciągnik" lub "Naczepa").
 - **Odpowiedzi**:
   - **200 OK**: Typ serwisu został zaktualizowany.
   - **404 Not Found**: Typ serwisu o podanym identyfikatorze nie został znaleziony.
@@ -676,10 +754,24 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ---
 
-### `GET /typserwis/show/alltochoice2`
-- **Opis**: Pobiera listę wszystkich typów serwisów w formacie przeznaczonym do wyboru (ID i dane o pojazdach i rodzajach serwisów).
+### `GET /typserwis/show/alltochoice`
+- **Opis**: Pobiera listę wszystkich typów serwisów w formacie przeznaczonym do wyboru (z ID i nazwą typu serwisu).
+- **Parametry**: Dane typu serwisu:
+    - `withWyposażenie` (bool, opcjonalny): Jeśli 'true', zwróci tylko rekordy z rodzajem serwisu 'Wyposażenie'. Domyślnie 'false'.
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca listę typów serwisów.
+  - **200 OK**: Zwraca listę typów serwisów:
+    - `ID` (int): Identyfikator typu serwisu
+    - `data` (string): Typ pojazdu, rodzaj serwisu
+  - **500 Internal Server Error**: W przypadku błędu serwera.
+
+---
+
+### `GET /typserwis/show/alltochoice2`
+- **Opis**: Pobiera listę wszystkich typów serwisów w formacie przeznaczonym do wyboru (ID i nazwą typu serwisu).
+- **Odpowiedzi**:
+  - **200 OK**: Zwraca listę typów serwisów:
+    - `ID` (int): Identyfikator typu serwisu
+    - `data` (string): Typ pojazdu, rodzaj serwisu
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
@@ -692,6 +784,9 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
   - `order` (string, opcjonalny): Kierunek sortowania (`asc` lub `desc`, domyślnie `asc`).
 - **Odpowiedzi**:
   - **200 OK**: Zwraca listę posortowanych typów serwisów.
+    - `ID typu serwisu` (int): Identyfikator typu serwisu
+    - `Rodzaj serwisu` (string): Rodzaj serwisu
+    - `Typ pojazdu` (string): Typ pojazdu
   - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---

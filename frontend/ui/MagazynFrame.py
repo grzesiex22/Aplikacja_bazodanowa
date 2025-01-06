@@ -16,7 +16,7 @@ import textwrap
 
 from Aplikacja_bazodanowa.frontend.ui.EditFrame import EditFrame
 from Aplikacja_bazodanowa.frontend.ui.EditFrameCzesci import EditFrameCzesci
-from Aplikacja_bazodanowa.frontend.ui.AddFrame import AddFrame
+from Aplikacja_bazodanowa.frontend.ui.AddFrameCzesci import AddFrameCzesci
 from Aplikacja_bazodanowa.frontend.ui.FilterFrame import FilterFrame
 from Aplikacja_bazodanowa.frontend.ui.FilterFrameMagazine import FilterFrameMagazine
 from Aplikacja_bazodanowa.frontend.ui.RaportFrame import RaportFrame
@@ -401,15 +401,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.button_magazyn_czesci.setChecked(True)
         self.update_screen_type(ScreenType.CZESCI.value)  # Ustawienie początkowej wartości zmiennej
 
-    def przypisanie(self):
-        if self.filters_set:
-            self.przypisanie_frame = FilterFrame(class_name="WyposazeniePojazdu", api_url=f"{self.api_url}/wyposazenie",
-                                      parent=self, header_title="Dodawanie części",
-                                      refresh_callback=self.load_data_filtered)
-        else:
-            self.przypisanie_frame = AddFrame(class_name="WyposazeniePojazdu", api_url=f"{self.api_url}/wyposazenie",
-                                      parent=self, header_title="Dodawanie części", refresh_callback=self.load_data)
-        self.przypisanie_frame.show()
 
     def erase_filters(self):
         self.filters_set = False
@@ -462,13 +453,6 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.erase_filters()
 
 
-        # if self.filters_set:
-        #     self.load_data_filtered()
-        # else:
-        #     self.load_data()
-
-
-
     def save_changes(self, row):
         for column in range(self.model_kierowca.columnCount()):
             line_edit = self.edit_frame.findChild(QLineEdit, f"line_edit_{row}_{column}")
@@ -518,12 +502,24 @@ class WarehouseFrame(QtWidgets.QFrame):
         self.overlay = OverlayWidget(self)
         self.overlay.show()
 
-        if self.filters_set:
-            self.add_frame = AddFrame(class_name="czesc", api_url=f"{self.api_url}/czesc",
-                                      parent=self, header_title="Dodawanie części", refresh_callback=self.load_data_filtered)
+        if self.filters_set and self.screen_type == ScreenType.CZESCI:
+            self.add_frame = AddFrameCzesci(class_name="czesc", api_url=f"{self.api_url}/czesc",
+                                            parent=self, header_title="Dodawanie części",
+                                            refresh_callback=self.load_data_filtered)
+        elif self.filters_set and self.screen_type == ScreenType.WYPOSAZENIE:
+            self.add_frame = AddFrameCzesci(class_name="czesc", api_url=f"{self.api_url}/czesc",
+                                            parent=self, header_title="Dodawanie części",
+                                            screen_type=2,
+                                            refresh_callback=self.load_data_filtered)
+        elif not self.filters_set and self.screen_type == ScreenType.CZESCI:
+            self.add_frame = AddFrameCzesci(class_name="czesc", api_url=f"{self.api_url}/czesc",
+                                            parent=self, header_title="Dodawanie części",
+                                            refresh_callback=self.load_data_filtered)
         else:
-            self.add_frame = AddFrame(class_name="czesc", api_url=f"{self.api_url}/czesc",
-                                  parent=self, header_title="Dodawanie części", refresh_callback=self.load_data)
+            self.add_frame = AddFrameCzesci(class_name="czesc", api_url=f"{self.api_url}/czesc",
+                                            parent=self, header_title="Dodawanie części",
+                                            screen_type=2,
+                                            refresh_callback=self.load_data_filtered)
         self.add_frame.show()
 
         # Po zamknięciu okna dialogowego, przywrócenie interakcji

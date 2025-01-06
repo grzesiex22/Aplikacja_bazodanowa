@@ -105,7 +105,7 @@ def pobierz_pojazdy():
 @pojazd_bp.route('/pojazd/filtry', methods=['GET'])
 def jakie_filtry_dla_pojazdy():
     """
-    Endpoint do pobierania dostępnych filtrów dla pojazdów, z możliwością filtrowania według rodzaju pojazdu
+    Endpoint do pobierania dostępnych unikalnych filtrów dla pojazdów, z możliwością filtrowania według rodzaju pojazdu
     oraz według innych kryteriów, takich jak dane kierowcy.
 
     Parametry wejściowe:
