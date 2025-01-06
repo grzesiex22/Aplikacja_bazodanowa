@@ -33,7 +33,9 @@ Dodatkowe funkcjonalności magazynowe:
 
 Program stanowi kompleksowe narzędzie wspierające firmy w optymalizacji zarządzania flotą i obniżaniu kosztów operacyjnych.  
 
-## Technologie  
+## Technologie
+Aplikacja działa w wersji desktopowej.
+
 Backend został napisany z użyciem następujących technologii i bibliotek:  
 
 - **Python** – główny język programowania.  
@@ -148,7 +150,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `GET /czesci`
 - **Opis**: Pobiera listę części z możliwością filtrowania i sortowania.
-- **Parametry**:
+- **Parametry w formacie json**:
   - `nazwaElementu` (string, opcjonalny): Nazwa elementu do wyszukiwania.
   - `idTypSerwisu` (int, opcjonalny): ID typu serwisu, do którego przypisana jest część.
   - `includeTypSerwisu` (string, opcjonalny): Uwzględnienie tylko części z określonym typem serwisu.
@@ -168,7 +170,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `POST /czesc/add`
 - **Opis**: Dodaje nową część lub aktualizuje istniejącą, zwiększając ilość.
-- **Parametry**:
+- **Parametry w formacie json**:
   - `Nazwa elementu` (string, wymagany): Nazwa części.
   - `Ilość` (int, wymagany): Ilość części.
   - `idTypSerwisu` (int, wymagany): ID typu serwisu, do którego przypisana jest część.
@@ -180,7 +182,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `POST /czesc/validate`
 - **Opis**: Waliduje dane wejściowe dla nowej części.
-- **Parametry**:
+- **Parametry w formacie json**:
   - `Nazwa elementu` (string, wymagany): Nazwa części.
   - `Ilość` (int, wymagany): Ilość części.
   - `idTypSerwisu` (int, wymagany): ID typu serwisu.
@@ -205,6 +207,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Opis**: Edytuje dane istniejącej części na podstawie jej identyfikatora `id`.
 - **Parametry**:
   - `id` (int): Identyfikator części w URL.
+- **Parametry w formacie json**:
   - `Nazwa elementu` (string, opcjonalny): Nowa nazwa części.
   - `Ilość` (int, opcjonalny): Nowa ilość części.
   - `idTypSerwisu` (int, wymagany): Nowe ID typu serwisu.
@@ -217,7 +220,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `POST /czesc/check`
 - **Opis**: Sprawdza, czy część o określonej nazwie i typie serwisu istnieje w bazie danych.
-- **Parametry**:
+- **Parametry w formacie json**:
   - `Nazwa elementu` (string, wymagany): Nazwa części.
   - `idTypSerwisu` (int, wymagany): ID typu serwisu.
 - **Odpowiedzi**:
@@ -261,17 +264,23 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Odpowiedzi**:
   - **200 OK**: Zwraca posortowaną listę unikalnych wartości w formacie JSON.
   - **400 Bad Request**: Jeśli kolumna o podanej nazwie nie istnieje.
+  - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
 
 ### `GET /kierowca/show`
 - **Opis**: Pobiera i sortuje kierowców na podstawie parametrów zapytania. Możliwość filtrowania, sortowania oraz wyboru kierunku sortowania.
-- **Parametry**:
+- **Parametry w formacie json (opcjonalnie)**:
   - `filter_by` (string): Filtry w formacie JSON. Domyślnie `{}`.
   - `sort_by` (string): Kolumna do sortowania. Domyślnie "ID kierowcy".
   - `order` (string): Kierunek sortowania: "asc" lub "desc". Domyślnie "asc".
 - **Odpowiedzi**:
-  - **200 OK**: Zwraca posortowaną listę kierowców w formacie JSON.
+  - **200 OK**: Zwraca posortowaną listę kierowców w formacie JSON:
+    - `ID kierowcy`
+    - `Imię`
+    - `Nazwisko`
+    - `Numer telefonu`.
+  - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
 
@@ -279,12 +288,13 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Opis**: Pobiera listę kierowców w formacie przydatnym do wyświetlania w oknie wyboru (ID i imię, nazwisko, numer telefonu).
 - **Odpowiedzi**:
   - **200 OK**: Zwraca listę kierowców z ID, imieniem, nazwiskiem i numerem telefonu w formacie JSON.
+  - **500 Internal Server Error**: W przypadku błędu serwera.
 
 ---
 
 ### `POST /kierowca/add`
 - **Opis**: Dodaje nowego kierowcę do bazy danych. Oczekuje danych w formacie JSON.
-- **Parametry**:
+- **Parametry w formacie json (wymagane)**:
   - `imie` (string): Imię kierowcy.
   - `nazwisko` (string): Nazwisko kierowcy.
   - `nrTel` (string): Numer telefonu kierowcy.
@@ -309,6 +319,7 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 - **Opis**: Edytuje dane istniejącego kierowcy na podstawie jego identyfikatora `id`.
 - **Parametry**:
   - `id` (int): Identyfikator kierowcy w URL.
+- **Parametry w formacie json**: 
   - `imie` (string, opcjonalny): Nowe imię kierowcy.
   - `nazwisko` (string, opcjonalny): Nowe nazwisko kierowcy.
   - `nrTel` (string, opcjonalny): Nowy numer telefonu kierowcy.
@@ -321,19 +332,19 @@ Wszystkie endpointy API znajdują się w katalogu `routes_dir`. Tam można znale
 
 ### `POST /kierowca/validate`
 - **Opis**: Sprawdza poprawność danych kierowcy (np. numer telefonu).
-- **Parametry**:
+- **Parametry w formacie json**:
   - `imie` (string): Imię kierowcy.
   - `nazwisko` (string): Nazwisko kierowcy.
   - `nrTel` (string): Numer telefonu kierowcy.
 - **Odpowiedzi**:
   - **200 OK**: Jeśli dane są poprawne.
-  - **400 Bad Request**: Jeśli dane są niepoprawne (np. zły format numeru telefonu).
+  - **400 Bad Request**: Jeśli dane są niepoprawne (np. zły format numeru telefonu) - informacja o błędzie zwracana.
 
 ---
 
 ### `GET /kierowca/sort`
 - **Opis**: Sortuje kierowców na podstawie wybranej kolumny i kierunku sortowania.
-- **Parametry**:
+- **Parametry w formacie json**:
   - `sort_by` (string): Kolumna do sortowania. Domyślnie "ID kierowcy".
   - `order` (string): Kierunek sortowania: "asc" lub "desc". Domyślnie "asc".
 - **Odpowiedzi**:

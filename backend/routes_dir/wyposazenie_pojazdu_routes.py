@@ -59,8 +59,8 @@ def pobierz_wszystkie_wyposazenie():
         if sort_by in ['opis', 'ilosc']:
             sort_column = getattr(WyposazeniePojazdu, sort_by, WyposazeniePojazdu.opis)
             query = query.order_by(kierunek_sortowania(sort_column))
-        elif sort_by == 'idPojazd':
-            query = query.join(Pojazd, WyposazeniePojazdu.idPojazd == Pojazd.idPojazd, isouter=True)
+        elif sort_by == 'pojazd':
+            # query = query.join(Pojazd, WyposazeniePojazdu.idPojazd == Pojazd.idPojazd, isouter=True)
             query = query.order_by(
                 kierunek_sortowania(Pojazd.typPojazdu),
                 kierunek_sortowania(Pojazd.marka),

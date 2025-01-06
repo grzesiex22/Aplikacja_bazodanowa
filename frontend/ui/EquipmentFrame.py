@@ -431,7 +431,7 @@ class EquipmentFrame(QtWidgets.QFrame):
         if column_name == 'Ilość':
             column_name = 'ilosc'
         if column_name == 'Pojazd':
-            column_name = 'idPojazd'
+            column_name = 'pojazd'
 
         print(self.sort_parameteres_czesci_order, self.sort_parameteres_czesci_sort_by)
 
