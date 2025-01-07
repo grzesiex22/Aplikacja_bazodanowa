@@ -869,7 +869,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
             # Przygotowanie nagłówków tabeli
             headers = ["Nr", "Typ Serwisu", "Nazwa Elementu", "Ilość"]
-            column_widths = [40, 120, 210, 50]  # Ustalona szerokość kolumn
+            column_widths = [40, 140, 210, 50]  # Ustalona szerokość kolumn
 
             x_offsets = [50]  # Start od X=50
             for width in column_widths[:-1]:
