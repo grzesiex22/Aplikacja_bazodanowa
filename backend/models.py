@@ -804,17 +804,17 @@ class SerwisWidok(BaseModel):
             'editable': False,
             'input_type': 'readonly',
         },
-        'rodzajSerwisu': {
-            'friendly_name': 'Typ serwisu',
-            'editable': False,
-            'input_type': 'readonly',
-            'filter': 'select'
-        },
         'idPojazd': {
             'friendly_name': 'ID pojazdu',
             'editable': False,
             'input_type': 'Dane pojazdu',
             'filter': False
+        },
+        'rodzajSerwisu': {
+            'friendly_name': 'Typ serwisu',
+            'editable': False,
+            'input_type': 'readonly',
+            'filter': 'select'
         },
         'typPojazdu': {
             'friendly_name': 'Typ pojazdu',

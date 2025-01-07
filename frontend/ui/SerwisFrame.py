@@ -1,3 +1,4 @@
+import copy
 import json
 
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -13,7 +14,7 @@ from Aplikacja_bazodanowa.frontend.ui.RaportFrame import RaportFrame
 import os
 from enum import Enum, auto
 import requests
-
+import Aplikacja_bazodanowa.frontend.fonts
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfbase import pdfmetrics
@@ -393,6 +394,7 @@ class SerwisFrame(QtWidgets.QFrame):
                     # Jeśli nie można przekonwertować tekstu na liczbę, pomijamy ten wiersz
                     continue
 
+        self.suma_kosztow = suma_kosztow
         # Aktualizowanie etykiety z sumą
         self.label_suma_kosztow.setText(f"Suma kosztów: {suma_kosztow:.2f} zł")
 
@@ -518,6 +520,7 @@ class SerwisFrame(QtWidgets.QFrame):
             new_width = max(content_width, header_width, 100)
             self.tableView_serwis.setColumnWidth(i, new_width)
 
+
         # Ustaw szerokość kolumny klucza głównego na 0, jeśli jest dostępna
         if self.primary_key_index is not None:
             self.tableView_serwis.setColumnWidth(self.primary_key_index, 0)
@@ -555,8 +558,8 @@ class SerwisFrame(QtWidgets.QFrame):
                 self.model_serwis.removeRows(0, self.model_serwis.rowCount())  # Usuwamy poprzednie dane z modelu
                 for serwis in serwis_data:
                     self.model_serwis.appendRow([QStandardItem(str(serwis['ID serwisu'])),
-                                                 QStandardItem(serwis['Typ serwisu']),
                                                  QStandardItem(str(serwis['ID pojazdu'])),
+                                                 QStandardItem(serwis['Typ serwisu']),
                                                  QStandardItem(serwis['Typ pojazdu']),
                                                  QStandardItem(serwis['Marka']),
                                                  QStandardItem(serwis['Model']),
@@ -595,8 +598,11 @@ class SerwisFrame(QtWidgets.QFrame):
                     headers.append(column["friendly_name"])  # Dodaj nazwę kolumny do nagłówków
                     if column["primary_key"]:
                         primary_key = i  # Zapisz indeks kolumny będącej kluczem głównym
-                    if column["foreign_key"]:
-                        foreign_key.append(i)  # Zapisz indeks kolumny będącej kluczem głównym
+                    elif column["foreign_key"]:
+                        foreign_key.append(i)  # Zapisz indeks kolumny będącej kluczem obcym
+                    elif 'ID' in column["friendly_name"]:
+                        foreign_key.append(i)  # Zapisz indeks kolumny będącej kluczem obcym
+
 
                 # Ustaw nagłówki w modelu
                 if model:
@@ -609,11 +615,6 @@ class SerwisFrame(QtWidgets.QFrame):
 
         return None, None
 
-
-    #########################################################################################################
-    ########################################################################################################
-    ########################################################################################################
-    ########################################################################################################
 
     def on_filters_updated(self, filters):
         """
@@ -666,7 +667,8 @@ class SerwisFrame(QtWidgets.QFrame):
         self.overlay = OverlayWidget(self)
         self.overlay.show()
 
-        self.raport_dialog = RaportFrame(parent=self, save_callback=self.generate_raport, header_title="Raport serwisów")
+        self.raport_dialog = RaportFrame(parent=self, save_callback=self.generate_raport,
+                                         header_title="Raport serwisów")
         self.raport_dialog.show()
 
         # Po zamknięciu okna dialogowego, przywrócenie interakcji
@@ -686,7 +688,11 @@ class SerwisFrame(QtWidgets.QFrame):
                 os.makedirs(output_dir)
 
             # Rejestracja czcionki
-            font_path = "./frontend/fonts/dejavu-sans-ttf-2.37/ttf/DejaVuSans.ttf"
+            base_dir = os.path.dirname(os.path.abspath(__file__))  # Pobierz katalog bieżącego pliku
+            base_dir = base_dir.replace("\\ui", "")
+            font_path = os.path.join(base_dir,
+                                     "fonts/dejavu-sans-ttf-2.37/ttf/DejaVuSans.ttf")  # Połącz z relatywną ścieżką
+
             print(f"Ścieżka czcionki: {font_path}")
             if not os.path.exists(font_path):
                 QMessageBox.critical(self, "Błąd", "Nie znaleziono pliku czcionki.")
@@ -742,8 +748,8 @@ class SerwisFrame(QtWidgets.QFrame):
             ]
 
             model = self.model_serwis
-            self.model_serwis.removeColumn(0)
-            self.model_serwis.removeColumn(1)
+            # self.model.removeColumn(0)
+            # self.model.removeColumn(1)
 
             print(f"Nagłówki tabeli: {headers}")
 
@@ -769,6 +775,7 @@ class SerwisFrame(QtWidgets.QFrame):
             total_cost = 0  # Zmienna przechowująca całkowity koszt
 
             for row in range(model.rowCount()):
+
                 print(f"Przetwarzanie wiersza: {row}")
                 if y_position < 30:
                     print("Brak miejsca na stronie. Tworzenie nowej strony...")
@@ -783,7 +790,9 @@ class SerwisFrame(QtWidgets.QFrame):
 
                 # Pobranie danych wiersza
                 values = []
-                for col in range(len(headers)):
+                for col in range(len(headers)+2):
+                    if col == 0 or col == 1:
+                        continue
                     item = model.item(row, col)
                     value = item.text() if item and item.text() else "-"
                     values.append(value)
@@ -822,6 +831,7 @@ class SerwisFrame(QtWidgets.QFrame):
 
             pdf.setFont("DejaVuSans", 7)
             pdf.drawString(x_offsets[0], y_position, "Koszt całkowity netto:")
+
             pdf.drawString(x_offsets[8], y_position, f"{self.suma_kosztow:.2f}")
 
             # Zapisanie PDF

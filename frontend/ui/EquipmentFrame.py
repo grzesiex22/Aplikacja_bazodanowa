@@ -176,6 +176,7 @@ class EquipmentFrame(QtWidgets.QFrame):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'qss', 'FleetFrame_QScrollArea.qss')
         with open(file_path, "r") as file:
             stylesheet = file.read()
+        stylesheet = stylesheet.replace('url(icons/', f'url({self.icon_path}/')
         self.scroll_area.setStyleSheet(stylesheet)
         self.scroll_area.viewport().update()
 
@@ -760,6 +761,7 @@ class EquipmentFrame(QtWidgets.QFrame):
         self.raport_dialog.finished.connect(self.remove_overlay)
 
     def generate_raport(self, pdf_file):
+        self.remove_overlay()
 
         # Upewnij się, że ścieżka katalogu istnieje
         output_dir = os.path.dirname(pdf_file)

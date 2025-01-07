@@ -819,7 +819,7 @@ class WarehouseFrame(QtWidgets.QFrame):
 
     def generate_raport(self, pdf_file):
 
-        # self.remove_overlay()
+        self.remove_overlay()
 
         # Upewnij się, że ścieżka katalogu istnieje
         output_dir = os.path.dirname(pdf_file)
